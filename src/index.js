@@ -1,42 +1,69 @@
-import classMixin from './helpers/classMixin';
 import deepmerge from './helpers/deepmerge';
-import extend from './helpers/extend';
-import { capitalizeFirstLetter } from './helpers/utils';
+import { capitalizeFirstLetter, scaleFont, debounce } from './helpers/utils';
 import dom from './helpers/dom';
+import autoFont from './core/autoFont';
 import Media from './core/media/index';
 import containerBounds from './helpers/containerBounds';
 import pageVisibility from './helpers/pageVisibility';
-import contextMenu from './helpers/contextMenu';
 import externalControls from './core/media/events/externalControls';
 import ajax from './helpers/ajax';
 
-const settings = Symbol('settings');
+const fn_contextmenu = function(e) {
+	e.stopPropagation();
+	e.preventDefault();
+	return false;
+}
+
 const defaults = {
-	width: 960,
-	height: 540
+	defaultWidth: 960,
+	defaultHeight: 540,
+	autoplay: false,
+	loop: false,
+	controls: false,
+	font: {
+		ratio: 1,
+		min: .5,
+		units: "em"
+	}
 };
 
 class kmlPlayer extends Media {
 	constructor(el, settings, _events) {
 		super(el);
-		this[settings] = deepmerge(defaults, settings);
+		this.__settings = deepmerge(defaults, settings);
 		dom.class.add(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
 		this.wrapper = dom.wrap(this.media, dom.createElement('div', {
 			class: 'kmlPlayer'
 		}));
-		this.defaultWidth(this[settings].width);
-		this.defaultHeight(this[settings].height);
 
-		this.pageVisibility = new pageVisibility(el, {
-			onHidden: () => {
-				console.log(this.currentTime());
+		//initSettings
+		for(var k in this.__settings){
+			if(this[k]){
+				this[k](this.__settings[k]);
+				if(k==='autoplay' && this.__settings[k]) this.play();
 			}
-		});
-		this.contextMenu = new contextMenu(el);
+		}
+
+		//initPageVisibility
+		this.pageVisibility = new pageVisibility(el);
+
+		//initexternalControls
 		this.externalControls = new externalControls(el);
 
+		//autoFONT
+		let _width = ()=>{ return this.width() };
+		this.autoFont = new autoFont(this.wrapper, _width, this.__settings.font);
+		if(this.__settings.font) this.autoFont.enabled(true);
+
+		//initCallbackEvents
 		for (var evt in _events) {
 			this.on(evt, _events[evt], this);
+		}
+	}
+
+	contextMenu(v){
+		if (typeof v === 'boolean') {
+			v ? this.media.removeEventListener('contextmenu', fn_contextmenu) : this.media.addEventListener('contextmenu', fn_contextmenu);
 		}
 	}
 
@@ -119,6 +146,11 @@ class kmlPlayer extends Media {
 			dom.class.toggle(this.wrapper, v);
 		}
 	}
+};
+
+window.onerror = function(message, scriptUrl, line, column) {
+    console.log(line, column, message);
+    alert(line + ":" +column +"-"+ message);
 };
 
 export default kmlPlayer;

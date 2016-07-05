@@ -33,18 +33,13 @@ export default class Fullscreen extends Events {
             this._fullscreenElement = null;
             this.fullscreenElementStyle = {};
         } else {
-            // let fnRestore = ()=>{
-            //     console.log(this.isFullScreen());
-            //     this.scrollPosition.restore();
-            // }
-            // let event = (prefixFS === '') ? 'fullscreenchange' : prefixFS + (prefixFS == 'ms' ? 'fullscreenchange' : 'fullscreenchange');
-            // document.addEventListener(event.toLowerCase(), () => {
-            //     if(this.isFullScreen()){
-            //        this.scrollPosition.save();
-            //     }else{
-            //         setTimeout(fnRestore,100);
-            //     };
-            // });
+            let event = (prefixFS === '') ? 'fullscreenchange' : prefixFS + (prefixFS == 'ms' ? 'fullscreenchange' : 'fullscreenchange');
+            let fnFullscreenChange = ()=>{
+                if(!this.isFullScreen()){
+                    setTimeout(this.scrollPosition.restore,100);
+                }
+            }
+            document.addEventListener(event.toLowerCase(), fnFullscreenChange, false);
         }
     }
     isFullScreen(element) {
@@ -68,6 +63,7 @@ export default class Fullscreen extends Events {
             element = this.wrapper;
         }
         if (supportsFullScreen) {
+            this.scrollPosition.save();
             return (prefixFS === '') ? element.requestFullScreen() : element[prefixFS + (prefixFS == 'ms' ? 'RequestFullscreen' : 'RequestFullScreen')]();
         } else {
             if (!this.isFullScreen()) {
@@ -110,7 +106,7 @@ export default class Fullscreen extends Events {
             }
         }
     }
-    toggleFullscreen(element) {
+    toggleFullScreen(element) {
         let isFullscreen = !this.isFullScreen();
         if (isFullscreen) {
             this.requestFullScreen(element);

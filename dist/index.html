@@ -15,7 +15,7 @@
 </head>
 <body>
 
-   <video>
+   <video crossorigin>
        <source type="video/mp4" src="https://cdn.selz.com/plyr/1.5/View_From_A_Blue_Moon_Trailer-HD.mp4"></source>
        <p>
            Pour voir cette vidéo, merci d'activer JavaScript et d'envisager la mise à niveau vers un navigateur Web qui <a href='' target='_blank'>supporte la vidéo HTML5</a>
@@ -24,7 +24,14 @@
 
    <script src="kmlPlayer.js"></script>
    <script>
-    var player = new kmlPlayer(document.querySelector('video'));
+    var player = new kmlPlayer(document.querySelector('video'),{
+      autoplay: true,
+      loop: true,
+      controls: false,
+      contextMenu: false,
+      subtitle: "https://cdn.selz.com/plyr/1.5/View_From_A_Blue_Moon_Trailer-HD.en.vtt"
+    });
+    player.autoplay(true);
    </script>
 </body>
 </html>

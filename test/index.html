@@ -18,6 +18,7 @@
       width: 33%;
       height: 250px;
       position: relative;
+      margin-top: 300px;
     }
    </style>
 </head>
@@ -54,7 +55,8 @@
     var a = new kmlPlayer(document.querySelector('#videoA'), {
       autostart: true,
       loop: true,
-      controls: true
+      controls: true,
+      font: false
     }, {
       'canplay' : function(){
         console.log(this, "canplay");
@@ -63,6 +65,8 @@
         console.log(this.media);
       }
     });
+
+    a.addClass('test');
 
     // var b = new kmlPlayer(document.querySelector('#videoB'), {
     //   autostart: true,

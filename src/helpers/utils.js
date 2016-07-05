@@ -21,7 +21,39 @@ export function getPercentage(current, max) {
 }
 
 export function getRandBinaryfunction() {
-    return Math.floor(Math.random() * 2);
+	return Math.floor(Math.random() * 2);
 }
+
+export function toSeconds(t) {
+	var s = 0.0;
+	if (t) {
+		var p = t.split(':');
+		for (var i = 0; i < p.length; i++)
+			s = s * 60 + parseFloat(p[i].replace(',', '.'))
+	}
+	return s;
+}
+
+export function autoLineHeight(el){
+	let l = el.offsetHeight + "px";
+	el.style.lineHeight = l;
+	return l;
+}
+
+export function scaleFont(f, width) {
+	var r = false, l = false;
+	if (f.min !== false && f.ratio !== false) {
+		r = f.ratio * width / 1000;
+		if (r < f.min) r = f.min;
+		if (f.units == 'px') r = Math.ceil(r);
+		r = r + f.units;
+		if (!isNaN(f.lineHeight) && f.lineHeight) {
+			l = r * f.lineHeight;
+			if (l < 1) l = 1;
+			l = l + f.units;
+		}
+	}
+	return {fontSize: r, lineHeight: l};
+};
 
 export default {};
