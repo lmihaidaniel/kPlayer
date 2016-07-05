@@ -42,7 +42,33 @@ toggleClass = function(elem, c) {
 	fn(elem, c);
 };
 
+let getPrefixedStylePropName = function getPrefixedStylePropName(propName) {
+    var domPrefixes = 'Webkit Moz ms O'.split(' '),
+        elStyle = document.documentElement.style;
+    if (elStyle[propName] !== undefined) return propName; // Is supported unprefixed
+    propName = propName.charAt(0).toUpperCase() + propName.substr(1);
+    for (var i = 0; i < domPrefixes.length; i++) {
+        if (elStyle[domPrefixes[i] + propName] !== undefined) {
+            return domPrefixes[i] + propName; // Is supported with prefix
+        }
+    }
+};
+
 export default {
+	stylePrefix : {
+		transform: getPrefixedStylePropName('transform'),
+	    perspective: getPrefixedStylePropName('perspective'),
+	    backfaceVisibility: getPrefixedStylePropName('backfaceVisibility')
+	},
+	triggerWebkitHardwareAcceleration: function(element){
+		if (this.stylePrefix.backfaceVisibility && this.stylePrefix.perspective) {
+	        element.style[this.stylePrefix.perspective] = '1000px';
+	        element.style[this.stylePrefix.backfaceVisibility] = 'hidden';
+	    }
+	},
+	transform: function(element, value){
+		element.style[this.stylePrefix.transform] = value;
+	},
 	class: {
 		has: hasClass,
 		add: addClass,

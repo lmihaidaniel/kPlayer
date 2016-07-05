@@ -52,6 +52,7 @@ class kmlPlayer extends Media {
 
 		//autoFONT
 		let _width = ()=>{ return this.width() };
+		if(typeof this.__settings.font === "boolean" && this.__settings.font) this.__settings.font = defaults.font;
 		this.autoFont = new autoFont(this.wrapper, _width, this.__settings.font);
 		if(this.__settings.font) this.autoFont.enabled(true);
 
@@ -59,6 +60,11 @@ class kmlPlayer extends Media {
 		for (var evt in _events) {
 			this.on(evt, _events[evt], this);
 		}
+	}
+
+	test(x,y){
+		dom.triggerWebkitHardwareAcceleration(this.wrapper);
+		dom.transform(this.wrapper, 'translate('+x+'px, '+y+'px)');
 	}
 
 	contextMenu(v){

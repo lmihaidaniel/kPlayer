@@ -40,18 +40,23 @@ export function autoLineHeight(el){
 	return l;
 }
 
-export function scaleFont(f, width) {
+export function scaleFont(f, width, el) {
 	var r = false, l = false;
+	if(f.units != 'px') f.units = 'em';
 	if (f.min !== false && f.ratio !== false) {
 		r = f.ratio * width / 1000;
 		if (r < f.min) r = f.min;
 		if (f.units == 'px') r = Math.ceil(r);
-		r = r + f.units;
 		if (!isNaN(f.lineHeight) && f.lineHeight) {
 			l = r * f.lineHeight;
 			if (l < 1) l = 1;
-			l = l + f.units;
+			l = +l.toFixed(3) + f.units;
 		}
+		r = +r.toFixed(3) + f.units;
+	}
+	if(el){
+		if(r) el.style.fontSize = r;
+		if(l) el.style.lineHeight = l;
 	}
 	return {fontSize: r, lineHeight: l};
 };
