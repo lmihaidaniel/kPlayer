@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+   <meta name="description" content="Kumullus Video Experience"/>
+   <meta name="keywords" content=""/>
+   <meta name="author" content="Kumullus"/>
+   <link rel="icon" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-32x32.png" sizes="32x32">
+   <link rel="icon" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-192x192.png" sizes="192x192">
+   <link rel="apple-touch-icon-precomposed" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-180x180.png">
+   <title>kmlPlayer</title>
+   <link rel="stylesheet" type="text/css" href="kmlPlayer.css">
+   <style>
+    .test{      
+      display: inline-block;
+      width: 33%;
+      height: 250px;
+      position: relative;
+    }
+   </style>
+</head>
+<body>
+   <video id="videoA">
+       <source type="video/mp4" src="https://cdn.selz.com/plyr/1.5/View_From_A_Blue_Moon_Trailer-HD.mp4"></source>
+       <p>
+           Pour voir cette vidéo, merci d'activer JavaScript et d'envisager la mise à niveau vers un navigateur Web qui <a href='' target='_blank'>supporte la vidéo HTML5</a>
+       </p>
+   </video>
+
+   <!-- <video id="videoB">
+       <source type="video/mp4" src="https://cdn.selz.com/plyr/1.5/View_From_A_Blue_Moon_Trailer-HD.mp4"></source>
+       <p>
+           Pour voir cette vidéo, merci d'activer JavaScript et d'envisager la mise à niveau vers un navigateur Web qui <a href='' target='_blank'>supporte la vidéo HTML5</a>
+       </p>
+   </video> -->
+   
+
+   <script src="kmlPlayer.js"></script>
+   <script>
+    // var videos = document.querySelectorAll('video');
+     
+    // let a = new kmlPlayer(videos[0], {controls: 'native'});
+    // a.play();
+    // //a.mute();
+    // a.addClass('test');
+       
+    // let b = new kmlPlayer(videos[1], {name: 'c_1'});
+    // b.play();
+    // b.mute();
+    // b.addClass('test');
+    
+    var a = new kmlPlayer(document.querySelector('#videoA'), {
+      autostart: true,
+      loop: true,
+      controls: true
+    }, {
+      'canplay' : function(){
+        console.log(this, "canplay");
+      },
+      'loadedmetadata': function(){
+        console.log(this.media);
+      }
+    });
+
+    // var b = new kmlPlayer(document.querySelector('#videoB'), {
+    //   autostart: true,
+    //   loop: true,
+    //   controls: true
+    // }, {
+    //   'loadedmetadata': function(){
+    //     console.log(this.media);
+    //   }
+    // });
+   </script>
+</body>
+</html>
