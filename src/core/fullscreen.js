@@ -45,7 +45,7 @@ export default class Fullscreen extends Events {
     isFullScreen(element) {
         if (supportsFullScreen) {
             if (typeof element === 'undefined') {
-                element = this.wrapper;
+                element = this.wrapperPlayer;
             }
             switch (prefixFS) {
                 case '':
@@ -60,7 +60,7 @@ export default class Fullscreen extends Events {
     }
     requestFullScreen(element) {
         if (typeof element === 'undefined') {
-            element = this.wrapper;
+            element = this.wrapperPlayer;
         }
         if (supportsFullScreen) {
             this.scrollPosition.save();
@@ -84,6 +84,7 @@ export default class Fullscreen extends Events {
                 element.style.zIndex = 2147483647;
 
                 this._fullscreenElement = element;
+                this.emit('resize');
                 this.isFullScreen = function() {
                     return true;
                 };
@@ -102,6 +103,7 @@ export default class Fullscreen extends Events {
                 this.isFullScreen = function() {
                     return false;
                 };
+                this.emit('resize');
                 this.scrollPosition.restore();
             }
         }

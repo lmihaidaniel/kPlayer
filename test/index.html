@@ -18,9 +18,13 @@
       width: 33%;
       height: 250px;
       position: relative;
-      margin-top: 300px;
+    }
+    #test, #testB{
+      position: absolute;
+      background: red;
     }
    </style>
+
 </head>
 <body>
    <video id="videoA">
@@ -38,6 +42,9 @@
    </video> -->
    
 
+   <div id="test"></div>
+   <div id="testB"></div>
+
    <script src="kmlPlayer.js"></script>
    <script>
     // var videos = document.querySelectorAll('video');
@@ -51,7 +58,8 @@
     // b.play();
     // b.mute();
     // b.addClass('test');
-    
+    var test = document.getElementById('test');
+    var testB = document.getElementById('testB');
     var a = new kmlPlayer(document.querySelector('#videoA'), {
       autostart: true,
       loop: true,
@@ -60,9 +68,26 @@
       'loadedmetadata': function(){
         console.log(this.bounds());
       }
+    }, function(){
+        this.addClass('test');
+
+        this.wrapperPlayer.appendChild(test);
+        this.wrapperPlayer.appendChild(testB);
+
+        var ac = new this.adaptiveContainer({x:0, y: 0, width: "33%"});
+        ac.active(true)
+        ac.domElement(test);
+
+        var ab = new this.adaptiveContainer({x:"33%", y: 0, width: "33%"});
+        ab.active(true)
+        ab.domElement(testB);
+
+        console.log(ac.data());
+        console.log(ab.data());
+
     });
 
-    a.addClass('test');
+    
 
     // var b = new kmlPlayer(document.querySelector('#videoB'), {
     //   autostart: true,

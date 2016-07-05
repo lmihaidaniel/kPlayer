@@ -1,6 +1,6 @@
 import {scaleFont, debounce} from '../helpers/utils';
 import deepmerge from '../helpers/deepmerge';
-let autoFont = function(el, _width, font) {
+let autoFont = function(el, _width, font, parent) {
 	let _enabled = false;
 	let _update = function(){
 		debounce(function(){
@@ -17,9 +17,12 @@ let autoFont = function(el, _width, font) {
 	this.enabled =  function(v) {
 		if (typeof v === 'boolean' && font) {
 			_enabled = v;
-			v ? (window.addEventListener('resize', _update, false), scaleFont(font, _width(), el)) : window.removeEventListener('resize', _update, false);
+			// v ? (window.addEventListener('resize', _update, false), scaleFont(font, _width(), el)) : window.removeEventListener('resize', _update, false);
 		}
 		return _enabled;;
+	};
+	if(parent.on){
+		parent.on('resize', _update);
 	};
 }
 export default autoFont;

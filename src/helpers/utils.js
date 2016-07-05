@@ -6,6 +6,18 @@ export function trim(string) {
 	return string.replace(/^\s+|\s+$/gm, '')
 }
 
+export function procentFromString(v){
+	 if(v === undefined || v === null) return false;
+	let t = false;
+	if(v.indexOf){
+		if(v.indexOf('%') > -1)
+		{
+		  t = parseFloat(v);
+		}
+	}
+	return t;
+}
+
 export function debounce(fn, delay) {
 	var t
 	return function() {
