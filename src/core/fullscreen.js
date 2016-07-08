@@ -24,6 +24,8 @@ if (typeof document.cancelFullScreen !== 'undefined') {
         }
     }
 }
+let eventChange = (prefixFS === '') ? 'fullscreenchange' : prefixFS + (prefixFS == 'ms' ? 'fullscreenchange' : 'fullscreenchange');
+eventChange = eventChange.toLowerCase();
 //supportsFullScreen = false;
 export default class Fullscreen extends Events {
     constructor() {
@@ -33,19 +35,28 @@ export default class Fullscreen extends Events {
             this._fullscreenElement = null;
             this.fullscreenElementStyle = {};
         } else {
-            let event = (prefixFS === '') ? 'fullscreenchange' : prefixFS + (prefixFS == 'ms' ? 'fullscreenchange' : 'fullscreenchange');
             let fnFullscreenChange = ()=>{
                 if(!this.isFullScreen()){
                     setTimeout(this.scrollPosition.restore,100);
                 }
             }
-            document.addEventListener(event.toLowerCase(), fnFullscreenChange, false);
+            document.addEventListener(eventChange, fnFullscreenChange, false);
         }
+    }
+    onFullscreenChange(evt){
+        console.log(this.wrapper);
+        this.media.addEventListener(eventChange, function(e){
+            console.log(e);
+            e.preventDefault();
+            e.stopPropagation
+            return false;
+
+        }, true);
     }
     isFullScreen(element) {
         if (supportsFullScreen) {
             if (typeof element === 'undefined') {
-                element = this.wrapperPlayer;
+                element = this.wrapper;
             }
             switch (prefixFS) {
                 case '':
@@ -60,7 +71,7 @@ export default class Fullscreen extends Events {
     }
     requestFullScreen(element) {
         if (typeof element === 'undefined') {
-            element = this.wrapperPlayer;
+            element = this.wrapper;
         }
         if (supportsFullScreen) {
             this.scrollPosition.save();
@@ -69,18 +80,20 @@ export default class Fullscreen extends Events {
             if (!this.isFullScreen()) {
                 this.scrollPosition.save();
                 let style = window.getComputedStyle(element);
-                this.fullscreenElementStyle['position'] = element.style.position || "";
-                this.fullscreenElementStyle['margin'] = element.style.margin || "";
-                this.fullscreenElementStyle['top'] = element.style.top || "";
-                this.fullscreenElementStyle['left'] = element.style.left || "";
-                this.fullscreenElementStyle['width'] = element.style.width || "";
-                this.fullscreenElementStyle['height'] = element.style.height || "";
-                this.fullscreenElementStyle['zIndex'] = element.style.zIndex || "";
+                this.fullscreenElementStyle['position'] = style.position || "";
+                this.fullscreenElementStyle['margin'] = style.margin || "";
+                this.fullscreenElementStyle['top'] = style.top || "";
+                this.fullscreenElementStyle['left'] = style.left || "";
+                this.fullscreenElementStyle['width'] = style.width || "";
+                this.fullscreenElementStyle['height'] = style.height || "";
+                this.fullscreenElementStyle['zIndex'] = style.zIndex || "";
+                this.fullscreenElementStyle['maxWidth'] = style.maxWidth || "";
+                this.fullscreenElementStyle['maxHeight'] = style.maxHeight || "";
 
                 element.style.position = "absolute";
                 element.style.top = element.style.left = 0;
                 element.style.margin = 0;
-                element.style.width = element.style.height = "100%";
+                element.style.maxWidth = element.style.maxHeight = element.style.width = element.style.height = "100%";
                 element.style.zIndex = 2147483647;
 
                 this._fullscreenElement = element;

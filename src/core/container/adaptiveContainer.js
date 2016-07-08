@@ -1,5 +1,4 @@
 import {
-	autoLineHeight,
 	procentFromString,
 	debounce
 } from '../../helpers/utils';
@@ -33,12 +32,16 @@ let adaptiveContainer = function(bounds, setttings, parent) {
 		fontSize: null,
 		lineHeight: null
 	};
+	let parentWidth = 0;
+	let parentHeight = 0;
+	let parentX = 0;
+	let parentY = 0;
 	let domElement = null;
 	let settings = deepmerge(defaults, setttings);
 	let _active = false;
 
 	let updateDomElement = function() {
-		if (_active && domElement) {
+		if (_active && domElement && domElement.nodeType) {
 			if (vault.width !== null) domElement.style.width = vault.width + "px";
 			if (vault.height !== null) domElement.style.height = vault.height + "px";
 
@@ -84,6 +87,17 @@ let adaptiveContainer = function(bounds, setttings, parent) {
 	}
 
 	let updateProps = function() {
+		let _w = parent.width();
+		let _h = parent.height();
+		let _x = parent.offsetX();
+		let _y = parent.offsetY();
+		if(parentWidth != _w || parentHeight != _h || _x != parentX || _y != parentY){
+			parentWidth = _w; parentHeight = _h;
+			parentX = _x; parentY = _y;
+		}else{
+			return;
+		}
+
 		let b = bounds();
 
 		let procentWidth = procentFromString(settings.width);
@@ -107,7 +121,7 @@ let adaptiveContainer = function(bounds, setttings, parent) {
 		if (settings.x != null) {
 			let procentX = procentFromString(settings.x);
 			if(procentX){
-				vault.x = b.width * procentX / 100;
+				vault.x = b.offsetX + b.width * procentX / 100;
 			}else{
 				vault.x = b.offsetX + settings.x * b.scale;	
 			}
@@ -119,7 +133,7 @@ let adaptiveContainer = function(bounds, setttings, parent) {
 		if (settings.y != null) {
 			let procentY = procentFromString(settings.y);
 			if(procentY){
-				vault.y = b.height * procentY / 100;
+				vault.y = b.offsetY + b.height * procentY / 100;
 			}else{
 				vault.y = b.offsetY + settings.y * b.scale;
 			}
@@ -131,8 +145,8 @@ let adaptiveContainer = function(bounds, setttings, parent) {
 		updateDomElement();
 	}
 
-	this.domElement = function(element) {
-		if(element){
+	this.applyTo = function(element) {
+		if(element && element.nodeType){
 			domElement = element;
 			updateProps();
 		}
@@ -140,21 +154,19 @@ let adaptiveContainer = function(bounds, setttings, parent) {
 	}
 
 	let applyNewProps = function() {
-		debounce(function() {
-			updateProps();
-		}, 100)();
+		updateProps();
 	}
 
 	this.data = function() {
 		return vault;
 	}
 
-	this.update = function(newSettings) {
+	this.settings = function(newSettings) {
 		settings = deepmerge(settings, newSettings);
 		updateProps();
-		return vault;
+		return settings;
 	}
-	this.active = function(v) {
+	this.enabled = function(v) {
 		if (typeof v === 'boolean') {
 			_active = v;
 			if(v) applyNewProps();

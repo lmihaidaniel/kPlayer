@@ -1,9 +1,9 @@
 import dom from './dom';
 export default function(media) {
 	// Remove child sources
-	var sources = media.querySelectorAll('source');
+	var sources = dom.selectAll('source', media);
 	for (var i = 0; i < sources.length; i++) {
-		dom.remove(sources[i]);
+		dom.removeElement(sources[i]);
 	}
 
 	// Set blank video src attribute
