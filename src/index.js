@@ -16,8 +16,8 @@ const fn_contextmenu = function(e) {
 }
 
 const defaults = {
-	defaultWidth: 920,
-	defaultHeight: 520,
+	videoWidth: 920,
+	videoHeight: 520,
 	autoplay: false,
 	loop: false,
 	controls: false,
@@ -73,8 +73,8 @@ class kmlPlayer extends Media {
 
 		this.on('loadedmetadata', ()=>{
 			if(this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight){
-				this.defaultWidth();
-				this.defaultHeight();
+				this.videoWidth();
+				this.videoHeight();
 				this.emit('resize');
 			}
 		});
@@ -96,7 +96,7 @@ class kmlPlayer extends Media {
 		return ajax(options);
 	}
 
-	defaultWidth(v) {
+	videoWidth(v) {
 		if (this.media.videoWidth) {
 			this.media.width = this.media.videoWidth;
 			return this.media.videoWidth;
@@ -108,7 +108,7 @@ class kmlPlayer extends Media {
 		return this.media.width;
 	}
 
-	defaultHeight(v) {
+	videoHeight(v) {
 		if (this.media.videoHeight) {
 			this.media.height = this.media.videoHeight;
 			return this.media.videoHeight;
@@ -121,7 +121,7 @@ class kmlPlayer extends Media {
 	}
 
 	scale() {
-		return this.defaultWidth() / this.defaultHeight();
+		return this.videoWidth() / this.videoHeight();
 	}
 
 	bounds(v) {

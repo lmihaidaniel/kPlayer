@@ -12,8 +12,8 @@ export default class Container {
 				offsetY: ctx.offsetY(),
 				width: ctx.width(),
 				height: ctx.height(),
-				scale: ctx.width() / ctx.defaultWidth(),
-				scaleY: ctx.width() / ctx.defaultHeight()
+				scale: ctx.width() / ctx.videoWidth(),
+				scaleY: ctx.width() / ctx.videoHeight()
 			};
 		}, {}, ctx);
 		ac.applyTo(this.el);
