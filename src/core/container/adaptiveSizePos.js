@@ -23,7 +23,7 @@ let defaults = {
 	translate: true
 }
 
-let adaptiveContainer = function(bounds, setttings, parent) {
+let adaptiveSizePos = function(bounds, setttings, parent) {
 	let vault = {
 		x: 0,
 		y: 0,
@@ -179,4 +179,4 @@ let adaptiveContainer = function(bounds, setttings, parent) {
 		parent.on('resize', applyNewProps);
 	}
 }
-export default adaptiveContainer;
+export default adaptiveSizePos;

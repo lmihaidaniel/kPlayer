@@ -87,12 +87,10 @@ export default {
 	select: function(selector, ctx) {
 		return (ctx || document).querySelector(selector)
 	},
-	class: {
-		has: hasClass,
-			add: addClass,
-			remove: removeClass,
-			toggle: toggleClass
-	},
+	hasClass: hasClass,
+	addClass: addClass,
+	removeClass: removeClass,
+	toggleClass: toggleClass,
 	autoLineHeight: function(el) {
 		let l = el.offsetHeight + "px";
 		el.style.lineHeight = l;

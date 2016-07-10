@@ -1,17 +1,17 @@
 import {scaleFont, debounce} from '../helpers/utils';
 import deepmerge from '../helpers/deepmerge';
-let autoFont = function(el, _width, font, parent) {
+let autoFont = function(el, font, parent) {
 	let _enabled = false;
 	let _update = function(){
 		debounce(function(){
-			scaleFont(font, _width(), el);
+			scaleFont(font, parent.width(), el);
 		},100)();
 	}
 	this.update = function(v) {
 		if(v !== undefined){
 			if(!font){ font = {ratio: 1, min:1, lineHeight: false} }
 			font = deepmerge(font, v);
-			return scaleFont(font, _width(), el);
+			return scaleFont(font, parent.width(), el);
 		}
 	};
 	this.enabled =  function(v) {

@@ -42,16 +42,14 @@
    
     var test = document.getElementById('test');
     
-    var aa,ab;
-
     var player = new kmlPlayer(document.querySelector('#videoA'), {
-      autostart: true,
+      autoplay: true,
       loop: true,
-      controls: true
+      controls: 'native'
     }, null, function(){
       this.addClass('test');
 
-      this.containers.add({x: '5%', y: '25%', width: '33%', height: '50%'}, test);
+      this.containers.add({x: '25%', y: '25%', width: '50%', height: '50%'}, test);
 
     });
 

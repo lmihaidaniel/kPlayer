@@ -32,7 +32,7 @@ class kmlPlayer extends Media {
 	constructor(el, settings, _events, app) {
 		super(el);
 		this.__settings = deepmerge(defaults, settings);
-		dom.class.add(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
+		dom.addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
 		this.wrapper = dom.wrap(this.media, dom.createElement('div', {
 			class: 'kmlPlayer'
 		}));
@@ -41,8 +41,14 @@ class kmlPlayer extends Media {
 		//initSettings
 		for(var k in this.__settings){
 			if(this[k]){
+				if(k==='autoplay' && this.__settings[k]) {
+					this.play();
+					continue;
+				}
 				this[k](this.__settings[k]);
-				if(k==='autoplay' && this.__settings[k]) this.play();
+			}
+			if(k === 'controls' && this.__settings[k] === "native") {
+				this.nativeControls(true);
 			}
 		}
 
@@ -56,9 +62,8 @@ class kmlPlayer extends Media {
 		this.containers = new Container(this);
 
 		//autoFONT
-		let _width = ()=>{ return this.width() };
 		if(typeof this.__settings.font === "boolean" && this.__settings.font) this.__settings.font = defaults.font;
-		this.autoFont = new autoFont(this.wrapper, _width, this.__settings.font, this);
+		this.autoFont = new autoFont(this.wrapper, this.__settings.font, this);
 		if(this.__settings.font) this.autoFont.enabled(true);
 
 		//initCallbackEvents
@@ -155,27 +160,27 @@ class kmlPlayer extends Media {
 
 	addClass(v, el) {
 		if(el !== undefined){
-			dom.class.add(el, v);
+			dom.addClass(el, v);
 			return;
 		}
-		dom.class.add(this.wrapper, v);
+		dom.addClass(this.wrapper, v);
 	}
 	removeClass(v, el) {
 		if(el !== undefined){
-			dom.class.remove(el, v);
+			dom.removeClass(el, v);
 			return;
 		}
 		if (v !== 'kmlPlayer') {
-			dom.class.remove(this.wrapper, v);
+			dom.removeClass(this.wrapper, v);
 		}
 	}
 	toggleClass(v, el) {
 		if(el !== undefined){
-			dom.class.toggle(el, v);
+			dom.toggleClass(el, v);
 			return;
 		}
 		if (v !== 'kmlPlayer') {
-			dom.class.toggle(this.wrapper, v);
+			dom.toggleClass(this.wrapper, v);
 		}
 	}
 };

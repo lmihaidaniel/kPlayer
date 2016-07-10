@@ -10,9 +10,6 @@ export default class Media extends Fullscreen {
 		super();
 		this.media = el;
 		_events.forEach((k) => {
-			// this.on(k, function(){
-			// 	console.log(k);
-			// });
 			el.addEventListener(k, () => {
 				this.emit(k);
 			});
@@ -41,7 +38,7 @@ export default class Media extends Fullscreen {
 	}
 
 	/* If this attribute is present, the browser will offer controls to allow the user to control video playback, including volume, seeking, and pause/resume playback. When not set returns if the controls are present */
-	controls(v) {
+	nativeControls(v) {
 		if (typeof v === 'boolean') {
 			this.media.controls = v;
 		}

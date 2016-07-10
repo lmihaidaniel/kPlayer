@@ -1,18 +1,12 @@
-import deepmerge from '../../helpers/deepmerge';
-import {
-	procentFromString
-} from '../../helpers/utils';
 import dom from '../../helpers/dom';
-import adaptiveContainer from './adaptiveContainer';
-let defaults = {
-	x: 0,
-	y: 0,
-	width: 0,
-	height: 0
-}
+import adaptiveSizePos from './adaptiveSizePos';
+import relativeSizePos from './relativeSizePos';
 export default class Container {
 	constructor(ctx) {
-		var _bounds = () => {
+		this.el = dom.createElement('div', {
+			style: 'position:absolute; pointer-events: none;'
+		});
+		let ac = new adaptiveSizePos(function(){
 			return {
 				offsetX: ctx.offsetX(),
 				offsetY: ctx.offsetY(),
@@ -21,11 +15,7 @@ export default class Container {
 				scale: ctx.width() / ctx.defaultWidth(),
 				scaleY: ctx.width() / ctx.defaultHeight()
 			};
-		};
-		this.el = dom.createElement('div', {
-			style: 'position:absolute; pointer-events: none;'
-		});
-		let ac = new adaptiveContainer(_bounds, {}, ctx);
+		}, {}, ctx);
 		ac.applyTo(this.el);
 		ac.enabled(true);
 
@@ -33,26 +23,18 @@ export default class Container {
 
 		this.add = function(opts,el = {}) {
 			if(!el.nodeType) el = dom.createElement('div');
-			let o = deepmerge(defaults, opts);
+			dom.addClass(el, 'kmlContainer');
 			el.style.position = "absolute";
 			el.style.pointerEvents = "all";
 			let elDimension = function() {
-				let _w = procentFromString(o.width); 
-				if(!_w) _w = o.width / ctx.defaultWidth() * 100;
-				let _h = procentFromString(o.height); 
-				if(!_h) _h = o.height / ctx.defaultHeight() * 100;
-				let _x = procentFromString(o.x);
-				if(!_x) _x = o.x / ctx.defaultWidth() * 100;
-				let _y = procentFromString(o.y);
-				if(!_y) _y = o.y / ctx.defaultHeight() * 100;
-
-				el.style.width = _w + "%";
-				el.style.height = _h + "%";
+				let d = new relativeSizePos(ctx,opts);
+				el.style.width = d.width + "%";
+				el.style.height = d.height + "%";
 				if (dom.stylePrefix.transform) {
-					dom.transform(el, 'translate(' + 100/_w*_x + '%,' + 100/_h*_y + '%)');
+					dom.transform(el, 'translate(' + 100/d.width*d.x + '%,' + 100/d.height*d.y + '%)');
 				} else {
-					el.style.top = _x + "%";
-					el.style.left = _y + "%";
+					el.style.top = d.x + "%";
+					el.style.left = d.y + "%";
 				}
 			}
 			elDimension();
