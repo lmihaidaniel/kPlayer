@@ -86,12 +86,9 @@ export default class Container extends Events{
 		this.backgroundColor = function(v) {
 			if (v != null) {
 				overlay.style.backgroundColor = v;
-			} else {
-				overlay.style.backgroundColor
-			}
+			} 
+			return overlay.style.backgroundColor;
 		}
-
-		this.backgroundColor();
 
 		let clsElements = dom.selectAll('.triggerClose', el);
 		for (var i = 0, n = clsElements.length; i < n; i += 1) {
