@@ -1,20 +1,20 @@
-import requestAnimationFrame from './polyfills/requestAnimationFrame';
-import inFrame from './helpers/inFrame';
-import deepmerge from './helpers/deepmerge';
+import requestAnimationFrame from '../polyfills/requestAnimationFrame';
+import inFrame from '../helpers/inFrame';
+import deepmerge from '../helpers/deepmerge';
 import {
 	capitalizeFirstLetter,
 	scaleFont,
 	debounce
-} from './helpers/utils';
-import dom from './helpers/dom';
-import device from './helpers/device';
-import autoFont from './core/autoFont';
-import Containers from './core/container/containers';
-import Media from './core/media/index';
-import containerBounds from './helpers/containerBounds';
-import pageVisibility from './helpers/pageVisibility';
-import externalControls from './core/media/events/externalControls';
-import ajax from './helpers/ajax';
+} from '../helpers/utils';
+import dom from '../helpers/dom';
+import device from '../helpers/device';
+import autoFont from './autoFont';
+import Containers from './container/containers';
+import Media from './media/index';
+import containerBounds from '../helpers/containerBounds';
+import pageVisibility from '../helpers/pageVisibility';
+import externalControls from './media/events/externalControls';
+import ajax from '../helpers/ajax';
 
 const fn_contextmenu = function(e) {
 	e.stopPropagation();
@@ -35,7 +35,7 @@ const defaults = {
 	}
 };
 
-class kmlPlayer extends Media {
+export default class Player extends Media {
 	constructor(settings, _events, app) {
 		let el = settings.video;
 		let inIframe = inFrame();
@@ -89,17 +89,12 @@ class kmlPlayer extends Media {
 			this.on(evt, _events[evt], this);
 		}
 
-		if (typeof app === 'function') {
-			app.bind(this);
-		}
-
 		this.on('loadedmetadata', () => {
 			if (this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight) {
 				this.videoWidth();
 				this.videoHeight();
 				this.emit('videoResize');
 			}
-			app.bind(this)();
 		});
 
 		let videoSizeCache = {
@@ -125,6 +120,10 @@ class kmlPlayer extends Media {
 		}
 
 		checkVideoResize();
+
+		if (typeof app === 'function') {
+			app.bind(this)();
+		}
 	}
 
 	contextMenu(v) {
@@ -224,13 +223,3 @@ class kmlPlayer extends Media {
 		}
 	}
 };
-
-//disable on production
-if (device.isTouch) {
-	window.onerror = function(message, scriptUrl, line, column) {
-		console.log(line, column, message);
-		alert(line + ":" + column + "-" + message);
-	};
-}
-
-export default kmlPlayer;

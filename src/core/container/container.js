@@ -1,4 +1,5 @@
 import dom from '../../helpers/dom';
+import deepmerge from '../../helpers/deepmerge';
 import relativeSizePos from './relativeSizePos';
 import {
 	isFunction
@@ -10,7 +11,9 @@ export default class Container {
 		let isVisible = false;
 		let externalControls = false;
 		let body = dom.select('.body', el);
-		let elDimension = function() {
+		this.body = body;
+		let elDimension = function(fopts) {
+			if(fopts) opts = deepmerge(opts, fopts);
 			let d = new relativeSizePos(player, opts);
 			body.style.width = d.width + "%";
 			body.style.height = d.height + "%";
@@ -24,14 +27,32 @@ export default class Container {
 		elDimension();
 		player.on('videoResize', elDimension);
 
-		this.hide = function() {
+
+		this.updateSizePos = function(data){
+			elDimension(data);
+		}
+
+		let events = {};
+		this.on = function(event, fn) {
+			if (!events[event]) events[event] = [];
+			events[event].push(fn);
+		}
+
+		this.triggerEvent = function(name) {
+			if (events[name]) {
+				for (var k in events[name]) {
+					let fn = events[name][k];
+					if (isFunction(fn)) {
+						fn();
+					};
+				}
+			}
+		}
+
+		this.hide = ()=>{
 			if (isVisible) {
 				dom.addClass(el, 'hidden');
-				setTimeout(() => {
-					el.style.display = "none";
-					if (isFunction(opts.onHide)) opts.onHide();
-				}, 250);
-				if(opts.pause){
+				if (opts.pause) {
 					if (!playerPaused) {
 						player.play();
 					}
@@ -40,18 +61,24 @@ export default class Container {
 						player.externalControls.enabled(true);
 					}
 				}
-				ctx.checkVisibleElements();
+				setTimeout(() => {
+					el.style.display = "none";
+					if (isFunction(opts.onHide)) opts.onHide();
+					ctx.checkVisibleElements();
+					this.triggerEvent('hide');
+				}, 250);
 			}
 		}
-		this.show = function() {
+		this.show = ()=>{
 			if (!isVisible) {
 				ctx.enabled(true);
 				el.style.display = "block";
 				setTimeout(() => {
 					dom.removeClass(el, 'hidden');
 					if (isFunction(opts.onHide)) opts.onShow();
+					this.triggerEvent('show');
 				}, 50);
-				if(opts.pause){
+				if (opts.pause) {
 					if (!player.paused()) {
 						playerPaused = false;
 						player.pause();
@@ -60,7 +87,7 @@ export default class Container {
 					}
 				}
 				isVisible = true;
-				if(opts.externalControls){
+				if (opts.externalControls) {
 					if (player.externalControls.enabled()) {
 						externalControls = true;
 						player.externalControls.enabled(false);
@@ -89,12 +116,12 @@ export default class Container {
 		}
 
 
-		if(opts.visible){
+		if (opts.visible) {
 			this.show();
 		}
 
-		this.visible = function(v){
-			if(typeof v === 'boolean') isVisible = v;
+		this.visible = function(v) {
+			if (typeof v === 'boolean') isVisible = v;
 			return isVisible;
 		}
 

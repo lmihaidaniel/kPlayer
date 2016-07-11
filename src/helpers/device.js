@@ -1,5 +1,4 @@
-export default {
-  browser: (function() {
+let browser = (function() {
     var nVer = navigator.appVersion,
       nAgt = navigator.userAgent,
       browserName = navigator.appName,
@@ -66,31 +65,33 @@ export default {
     }
     // Return data
     return [browserName, majorVersion];
+  })();
+export default {
+  browser: browser,
+  isIE: (function() {
+    if (browser[0] === 'IE') {
+      return browser[1];
+    }
+    return false;
   })(),
-  isIE: function() {
-    if (this.browser[0] === 'IE') {
-      return this.browser[1];
+  isFirefox: (function(){
+    if (browser[0] === 'Firefox') {
+      return browser[1];
     }
     return false;
-  },
-  isFirefox: function(){
-    if (this.browser[0] === 'Firefox') {
-      return this.browser[1];
+  })(),
+  isChrome: (function(){
+    if (browser[0] === 'Chrome') {
+      return browser[1];
     }
     return false;
-  },
-  isChrome: function(){
-    if (this.browser[0] === 'Chrome') {
-      return this.browser[1];
+  })(),
+  isSafari: (function(){
+    if (browser[0] === 'Safari') {
+      return browser[1];
     }
     return false;
-  },
-  isSafari: function(){
-    if (this.browser[0] === 'Safari') {
-      return this.browser[1];
-    }
-    return false;
-  },
+  })(),
   isTouch: 'ontouchstart' in document.documentElement,
   isIos: /(iPad|iPhone|iPod)/g.test(navigator.platform)
 }

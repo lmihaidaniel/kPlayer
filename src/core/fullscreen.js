@@ -43,6 +43,17 @@ export default class Fullscreen extends Events {
             document.addEventListener(eventChange, fnFullscreenChange, false);
         }
     }
+    defualtFullScreenElement(element){
+        let el = element;
+        if (el == null) {
+            if(this.iframe){
+                el = this.iframe;
+            }else{
+                el = this.wrapper;    
+            }
+        }
+        return el;
+    }
     onFullscreenChange(evt){
         //investigate if native video fullscreen can be overwritten
         this.media.addEventListener(eventChange, function(e){
@@ -56,20 +67,14 @@ export default class Fullscreen extends Events {
     }
     isFullScreen(element) {
         if (supportsFullScreen) {
-            if (typeof element === 'undefined') {
-                if(this.iframe){
-                    element = this.iframe;
-                }else{
-                    element = this.wrapper;    
-                }
-            }
+            let el = this.defualtFullScreenElement(element);
             switch (prefixFS) {
                 case '':
-                    return document.fullscreenElement == element;
+                    return document.fullscreenElement == el;
                 case 'moz':
-                    return document.mozFullScreenElement == element;
+                    return document.mozFullScreenElement == el;
                 default:
-                    return document[prefixFS + 'FullscreenElement'] == element;
+                    return document[prefixFS + 'FullscreenElement'] == el;
             }
         }
         return false;
@@ -78,16 +83,10 @@ export default class Fullscreen extends Events {
         if (this.isFullWindow() || this.isFullScreen()) {
             return;
         }
-        if (typeof element === 'undefined') {
-            if(this.iframe){
-                element = this.iframe;
-            }else{
-                element = this.wrapper;    
-            }
-        }
+        let el = this.defualtFullScreenElement(element);
         this.scrollPosition.save();
         // let style = window.getComputedStyle(element);
-        let style = element.style;
+        let style = el.style;
         this.fullscreenElementStyle['position'] = style.position || "";
         this.fullscreenElementStyle['margin'] = style.margin || "";
         this.fullscreenElementStyle['top'] = style.top || "";
@@ -98,30 +97,24 @@ export default class Fullscreen extends Events {
         this.fullscreenElementStyle['maxWidth'] = style.maxWidth || "";
         this.fullscreenElementStyle['maxHeight'] = style.maxHeight || "";
 
-        element.style.position = "absolute";
-        element.style.top = element.style.left = 0;
-        element.style.margin = 0;
-        element.style.maxWidth = element.style.maxHeight = element.style.width = element.style.height = "100%";
-        element.style.zIndex = 2147483647;
+        el.style.position = "absolute";
+        el.style.top = el.style.left = 0;
+        el.style.margin = 0;
+        el.style.maxWidth = el.style.maxHeight = el.style.width = el.style.height = "100%";
+        el.style.zIndex = 2147483647;
 
-        this._fullscreenElement = element;
+        this._fullscreenElement = el;
         this.isFullWindow = function() {
             return true;
         };
     }
     requestFullScreen(element) {
-        if (typeof element === 'undefined') {
-            if(this.iframe){
-                element = this.iframe;
-            }else{
-                element = this.wrapper;    
-            }
-        }
+       let el = this.defualtFullScreenElement(element);
         if (supportsFullScreen) {
             this.scrollPosition.save();
-            return (prefixFS === '') ? element.requestFullScreen() : element[prefixFS + (prefixFS == 'ms' ? 'RequestFullscreen' : 'RequestFullScreen')]();
+            return (prefixFS === '') ? el.requestFullScreen() : el[prefixFS + (prefixFS == 'ms' ? 'RequestFullscreen' : 'RequestFullScreen')]();
         } else {
-            this.requestFullWindow(element);
+            this.requestFullWindow(el);
         }
     }
     cancelFullWindow() {
