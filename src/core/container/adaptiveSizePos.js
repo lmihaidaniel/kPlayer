@@ -23,7 +23,17 @@ let defaults = {
 	translate: true
 }
 
-let adaptiveSizePos = function(bounds, setttings, parent) {
+let adaptiveSizePos = function(setttings, parent) {
+	let bounds = function() {
+		return {
+			offsetX: parent.offsetX(),
+			offsetY: parent.offsetY(),
+			width: parent.width(),
+			height: parent.height(),
+			scale: parent.width() / parent.videoWidth(),
+			scaleY: parent.width() / parent.videoHeight()
+		}
+	};
 	let vault = {
 		x: 0,
 		y: 0,
@@ -91,10 +101,12 @@ let adaptiveSizePos = function(bounds, setttings, parent) {
 		let _h = parent.height();
 		let _x = parent.offsetX();
 		let _y = parent.offsetY();
-		if(parentWidth != _w || parentHeight != _h || _x != parentX || _y != parentY){
-			parentWidth = _w; parentHeight = _h;
-			parentX = _x; parentY = _y;
-		}else{
+		if (parentWidth != _w || parentHeight != _h || _x != parentX || _y != parentY) {
+			parentWidth = _w;
+			parentHeight = _h;
+			parentX = _x;
+			parentY = _y;
+		} else {
 			return;
 		}
 
@@ -108,6 +120,7 @@ let adaptiveSizePos = function(bounds, setttings, parent) {
 				vault.width = b.width * b.scale;
 			}
 		}
+		vault.width = Math.ceil(vault.width);
 
 		let procentHeight = procentFromString(settings.height);
 		if (procentHeight) {
@@ -117,14 +130,16 @@ let adaptiveSizePos = function(bounds, setttings, parent) {
 				vault.height = b.height * b.scale;
 			}
 		}
+		vault.height = Math.ceil(vault.height);
 
 		if (settings.x != null) {
 			let procentX = procentFromString(settings.x);
-			if(procentX){
+			if (procentX) {
 				vault.x = b.offsetX + b.width * procentX / 100;
-			}else{
-				vault.x = b.offsetX + settings.x * b.scale;	
+			} else {
+				vault.x = b.offsetX + settings.x * b.scale;
 			}
+			vault.x = Math.floor(vault.x);
 			let transformX = procentFromString(settings.transform.x);
 			if (transformX) vault.x += transformX * vault.width / 100;
 			if (settings.offsetX) vault.x += settings.offsetX;
@@ -132,21 +147,22 @@ let adaptiveSizePos = function(bounds, setttings, parent) {
 
 		if (settings.y != null) {
 			let procentY = procentFromString(settings.y);
-			if(procentY){
+			if (procentY) {
 				vault.y = b.offsetY + b.height * procentY / 100;
-			}else{
+			} else {
 				vault.y = b.offsetY + settings.y * b.scale;
 			}
+			vault.y = Math.floor(vault.y);
 			let transformY = procentFromString(settings.transform.y);
 			if (transformY) vault.y += transformY * vault.width / 100;
 			if (settings.offsetY) vault.y += settings.offsetY;
 		}
-		
+
 		updateDomElement();
 	}
 
 	this.applyTo = function(element) {
-		if(element && element.nodeType){
+		if (element && element.nodeType) {
 			domElement = element;
 			updateProps();
 		}
@@ -154,7 +170,9 @@ let adaptiveSizePos = function(bounds, setttings, parent) {
 	}
 
 	let applyNewProps = function() {
-		updateProps();
+		if(_active){
+			updateProps();
+		}
 	}
 
 	this.data = function() {
@@ -169,13 +187,13 @@ let adaptiveSizePos = function(bounds, setttings, parent) {
 	this.enabled = function(v) {
 		if (typeof v === 'boolean') {
 			_active = v;
-			if(v) applyNewProps();
+			if (v) applyNewProps();
 			// v ? window.addEventListener('resize', applyNewProps, false) : window.removeEventListener('resize', applyNewProps, false);
 		}
 		return _active;
 	};
 
-	if(parent.on){
+	if (parent.on) {
 		parent.on('resize', applyNewProps);
 	}
 }

@@ -28,41 +28,6 @@
 
 </head>
 <body>
-   <video id="videoA">
-       <source type="video/mp4" src="https://cdn.selz.com/plyr/1.5/View_From_A_Blue_Moon_Trailer-HD.mp4"></source>
-       <p>
-           Pour voir cette vidéo, merci d'activer JavaScript et d'envisager la mise à niveau vers un navigateur Web qui <a href='' target='_blank'>supporte la vidéo HTML5</a>
-       </p>
-   </video>
-   
-
-   <div id="test"></div>
-
-   <script src="kmlPlayer.js"></script>
-   <script>
-   
-    var test = document.getElementById('test');
-
-
-    let tata = document.createElement('div');
-    tata.innerHTML = '<h1>Lorem ipsum dolor</h1>';
-
-    var a,b;
-
-    var playerSettings = {
-      video: document.querySelector('#videoA'),
-      autoplay: false,
-      loop: true,
-      controls: 'native'
-    }
-    
-    var player = new kmlPlayer(playerSettings, null, function(){
-      this.addClass('test');
-      //a = this.containers.add({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
-      b = this.containers.add({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, tata);
-    });
-
-
-   </script>
+   <iframe src="index.html"></iframe>
 </body>
 </html>

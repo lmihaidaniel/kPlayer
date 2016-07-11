@@ -28,8 +28,9 @@ let eventChange = (prefixFS === '') ? 'fullscreenchange' : prefixFS + (prefixFS 
 eventChange = eventChange.toLowerCase();
 //supportsFullScreen = false;
 export default class Fullscreen extends Events {
-    constructor() {
+    constructor(inIframe) {
         super();
+        this.iframe = inIframe;
         this.scrollPosition = new scrollPosition();
         this._fullscreenElement = null;
         this.fullscreenElementStyle = {};
@@ -43,13 +44,11 @@ export default class Fullscreen extends Events {
         }
     }
     onFullscreenChange(evt){
-        console.log(this.wrapper);
+        //investigate if native video fullscreen can be overwritten
         this.media.addEventListener(eventChange, function(e){
-            console.log(e);
             e.preventDefault();
             e.stopPropagation;
             return false;
-
         }, true);
     }
     isFullWindow(){
@@ -58,7 +57,11 @@ export default class Fullscreen extends Events {
     isFullScreen(element) {
         if (supportsFullScreen) {
             if (typeof element === 'undefined') {
-                element = this.wrapper;
+                if(this.iframe){
+                    element = this.iframe;
+                }else{
+                    element = this.wrapper;    
+                }
             }
             switch (prefixFS) {
                 case '':
@@ -76,10 +79,15 @@ export default class Fullscreen extends Events {
             return;
         }
         if (typeof element === 'undefined') {
-            element = this.wrapper;
+            if(this.iframe){
+                element = this.iframe;
+            }else{
+                element = this.wrapper;    
+            }
         }
         this.scrollPosition.save();
-        let style = window.getComputedStyle(element);
+        // let style = window.getComputedStyle(element);
+        let style = element.style;
         this.fullscreenElementStyle['position'] = style.position || "";
         this.fullscreenElementStyle['margin'] = style.margin || "";
         this.fullscreenElementStyle['top'] = style.top || "";
@@ -97,14 +105,17 @@ export default class Fullscreen extends Events {
         element.style.zIndex = 2147483647;
 
         this._fullscreenElement = element;
-        this.emit('resize');
         this.isFullWindow = function() {
             return true;
         };
     }
     requestFullScreen(element) {
         if (typeof element === 'undefined') {
-            element = this.wrapper;
+            if(this.iframe){
+                element = this.iframe;
+            }else{
+                element = this.wrapper;    
+            }
         }
         if (supportsFullScreen) {
             this.scrollPosition.save();
@@ -124,7 +135,6 @@ export default class Fullscreen extends Events {
         this.isFullWindow = function() {
             return false;
         };
-        this.emit('resize');
         this.scrollPosition.restore();
     }
     cancelFullScreen() {

@@ -7,8 +7,8 @@ import {mimeVideo} from '../../helpers/mimeType';
 let _events = ['ended', 'progress', 'stalled', 'playing', 'waiting', 'canplay', 'canplaythrough', 'loadstart', 'loadeddata', 'loadedmetadata', 'timeupdate', 'volumechange', 'play', 'playing', 'pause', 'error', 'seeking', 'emptied', 'seeked', 'ratechange', 'suspend'];
 
 export default class Media extends Fullscreen {
-	constructor(el) {
-		super();
+	constructor(el,inIframe) {
+		super(inIframe);
 		if(el == null){
 			error("You need to supply a HTMLVideoElement to instantiate the player");
 			return;
@@ -169,6 +169,16 @@ export default class Media extends Fullscreen {
 		this.media.pause();
 	}
 
+	/* Return the currently playing status of audio/video */
+	paused() {
+		return this.media.paused;
+	}
+
+	/* Return the currently playing status of audio/video */
+	playing() {
+		return this.media.paused;
+	}
+
 	/* Toggle play/pause for the audio/video */
 	togglePlay() {
 		this.media.paused ? this.play() : this.pause();
@@ -192,7 +202,6 @@ export default class Media extends Fullscreen {
 	seek(v) {
 		return this.currentTime(v);
 	}
-
 
 	/**
 	 * [Re-loads the audio/video element, update the audio/video element after changing the source or other settings]

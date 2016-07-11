@@ -17,8 +17,10 @@ if ('classList' in document.documentElement) {
 		return elem.classList.contains(c);
 	};
 	addClass = function(elem, c) {
-		c = c.split(' ');
-		for (var k in c) elem.classList.add(c[k]);
+		if(c != null){
+			c = c.split(' ');
+			for (var k in c) elem.classList.add(c[k]);
+		}
 	};
 	removeClass = function(elem, c) {
 		elem.classList.remove(c);

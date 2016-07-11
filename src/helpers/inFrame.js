@@ -1,13 +1,21 @@
-export default function inIframe(){
+export default function inIframe() {
 	try {
-	  if (parent !== window) {
-	    if (window.frameElement) {
-	      window.frameElement.setAttribute('allowfullscreen', 'true');
-	      window.frameElement.setAttribute('mozallowfullscreen', 'true');
-	      window.frameElement.setAttribute('webkitallowfullscreen', 'true');
-	      window.frameElement.setAttribute('frameborder', '0');
-	    }
-	  }
+		let is = (window.self !== window.top);
+		if (is) {
+			var arrFrames = parent.document.getElementsByTagName("IFRAME");
+			for (var i = 0; i < arrFrames.length; i++) {
+				let frame = arrFrames[i];
+				if (frame.contentWindow === window) {
+					is = frame;
+					frame.setAttribute('allowfullscreen', 'true');
+					frame.setAttribute('mozallowfullscreen', 'true');
+					frame.setAttribute('webkitallowfullscreen', 'true');
+					frame.setAttribute('frameborder', '0');
+				};
+			}
+		}
+		return is;
+	} catch (e) {
+		return true;
 	}
-	catch(err){}
 }
