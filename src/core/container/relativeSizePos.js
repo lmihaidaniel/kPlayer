@@ -9,8 +9,8 @@ let defaults = {
 	height: 0
 }
 let relativeSizePos = function(ctx, settings) {
-	let parentWidth = ctx.videoWidth() || ctx.width || 0;
-	let parentHeight = ctx.videoHeight() || ctx.height || 0;
+	let parentWidth = ctx.videoWidth() || ctx.width || 1;
+	let parentHeight = ctx.videoHeight() || ctx.height || 1;
 	let o = deepmerge(defaults, settings);
 	let _w = procentFromString(o.width);
 	if (!_w) _w = o.width / parentWidth * 100;

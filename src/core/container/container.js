@@ -1,11 +1,12 @@
 import dom from '../../helpers/dom';
 import deepmerge from '../../helpers/deepmerge';
+import Events from '../media/events/index';
 import relativeSizePos from './relativeSizePos';
 import {
 	isFunction
 } from '../../helpers/utils';
 
-export default class Container {
+export default class Container extends Events{
 	constructor(el, opts, ctx, player) {
 		let playerPaused = false;
 		let isVisible = false;
@@ -27,26 +28,8 @@ export default class Container {
 		elDimension();
 		player.on('videoResize', elDimension);
 
-
 		this.updateSizePos = function(data){
 			elDimension(data);
-		}
-
-		let events = {};
-		this.on = function(event, fn) {
-			if (!events[event]) events[event] = [];
-			events[event].push(fn);
-		}
-
-		this.triggerEvent = function(name) {
-			if (events[name]) {
-				for (var k in events[name]) {
-					let fn = events[name][k];
-					if (isFunction(fn)) {
-						fn();
-					};
-				}
-			}
 		}
 
 		this.hide = ()=>{
@@ -65,7 +48,7 @@ export default class Container {
 					el.style.display = "none";
 					if (isFunction(opts.onHide)) opts.onHide();
 					ctx.checkVisibleElements();
-					this.triggerEvent('hide');
+					this.emit('hide');
 				}, 250);
 			}
 		}
@@ -76,7 +59,7 @@ export default class Container {
 				setTimeout(() => {
 					dom.removeClass(el, 'hidden');
 					if (isFunction(opts.onHide)) opts.onShow();
-					this.triggerEvent('show');
+					this.emit('show');
 				}, 50);
 				if (opts.pause) {
 					if (!player.paused()) {

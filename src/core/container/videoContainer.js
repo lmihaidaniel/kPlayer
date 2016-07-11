@@ -23,7 +23,7 @@ export default class videoContainer extends containerExtended{
 		this.on('ended', ()=>{
 			// this.hide();
 		});
-		this.player.on('ended', ()=>{this.triggerEvent('ended');});
+		this.player.on('ended', ()=>{this.emit('ended');});
 		this.player.on('loadedmetadata', ()=>{
 			let y = 0;
 			let x = 0;
