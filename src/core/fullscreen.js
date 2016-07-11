@@ -31,10 +31,9 @@ export default class Fullscreen extends Events {
     constructor() {
         super();
         this.scrollPosition = new scrollPosition();
-        if (!supportsFullScreen) {
-            this._fullscreenElement = null;
-            this.fullscreenElementStyle = {};
-        } else {
+        this._fullscreenElement = null;
+        this.fullscreenElementStyle = {};
+        if (supportsFullScreen) {
             let fnFullscreenChange = ()=>{
                 if(!this.isFullScreen()){
                     setTimeout(this.scrollPosition.restore,100);
@@ -48,10 +47,13 @@ export default class Fullscreen extends Events {
         this.media.addEventListener(eventChange, function(e){
             console.log(e);
             e.preventDefault();
-            e.stopPropagation
+            e.stopPropagation;
             return false;
 
         }, true);
+    }
+    isFullWindow(){
+        return false;
     }
     isFullScreen(element) {
         if (supportsFullScreen) {
@@ -69,6 +71,37 @@ export default class Fullscreen extends Events {
         }
         return false;
     }
+    requestFullWindow(element){
+        if (this.isFullWindow() || this.isFullScreen()) {
+            return;
+        }
+        if (typeof element === 'undefined') {
+            element = this.wrapper;
+        }
+        this.scrollPosition.save();
+        let style = window.getComputedStyle(element);
+        this.fullscreenElementStyle['position'] = style.position || "";
+        this.fullscreenElementStyle['margin'] = style.margin || "";
+        this.fullscreenElementStyle['top'] = style.top || "";
+        this.fullscreenElementStyle['left'] = style.left || "";
+        this.fullscreenElementStyle['width'] = style.width || "";
+        this.fullscreenElementStyle['height'] = style.height || "";
+        this.fullscreenElementStyle['zIndex'] = style.zIndex || "";
+        this.fullscreenElementStyle['maxWidth'] = style.maxWidth || "";
+        this.fullscreenElementStyle['maxHeight'] = style.maxHeight || "";
+
+        element.style.position = "absolute";
+        element.style.top = element.style.left = 0;
+        element.style.margin = 0;
+        element.style.maxWidth = element.style.maxHeight = element.style.width = element.style.height = "100%";
+        element.style.zIndex = 2147483647;
+
+        this._fullscreenElement = element;
+        this.emit('resize');
+        this.isFullWindow = function() {
+            return true;
+        };
+    }
     requestFullScreen(element) {
         if (typeof element === 'undefined') {
             element = this.wrapper;
@@ -77,48 +110,38 @@ export default class Fullscreen extends Events {
             this.scrollPosition.save();
             return (prefixFS === '') ? element.requestFullScreen() : element[prefixFS + (prefixFS == 'ms' ? 'RequestFullscreen' : 'RequestFullScreen')]();
         } else {
-            if (!this.isFullScreen()) {
-                this.scrollPosition.save();
-                let style = window.getComputedStyle(element);
-                this.fullscreenElementStyle['position'] = style.position || "";
-                this.fullscreenElementStyle['margin'] = style.margin || "";
-                this.fullscreenElementStyle['top'] = style.top || "";
-                this.fullscreenElementStyle['left'] = style.left || "";
-                this.fullscreenElementStyle['width'] = style.width || "";
-                this.fullscreenElementStyle['height'] = style.height || "";
-                this.fullscreenElementStyle['zIndex'] = style.zIndex || "";
-                this.fullscreenElementStyle['maxWidth'] = style.maxWidth || "";
-                this.fullscreenElementStyle['maxHeight'] = style.maxHeight || "";
-
-                element.style.position = "absolute";
-                element.style.top = element.style.left = 0;
-                element.style.margin = 0;
-                element.style.maxWidth = element.style.maxHeight = element.style.width = element.style.height = "100%";
-                element.style.zIndex = 2147483647;
-
-                this._fullscreenElement = element;
-                this.emit('resize');
-                this.isFullScreen = function() {
-                    return true;
-                };
-            }
+            this.requestFullWindow(element);
         }
+    }
+    cancelFullWindow() {
+        if (!this.isFullWindow() || this.isFullScreen()) {
+            return;
+        }
+        for (let k in this.fullscreenElementStyle) {
+            this._fullscreenElement.style[k] = this.fullscreenElementStyle[k];
+        }
+        this._fullscreenElement = null;
+        this.isFullWindow = function() {
+            return false;
+        };
+        this.emit('resize');
+        this.scrollPosition.restore();
     }
     cancelFullScreen() {
         if (supportsFullScreen) {
             return (prefixFS === '') ? document.cancelFullScreen() : document[prefixFS + (prefixFS == 'ms' ? 'ExitFullscreen' : 'CancelFullScreen')]();
         } else {
-            if (this.isFullScreen()) {
-                for (let k in this.fullscreenElementStyle) {
-                    this._fullscreenElement.style[k] = this.fullscreenElementStyle[k];
-                }
-                this._fullscreenElement = null;
-                this.isFullScreen = function() {
-                    return false;
-                };
-                this.emit('resize');
-                this.scrollPosition.restore();
-            }
+            this.cancelFullWindow();
+        }
+    }
+    toggleFullWindow(element){
+        let isFullscreen = !this.isFullWindow();
+        if (isFullscreen) {
+            this.requestFullWindow(element);
+            //document.body.style.overflow = 'hidden';
+        } else {
+            this.cancelFullWindow();
+            //document.body.style.overflow = '';
         }
     }
     toggleFullScreen(element) {

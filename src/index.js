@@ -1,6 +1,7 @@
 import deepmerge from './helpers/deepmerge';
 import { capitalizeFirstLetter, scaleFont, debounce } from './helpers/utils';
 import dom from './helpers/dom';
+import device from './helpers/device';
 import autoFont from './core/autoFont';
 import Container from './core/container/container';
 import Media from './core/media/index';
@@ -29,8 +30,11 @@ const defaults = {
 };
 
 class kmlPlayer extends Media {
-	constructor(el, settings, _events, app) {
+	constructor(settings, _events, app) {
+		let el = settings.video;
 		super(el);
+		if(el == null) return;
+		this.device = device;
 		this.__settings = deepmerge(defaults, settings);
 		dom.addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
 		this.wrapper = dom.wrap(this.media, dom.createElement('div', {
@@ -76,6 +80,7 @@ class kmlPlayer extends Media {
 				this.videoWidth();
 				this.videoHeight();
 				this.emit('resize');
+				this.emit('videoResize');
 			}
 		});
 
@@ -126,7 +131,7 @@ class kmlPlayer extends Media {
 
 	bounds(v) {
 		let data = containerBounds(this.media);
-		if (data[v] !== undefined) return data[v];
+		if (data[v] !== null) return data[v];
 		return data;
 	}
 
@@ -159,14 +164,14 @@ class kmlPlayer extends Media {
 	}
 
 	addClass(v, el) {
-		if(el !== undefined){
+		if(el != null){
 			dom.addClass(el, v);
 			return;
 		}
 		dom.addClass(this.wrapper, v);
 	}
 	removeClass(v, el) {
-		if(el !== undefined){
+		if(el != null){
 			dom.removeClass(el, v);
 			return;
 		}
@@ -175,7 +180,7 @@ class kmlPlayer extends Media {
 		}
 	}
 	toggleClass(v, el) {
-		if(el !== undefined){
+		if(el != null){
 			dom.toggleClass(el, v);
 			return;
 		}
@@ -185,9 +190,12 @@ class kmlPlayer extends Media {
 	}
 };
 
-window.onerror = function(message, scriptUrl, line, column) {
-    console.log(line, column, message);
-    alert(line + ":" +column +"-"+ message);
-};
+//disable on production
+if(device.isTouch){
+	window.onerror = function(message, scriptUrl, line, column) {
+	    console.log(line, column, message);
+	    alert(line + ":" +column +"-"+ message);
+	};
+}
 
 export default kmlPlayer;

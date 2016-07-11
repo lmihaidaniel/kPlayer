@@ -22,6 +22,7 @@
     #test, #testB{
       position: absolute;
       background: red;
+      opacity: 0.5;
     }
    </style>
 
@@ -41,16 +42,17 @@
    <script>
    
     var test = document.getElementById('test');
-    
-    var player = new kmlPlayer(document.querySelector('#videoA'), {
+
+    var playerSettings = {
+      video: document.querySelector('#videoA'),
       autoplay: true,
       loop: true,
       controls: 'native'
-    }, null, function(){
+    }
+    
+    var player = new kmlPlayer(playerSettings, null, function(){
       this.addClass('test');
-
       this.containers.add({x: '25%', y: '25%', width: '50%', height: '50%'}, test);
-
     });
 
 

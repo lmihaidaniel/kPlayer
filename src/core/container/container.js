@@ -39,7 +39,7 @@ export default class Container {
 			}
 			elDimension();
 			this.el.appendChild(el);
-			ctx.on('resize', elDimension);
+			ctx.on('videoResize', elDimension);
 		}
 	}
 }

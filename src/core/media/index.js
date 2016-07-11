@@ -1,3 +1,4 @@
+import error from '../../helpers/error';
 import Fullscreen from '../fullscreen';
 import _cancelRequests from '../../helpers/cancelVideoNetworkRequest';
 import {mimeVideo} from '../../helpers/mimeType';
@@ -8,6 +9,10 @@ let _events = ['ended', 'progress', 'stalled', 'playing', 'waiting', 'canplay', 
 export default class Media extends Fullscreen {
 	constructor(el) {
 		super();
+		if(el == null){
+			error("You need to supply a HTMLVideoElement to instantiate the player");
+			return;
+		}
 		this.media = el;
 		_events.forEach((k) => {
 			el.addEventListener(k, () => {
