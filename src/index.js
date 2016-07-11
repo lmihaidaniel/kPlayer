@@ -38,8 +38,8 @@ const defaults = {
 class kmlPlayer extends Media {
 	constructor(settings, _events, app) {
 		let el = settings.video;
-		let inIframe = inFrame();
-		super(el, inIframe);
+		super(el);
+		this.iframe = inFrame();
 		if (el == null) return;
 		this._bounds = {};
 		this.device = device;
@@ -49,13 +49,13 @@ class kmlPlayer extends Media {
 			class: 'kmlPlayer'
 		}));
 		dom.triggerWebkitHardwareAcceleration(this.wrapper);
-		if (inIframe) {
+		if (this.inIframe) {
 			dom.addClass(this.wrapper, "inFrame");
 		}
 		//initSettings
 		for (var k in this.__settings) {
 			if (this[k]) {
-				if (k === 'autoplay' && this.__settings[k] && !inIframe) {
+				if (k === 'autoplay' && this.__settings[k] && !this.inIframe) {
 					this.play();
 					continue;
 				}

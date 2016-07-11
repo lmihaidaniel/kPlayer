@@ -28,9 +28,9 @@ let eventChange = (prefixFS === '') ? 'fullscreenchange' : prefixFS + (prefixFS 
 eventChange = eventChange.toLowerCase();
 //supportsFullScreen = false;
 export default class Fullscreen extends Events {
-    constructor(inIframe) {
+    constructor() {
         super();
-        this.iframe = inIframe;
+        this.iframe = null;
         this.scrollPosition = new scrollPosition();
         this._fullscreenElement = null;
         this.fullscreenElementStyle = {};

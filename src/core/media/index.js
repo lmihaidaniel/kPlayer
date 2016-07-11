@@ -7,8 +7,8 @@ import {mimeVideo} from '../../helpers/mimeType';
 let _events = ['ended', 'progress', 'stalled', 'playing', 'waiting', 'canplay', 'canplaythrough', 'loadstart', 'loadeddata', 'loadedmetadata', 'timeupdate', 'volumechange', 'play', 'playing', 'pause', 'error', 'seeking', 'emptied', 'seeked', 'ratechange', 'suspend'];
 
 export default class Media extends Fullscreen {
-	constructor(el,inIframe) {
-		super(inIframe);
+	constructor(el) {
+		super();
 		if(el == null){
 			error("You need to supply a HTMLVideoElement to instantiate the player");
 			return;

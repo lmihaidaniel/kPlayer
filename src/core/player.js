@@ -1,5 +1,4 @@
 import requestAnimationFrame from '../polyfills/requestAnimationFrame';
-import inFrame from '../helpers/inFrame';
 import deepmerge from '../helpers/deepmerge';
 import {
 	capitalizeFirstLetter,
@@ -32,39 +31,25 @@ const defaults = {
 		ratio: 1,
 		min: .5,
 		units: "em"
-	}
+	},
+	contextMenu: false
 };
 
 export default class Player extends Media {
-	constructor(settings, _events, app) {
+	constructor(settings, _events) {
 		let el = settings.video;
-		let inIframe = inFrame();
-		super(el, inIframe);
+		super(el);
 		if (el == null) return;
-		this._bounds = {};
 		this.device = device;
-		this.__settings = deepmerge(defaults, settings);
+		this.__settings = {};
 		dom.addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
 		this.wrapper = dom.wrap(this.media, dom.createElement('div', {
 			class: 'kmlPlayer'
 		}));
 		dom.triggerWebkitHardwareAcceleration(this.wrapper);
-		if (inIframe) {
-			dom.addClass(this.wrapper, "inFrame");
-		}
+		
 		//initSettings
-		for (var k in this.__settings) {
-			if (this[k]) {
-				if (k === 'autoplay' && this.__settings[k] && !inIframe) {
-					this.play();
-					continue;
-				}
-				this[k](this.__settings[k]);
-			}
-			if (k === 'controls' && this.__settings[k] === "native") {
-				this.nativeControls(true);
-			}
-		}
+		this.settings(deepmerge(defaults, settings))
 
 		//initPageVisibility
 		this.pageVisibility = new pageVisibility(el);
@@ -74,15 +59,6 @@ export default class Player extends Media {
 
 		//initContainers
 		this.containers = new Containers(this);
-
-		this.videoContainer = function(vs){
-			return this.containers.add(vs, null, 'video');
-		}
-
-		//autoFONT
-		if (typeof this.__settings.font === "boolean" && this.__settings.font) this.__settings.font = defaults.font;
-		this.autoFont = new autoFont(this.wrapper, this.__settings.font, this);
-		if (this.__settings.font) this.autoFont.enabled(true);
 
 		//initCallbackEvents
 		for (var evt in _events) {
@@ -97,33 +73,25 @@ export default class Player extends Media {
 			}
 		});
 
-		let videoSizeCache = {
-			w: this.width(),
-			x: this.offsetX(),
-			y: this.offsetY(),
-			h: this.height()
-		}
-		let checkVideoResize = () => {
-			this._bounds = containerBounds(this.media);
-			let w = this.width();
-			let h = this.width();
-			let x = this.offsetX();
-			let y = this.offsetY();
-			if (videoSizeCache.w != w || videoSizeCache.h != h || videoSizeCache.x != x || videoSizeCache.y != y) {
-				videoSizeCache.w = w;
-				videoSizeCache.h = h;
-				videoSizeCache.x = x;
-				videoSizeCache.y = y;
-				this.emit('resize');
+	}
+
+	settings(settings){
+		if(settings == null) return this.__settings;
+		this.__settings = deepmerge(this.__settings, settings);
+		//initSettings
+		for (var k in this.__settings) {
+			if (this[k]) {
+				if (k === 'autoplay' && this.__settings[k]) {
+					this.play();
+					continue;
+				}
+				this[k](this.__settings[k]);
 			}
-			window.requestAnimationFrame(checkVideoResize);
+			if (k === 'controls' && this.__settings[k] === "native") {
+				this.nativeControls(true);
+			}
 		}
-
-		checkVideoResize();
-
-		if (typeof app === 'function') {
-			app.bind(this)();
-		}
+		return this.__settings;
 	}
 
 	contextMenu(v) {
@@ -165,8 +133,9 @@ export default class Player extends Media {
 	}
 
 	bounds(v) {
-		if (this._bounds[v] !== null) return this._bounds[v];
-		return this._bounds;
+		let data = containerBounds(this.media);
+		if (data[v] !== null) return this.data[v];
+		return data;
 	}
 
 	width() {

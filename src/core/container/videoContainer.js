@@ -1,10 +1,9 @@
 import dom from '../../helpers/dom';
-import bounds from '../../helpers/containerBounds';
 import containerExtended from './containerExtended';
-import Player from '../index';
+import Player from '../player';
 export default class videoContainer extends containerExtended{
-	constructor(el, opts, ctx, player){
-		super(el, opts, ctx, player);
+	constructor(el, opts, ctx, parentPlayer){
+		super(el, opts, ctx, parentPlayer);
 		let domVideo = document.createElement('video');
 		let videoHolder = document.createElement('div');
 		dom.addClass(videoHolder, 'videoHolder');
@@ -26,28 +25,21 @@ export default class videoContainer extends containerExtended{
 		});
 		this.player.on('ended', ()=>{this.triggerEvent('ended');});
 		this.player.on('loadedmetadata', ()=>{
-			let headerHeight = 0;
-			let h = 0;
 			let y = 0;
 			let x = 0;
-			let w = 0;
-			let sc = this.player.scale();
-			sc = 1;
-			if(sc >= 1){
-				h = 80*(player.videoWidth()/sc)/player.videoHeight();
-			}else{
-				h = 80*(player.videoWidth()*sc)/player.videoHeight();
+			let w = parentPlayer.videoWidth();
+			let h = parentPlayer.videoHeight();
+			let ratio = this.player.scale();
+			let fw = w; let fh = h;
+			if (w > ratio*h) {
+				fw = 8*(ratio*h)/10*w;
+			} else {
+				fh = 8*(w/ratio)/10*h;
 			}
-			headerHeight =  8*80/h;
-			y = Math.round((100 - h + headerHeight/2)/2);
-			this.updateSizePos({x: '10%', y: y+'%', width: '80%', height: h+'%'});
-			// }else{
-			// 	w = 80*(player.videoHeight()*sc)/player.videoWidth();
-			// 	x = Math.round((100 - w)/2);
-			// 	headerHeight =  8*w/80;
-			// 	y = Math.round((10 + headerHeight/4));
-			// 	this.updateSizePos({x: x+'%', y: y+'%', width: w+'%', height: '80%'});
-			// }
+			let headerHeight =  8*80/fh;
+			y = Math.round((100 - fh + headerHeight)/2);
+			x = Math.round((100 - fw)/2);
+			this.updateSizePos({x: x+'%', y: y+'%', width: fw+'%', height: fh+'%'});
 			this._title.parentNode.style.height = headerHeight+'%';
 			this._title.parentNode.style.top = -headerHeight+'%';
 		});
