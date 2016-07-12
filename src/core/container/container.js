@@ -13,8 +13,9 @@ export default class Container extends Events{
 		let externalControls = false;
 		let body = dom.select('.body', el);
 		super();
+		this.ctx = ctx;
 		this.body = body;
-		let elDimension = function(fopts) {
+		this.updateSizePos = function(fopts) {
 			if(fopts) opts = deepmerge(opts, fopts);
 			let d = new relativeSizePos(player, opts);
 			body.style.width = d.width + "%";
@@ -26,10 +27,8 @@ export default class Container extends Events{
 				body.style.left = d.y + "%";
 			}
 		}
-		elDimension();
-		player.on('videoResize', elDimension);
-
-		this.updateSizePos = elDimension;
+		this.updateSizePos();
+		player.on('videoResize', this.updateSizePos);
 
 		this.hide = ()=>{
 			if (isVisible) {
@@ -80,21 +79,6 @@ export default class Container extends Events{
 			}
 		}
 
-		let overlay = dom.select('.overlay', el);
-
-		this.backgroundColor = function(v) {
-			if (v != null) {
-				overlay.style.backgroundColor = v;
-			} 
-			return overlay.style.backgroundColor;
-		}
-
-		let clsElements = dom.selectAll('.triggerClose', el);
-		for (var i = 0, n = clsElements.length; i < n; i += 1) {
-			clsElements[i].addEventListener('click', this.hide);
-		}
-
-
 		if (opts.visible) {
 			this.show();
 		}
@@ -103,6 +87,10 @@ export default class Container extends Events{
 			if (typeof v === 'boolean') isVisible = v;
 			return isVisible;
 		}
-
+	}
+	destroy(){
+		console.log("container");
+		this.removeAllListeners();
+		this.ctx.remove(this.body);
 	}
 }

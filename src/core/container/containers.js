@@ -2,6 +2,7 @@ import dom from '../../helpers/dom';
 import deepmerge from '../../helpers/deepmerge';
 import adaptiveSizePos from './adaptiveSizePos';
 import Container from './container'
+import popup from './popup'
 import videoContainer from './videoContainer'
 
 let defaults = {
@@ -71,11 +72,11 @@ export default class Containers {
 		}
 
 		this.add = function(opts, el = {}, type) {
+			let cls = 'Container';
+			if(type != 'container') cls = 'Popup';
 			let settings = deepmerge(defaults, opts);
-			let kmlContainer = dom.createElement('div');
-			ctx.addClass(kmlContainer, 'kmlContainer hidden');
-			let kmlOverlay = dom.createElement('div');
-			ctx.addClass(kmlOverlay, 'overlay triggerClose');
+			let containerHolder = dom.createElement('div');
+			ctx.addClass(containerHolder, 'kml'+cls+' hidden');
 			let kmlContainerBody = dom.createElement('div');
 			if (el) {
 				if (!el.nodeType) {
@@ -85,21 +86,35 @@ export default class Containers {
 				el = kmlContainerBody;
 			}
 			dom.addClass(el, 'body');
-			kmlContainer.appendChild(kmlOverlay);
-			kmlContainer.appendChild(el);
+			
+			containerHolder.appendChild(el);
 			let container = null;
 			switch(type){
 				case 'video':
-					container = new videoContainer(kmlContainer, settings, this, ctx);
+					container = new videoContainer(containerHolder, settings, this, ctx);
+					break;
+				case 'popup':
+					container = new popup(containerHolder, settings, this, ctx);
 					break;
 				default:
-					container = new Container(kmlContainer, settings, this, ctx);
+					container = new Container(containerHolder, settings, this, ctx);
 				break;
 			}
 			
 			this._els.push(container);
-			this.wrapper.appendChild(kmlContainer);
+			this.wrapper.appendChild(containerHolder);
 			return container;
+		}
+
+		this.remove = (container)=>{
+			for(var i = 0, n = this._els.length; i<n; i+=1){
+				let c = this._els[i];
+				if(c.body === container){
+					this._els.splice(i, 1);
+					if(this._els.length == 0) this.enabled(false);
+					break;
+				}
+			}
 		}
 	}
 	els(id) {

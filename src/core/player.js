@@ -7,8 +7,6 @@ import {
 } from '../helpers/utils';
 import dom from '../helpers/dom';
 import device from '../helpers/device';
-import autoFont from './autoFont';
-import Containers from './container/containers';
 import Media from './media/index';
 import containerBounds from '../helpers/containerBounds';
 import pageVisibility from '../helpers/pageVisibility';
@@ -56,9 +54,6 @@ export default class Player extends Media {
 
 		//initexternalControls
 		this.externalControls = new externalControls(el);
-
-		//initContainers
-		this.containers = new Containers(this);
 
 		//initCallbackEvents
 		for (var evt in _events) {

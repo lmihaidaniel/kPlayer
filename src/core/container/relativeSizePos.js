@@ -13,13 +13,13 @@ let relativeSizePos = function(ctx, settings) {
 	let parentHeight = ctx.videoHeight() || ctx.height || 1;
 	let o = deepmerge(defaults, settings);
 	let _w = procentFromString(o.width);
-	if (!_w) _w = o.width / parentWidth * 100;
+	if (_w === false) _w = o.width / parentWidth * 100;
 	let _h = procentFromString(o.height);
-	if (!_h) _h = o.height / parentHeight * 100;
+	if (_h === false) _h = o.height / parentHeight * 100;
 	let _x = procentFromString(o.x);
-	if (!_x) _x = o.x / parentWidth * 100;
+	if (_x === false) _x = o.x / parentWidth * 100;
 	let _y = procentFromString(o.y);
-	if (!_y) _y = o.y / parentHeight * 100;
+	if (_y === false) _y = o.y / parentHeight * 100;
 	return {
 		x: _x,
 		y: _y,

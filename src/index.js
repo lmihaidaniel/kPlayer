@@ -75,8 +75,16 @@ class kmlPlayer extends Media {
 		//initContainers
 		this.containers = new Containers(this);
 
-		this.videoContainer = function(vs){
-			return this.containers.add(vs, null, 'video');
+		this.container = function(stg, el){
+			return this.containers.add(stg, el, 'container');
+		}
+
+		this.videoContainer = function(stg){
+			return this.containers.add(stg, null, 'video');
+		}
+
+		this.popupContainer = function(stg){
+			return this.containers.add(stg, null, 'popup');
 		}
 
 		//autoFONT

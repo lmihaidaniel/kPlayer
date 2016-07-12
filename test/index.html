@@ -42,27 +42,22 @@
    <script>
    
     var test = document.getElementById('test');
-
-
-    var tata = document.createElement('div');
-    tata.innerHTML = '<h1 class="triggerClose">Lorem ipsum dolor</h1>';
-    tata.addEventListener('click', function(){
-      player.toggleFullScreen();
-    })
-
-    var a,b;
+    
+    var popup, vid;
 
     var playerSettings = {
       video: document.querySelector('#videoA'),
-      autoplay: false,
+      autoplay: true,
       loop: true,
       controls: 'native'
     }
     
     var player = new kmlPlayer(playerSettings, null, function(){
       this.addClass('test');
-      a = this.containers.add({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
-      b = this.videoContainer({x: '10%', y: '10%', width: '80%', height: '80%', visible: true, url: "http://vjs.zencdn.net/v/oceans.mp4"})
+      this.requestFullWindow();
+      popup = this.popupContainer({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
+      vid = this.videoContainer({x: '10%', y: '10%', width: '80%', height: '80%', visible: true, url: "http://vjs.zencdn.net/v/oceans.mp4"});
+      vid.show();
     });
    </script>
 </body>
