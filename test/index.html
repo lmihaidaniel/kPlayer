@@ -44,7 +44,7 @@
     var test = document.getElementById('test');
 
 
-    let tata = document.createElement('div');
+    var tata = document.createElement('div');
     tata.innerHTML = '<h1 class="triggerClose">Lorem ipsum dolor</h1>';
     tata.addEventListener('click', function(){
       player.toggleFullScreen();
@@ -64,8 +64,6 @@
       a = this.containers.add({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
       b = this.videoContainer({x: '10%', y: '10%', width: '80%', height: '80%', visible: true, url: "http://vjs.zencdn.net/v/oceans.mp4"})
     });
-
-
    </script>
 </body>
 </html>

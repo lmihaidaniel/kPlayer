@@ -99,7 +99,11 @@ class kmlPlayer extends Media {
 				this.videoHeight();
 				this.emit('videoResize');
 			}
-			app.bind(this)();
+			if(!this._app){
+				app.bind(this)();
+				this._app = true;
+			}
+			
 		});
 
 		let videoSizeCache = {

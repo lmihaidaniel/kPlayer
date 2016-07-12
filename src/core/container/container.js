@@ -12,6 +12,7 @@ export default class Container extends Events{
 		let isVisible = false;
 		let externalControls = false;
 		let body = dom.select('.body', el);
+		super();
 		this.body = body;
 		let elDimension = function(fopts) {
 			if(fopts) opts = deepmerge(opts, fopts);
@@ -28,9 +29,7 @@ export default class Container extends Events{
 		elDimension();
 		player.on('videoResize', elDimension);
 
-		this.updateSizePos = function(data){
-			elDimension(data);
-		}
+		this.updateSizePos = elDimension;
 
 		this.hide = ()=>{
 			if (isVisible) {

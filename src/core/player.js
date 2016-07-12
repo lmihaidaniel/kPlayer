@@ -134,7 +134,7 @@ export default class Player extends Media {
 
 	bounds(v) {
 		let data = containerBounds(this.media);
-		if (data[v] !== null) return this.data[v];
+		if (data[v] !== null) return data[v];
 		return data;
 	}
 

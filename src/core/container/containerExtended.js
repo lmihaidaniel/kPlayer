@@ -1,8 +1,8 @@
 import dom from '../../helpers/dom';
 import Container from './container';
 export default class containerExtended extends Container{
-	constructor(el, opts, ctx, player){
-		super(el, opts, ctx, player);
+	constructor(el, opts, ctx, parentPlayer){
+		super(el, opts, ctx, parentPlayer);
 		let header = document.createElement('h1');
 		dom.addClass(header, 'header');
 		this._title = document.createElement('span');
@@ -13,7 +13,13 @@ export default class containerExtended extends Container{
 		this._closeBtn.addEventListener('click', this.hide);
 		header.appendChild(this._closeBtn);
 		this.body.appendChild(header);
-		player.on('resize', ()=>{
+		parentPlayer.on('resize', ()=>{
+			this.emit('resize');
+		});
+		this.on('resize',()=>{
+			dom.autoLineHeight(header);
+		});
+		this.on('show', ()=>{
 			dom.autoLineHeight(header);
 		});
 	}
