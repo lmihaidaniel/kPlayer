@@ -17,6 +17,8 @@ import pageVisibility from './helpers/pageVisibility';
 import externalControls from './core/media/events/externalControls';
 import ajax from './helpers/ajax';
 
+import clock from './clock';
+
 const fn_contextmenu = function(e) {
 	e.stopPropagation();
 	e.preventDefault();
@@ -237,6 +239,10 @@ class kmlPlayer extends Media {
 		if (v !== 'kmlPlayer') {
 			dom.toggleClass(this.wrapper, v);
 		}
+	}
+
+	clock(){
+		return clock;
 	}
 };
 
