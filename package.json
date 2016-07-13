@@ -15,10 +15,10 @@
     "autoprefixer": "latest",
     "babel-plugin-transform-es2015-classes": "latest",
     "babel-preset-es2015-rollup": "latest",
+    "babel-plugin-transform-react-jsx": "latest",
     "csswring": "latest",
     "gulp": "latest",
     "gulp-concat": "latest",
-    "gulp-gzip": "^1.4.0",
     "gulp-postcss": "latest",
     "gulp-sourcemaps": "latest",
     "postcss-cssnext": "latest",
@@ -28,7 +28,13 @@
     "precss": "latest",
     "reset-css": "latest",
     "rollup": "latest",
+    "rollup-plugin-node-resolve": "latest",
+    "rollup-plugin-commonjs": "latest",
     "rollup-plugin-babel": "latest",
     "uglify-js": "latest"
+  },
+  "dependencies": {
+    "preact": "latest",
+    "eventemitter3": "latest"
   }
 }

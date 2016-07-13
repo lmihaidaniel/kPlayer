@@ -1,6 +1,6 @@
+import Events from 'eventemitter3';
 import dom from '../../helpers/dom';
 import deepmerge from '../../helpers/deepmerge';
-import Events from '../media/events/index';
 import relativeSizePos from './relativeSizePos';
 import {
 	isFunction

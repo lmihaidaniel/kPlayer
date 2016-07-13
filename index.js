@@ -10,7 +10,6 @@ var uglify = require('uglify-js');
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
 var postcss = require('gulp-postcss');
-var gzip = require('gulp-gzip');
 var csswring = require('csswring');
 var atImport = require('postcss-import');
 var postcssFont = require('postcss-font-magician');
@@ -18,6 +17,9 @@ var cssnext = require('postcss-cssnext');
 var precss = require('precss');
 //sytem related
 var fs = require('fs');
+
+var nodeResolve = require('rollup-plugin-node-resolve');
+var commonjs = require('rollup-plugin-commonjs');
 
 var default_sss = ['src/index.sss', 'src/core/**/*.sss'],
     default_js = [];
@@ -38,14 +40,26 @@ var config = {
     sss: [],
     js: []
   },
+  compile: {
+    moduleName: 'kmlPlayer',
+    entry: 'src/index.js', // Entry file
+    plugins: [
+      nodeResolve({ jsnext: true, main: true }),
+      commonjs(),
+      babel({
+        exclude: 'node_modules/**',
+        plugins: [["transform-react-jsx", { "pragma":"h" }]]
+      })
+    ]
+  },
   build: {
     moduleName: 'kmlPlayer',
-    entry: './src/index.js', // Entry file
+    entry: './build/index.js', // Entry file
     plugins: [
       babel({
         exclude: 'node_modules/**',
         presets: ['es2015-rollup'],
-        plugins: [['transform-es2015-classes', {loose: true}]] // needed to add support to classes in <=ie10
+        plugins: [["transform-react-jsx", { "pragma":"h" }],['transform-es2015-classes', {loose: true}]] // needed to add support to classes in <=ie10
       })
     ]
   }
@@ -98,7 +112,27 @@ gulp.task('css', function() {
     });
 });
 
-gulp.task('rollup', function() {
+gulp.task('compile', function() {
+  rollup.rollup(config.compile)
+    .then(function(bundle) {
+      let result = bundle.generate({
+        format: 'es',
+        moduleName: config.build.moduleName,
+      });
+      bundle.write({
+        format: 'es',
+        moduleName: config.build.moduleName,
+        dest: 'build/index.js', // Exit file
+      });
+    }).then(function() {
+      console.log(config.build.moduleName + ' js compiled');
+      setTimeout(function(){gulp.start('build');},300);
+    }).catch(function(error) {
+      console.log(error);
+    });
+});
+
+gulp.task('build', function() {
   rollup.rollup(config.build)
     .then(function(bundle) {
       // Generate bundle + sourcemap
@@ -117,28 +151,21 @@ gulp.task('rollup', function() {
       fs.writeFileSync('dist/kmlPlayer.js', config.banner + '\n' + js_minify(result.code));
     }).then(function() {
       //fs.createReadStream('index.html').pipe(fs.createWriteStream('build/index.html'));
-      console.log(config.build.moduleName + ' js created');
+      console.log(config.build.moduleName + ' builded');
     }).catch(function(error) {
       console.log(error);
     });
 });
 
-gulp.task('zip', function() {
-    gulp.src('./dist/kmlPlayer.js')
-    .pipe(gzip())
-    .pipe(gulp.dest('./test'));
-});
-
 gulp.task('watch', function() {
   gulp.watch('src/**/*.sss', ['css']);
-  gulp.watch('src/**/*.js', ['rollup']);
+  gulp.watch('src/**/*.js', ['compile']);
 });
 
 gulp.task('default', function() {
-  gulp.start('rollup');
+  gulp.start('compile');
   gulp.start('css');
   gulp.start('watch');
 });
 
 gulp.start('default');
-

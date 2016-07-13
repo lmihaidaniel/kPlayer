@@ -1,4 +1,4 @@
-import Events from './media/events/index';
+import Events from 'eventemitter3';
 import scrollPosition from '../helpers/scrollPosition';
 // Fullscreen API
 let supportsFullScreen = false;
