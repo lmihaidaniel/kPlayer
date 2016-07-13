@@ -12,7 +12,7 @@ export default class videoContainer extends Popup{
 		this.player = new Player({video:domVideo});
 		this.player.container
 		let paused = false;
-		this.on('hide', ()=>{
+		this.on('beforeHide', ()=>{
 			paused = this.player.paused();
 			this.player.pause();
 		});
@@ -25,7 +25,7 @@ export default class videoContainer extends Popup{
 			if (isFunction(opts.onEnded)) opts.onEnded();
 		});
 		opts.sizeRatio = opts.sizeRatio || 80;
-		this.sizeRatio = function(s){
+		this.scaleSize = function(s){
 			opts.sizeRatio = s;
 			this.emit('resize');
 		}
@@ -61,7 +61,7 @@ export default class videoContainer extends Popup{
 			y = (100 - fh)/2;
 			//this._title.parentNode.style.transform = 'translateY(-100%)';	
 			this._title.parentNode.style.height = headerHeight+'%';
-			this.updateSizePos({
+			this.config({
 				x: x/w*ww+'%',
 				y: 5+y/h*hh+'%',
 				width : fw+"%",
@@ -77,9 +77,6 @@ export default class videoContainer extends Popup{
 		this.player.on('loadedmetadata', ()=>{
 			this.emit('resize');
 		});
-		this.load(opts.url);
-	}
-	load(url){
-		this.player.load(url);
+		this.player.load(opts.url);
 	}
 }

@@ -12,22 +12,23 @@
     "subtitles"
   ],
   "devDependencies": {
-    "rollup": "latest",
-    "uglify-js": "latest",
-    "babel-preset-es2015-rollup": "latest",
+    "autoprefixer": "latest",
     "babel-plugin-transform-es2015-classes": "latest",
-    "rollup-plugin-babel": "latest",
+    "babel-preset-es2015-rollup": "latest",
+    "csswring": "latest",
     "gulp": "latest",
-    "gulp-sourcemaps": "latest",
     "gulp-concat": "latest",
+    "gulp-gzip": "^1.4.0",
     "gulp-postcss": "latest",
+    "gulp-sourcemaps": "latest",
+    "postcss-cssnext": "latest",
+    "postcss-font-magician": "latest",
     "postcss-import": "latest",
     "postcss-nested": "latest",
-    "postcss-font-magician": "latest",
-    "csswring": "latest",
-    "autoprefixer": "latest",
-    "postcss-cssnext": "latest",
     "precss": "latest",
-    "reset-css": "latest"
+    "reset-css": "latest",
+    "rollup": "latest",
+    "rollup-plugin-babel": "latest",
+    "uglify-js": "latest"
   }
 }

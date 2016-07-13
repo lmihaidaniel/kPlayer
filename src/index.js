@@ -1,4 +1,5 @@
 import requestAnimationFrame from './polyfills/requestAnimationFrame';
+import tocca from './polyfills/tocca';
 import inFrame from './helpers/inFrame';
 import deepmerge from './helpers/deepmerge';
 import {
@@ -105,7 +106,7 @@ class kmlPlayer extends Media {
 			if (this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight) {
 				this.videoWidth();
 				this.videoHeight();
-				this.emit('videoResize');
+				this.emit('resize');
 			}
 			if(!this._app){
 				app.bind(this)();
@@ -113,6 +114,8 @@ class kmlPlayer extends Media {
 			}
 			
 		});
+
+		el.addEventListener('dbltap', ()=>{this.toggleFullScreen();});
 
 		let videoSizeCache = {
 			w: this.width(),

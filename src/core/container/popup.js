@@ -20,13 +20,6 @@ export default class Popup extends Container {
 		//end header
 
 
-		//foter
-		let footer = document.createElement('div');
-		dom.addClass(footer, 'footer');
-		this._footer = document.createElement('span');
-		footer.appendChild(this._footer);
-		this.body.appendChild(footer);
-
 		this.backgroundColor = function(v) {
 			if (v != null) {
 				overlay.style.backgroundColor = v;
@@ -34,15 +27,20 @@ export default class Popup extends Container {
 			return overlay.style.backgroundColor;
 		}
 
+		this.scaleSize = function(s){
+			this.config({x: (100-s)/2+"%", y: (100-s)/2+"%", width: s+"%", height: s+"%"});
+		}
+
 		//EVENTS
 		parentPlayer.on('resize', () => {
 			this.emit('resize');
 		});
-		this.on('resize', () => {
-			this.autoLineHeight();
-		});
-		this.on('show', () => {
-			this.autoLineHeight();
+
+		['resize','config', 'beforeShow'].map((evt)=>{
+			this.on(evt, () => {
+				console.log(evt);
+				this.autoLineHeight();
+			});
 		});
 
 		let clsElements = dom.selectAll('.triggerClose', el);
@@ -56,22 +54,15 @@ export default class Popup extends Container {
 		this.ctx.remove(this.body);
 		dom.removeElement(this.body.parentNode);
 	}
-	footer(v) {
-		if (v != null) {
-			this._footer.innerHTML = v;
-			this.autoLineHeight();
-			return v;
-		}
-		return this._footer.innerHTML;
-	}
+	
 	autoLineHeight(el) {
-		if (el) {
-			dom.autoLineHeight(el);
-		} else {
-			dom.autoLineHeight(this._title.parentNode);
-			dom.autoLineHeight(this._footer.parentNode);
+		if(this.visible()){
+			if (el) {
+				dom.autoLineHeight(el);
+			} else {
+				dom.autoLineHeight(this._title.parentNode);
+			}
 		}
-
 	}
 	title(v) {
 		if (v != null) {

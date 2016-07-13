@@ -64,7 +64,7 @@ export default class Player extends Media {
 			if (this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight) {
 				this.videoWidth();
 				this.videoHeight();
-				this.emit('videoResize');
+				this.emit('resize');
 			}
 		});
 

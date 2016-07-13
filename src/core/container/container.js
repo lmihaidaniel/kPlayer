@@ -15,7 +15,7 @@ export default class Container extends Events{
 		super();
 		this.ctx = ctx;
 		this.body = body;
-		this.updateSizePos = function(fopts) {
+		this.config = function(fopts) {
 			if(fopts) opts = deepmerge(opts, fopts);
 			let d = new relativeSizePos(player, opts);
 			body.style.width = d.width + "%";
@@ -26,18 +26,20 @@ export default class Container extends Events{
 				body.style.top = d.x + "%";
 				body.style.left = d.y + "%";
 			}
+			this.emit('config');
 		}
-		this.updateSizePos();
-		player.on('videoResize', this.updateSizePos);
+		this.config();
+		player.on('resize', this.config);
 
 		this.hide = ()=>{
 			if (isVisible) {
+				this.emit('beforeHide');
 				dom.addClass(el, 'hidden');
+				isVisible = false;
 				if (opts.pause) {
 					if (!playerPaused) {
 						player.play();
 					}
-					isVisible = false;
 					if (externalControls && opts.externalControls) {
 						player.externalControls.enabled(true);
 					}
@@ -52,6 +54,8 @@ export default class Container extends Events{
 		}
 		this.show = ()=>{
 			if (!isVisible) {
+				isVisible = true;
+				this.emit('beforeShow');
 				ctx.enabled(true);
 				el.style.display = "block";
 				setTimeout(() => {
@@ -67,7 +71,6 @@ export default class Container extends Events{
 						playerPaused = true;
 					}
 				}
-				isVisible = true;
 				if (opts.externalControls) {
 					if (player.externalControls.enabled()) {
 						externalControls = true;

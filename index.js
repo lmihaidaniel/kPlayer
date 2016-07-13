@@ -9,8 +9,9 @@ var uglify = require('uglify-js');
 //css related
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
-var csswring = require('csswring');
 var postcss = require('gulp-postcss');
+var gzip = require('gulp-gzip');
+var csswring = require('csswring');
 var atImport = require('postcss-import');
 var postcssFont = require('postcss-font-magician');
 var cssnext = require('postcss-cssnext');
@@ -120,6 +121,12 @@ gulp.task('rollup', function() {
     }).catch(function(error) {
       console.log(error);
     });
+});
+
+gulp.task('zip', function() {
+    gulp.src('./dist/kmlPlayer.js')
+    .pipe(gzip())
+    .pipe(gulp.dest('./test'));
 });
 
 gulp.task('watch', function() {

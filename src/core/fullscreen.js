@@ -76,13 +76,13 @@ export default class Fullscreen extends Events {
                 default:
                     return document[prefixFS + 'FullscreenElement'] == el;
             }
+        }else{
+            return this.isFullWindow();
         }
-        return false;
     }
     requestFullWindow(element){
-        if (this.isFullWindow() || this.isFullScreen()) {
-            return;
-        }
+        if (this.isFullWindow()) return;
+        if(supportsFullScreen && this.isFullScreen()) return;
         let el = this.defualtFullScreenElement(element);
         this.scrollPosition.save();
         // let style = window.getComputedStyle(element);
@@ -118,9 +118,8 @@ export default class Fullscreen extends Events {
         }
     }
     cancelFullWindow() {
-        if (!this.isFullWindow() || this.isFullScreen()) {
-            return;
-        }
+        if (!this.isFullWindow()) return;
+        if(supportsFullScreen && this.isFullScreen()) return;
         for (let k in this.fullscreenElementStyle) {
             this._fullscreenElement.style[k] = this.fullscreenElementStyle[k];
         }
@@ -148,8 +147,8 @@ export default class Fullscreen extends Events {
         }
     }
     toggleFullScreen(element) {
-        let isFullscreen = !this.isFullScreen();
-        if (isFullscreen) {
+        let isFullscreen = this.isFullScreen();
+        if (!isFullscreen) {
             this.requestFullScreen(element);
             //document.body.style.overflow = 'hidden';
         } else {
