@@ -21,318 +21,6 @@
     };
 })();
 
-(function (doc, win) {
-  'use strict';
-
-  if (typeof doc.createEvent !== 'function') return false; // no tap events here
-  // helpers
-  var useJquery = typeof jQuery !== 'undefined',
-      msEventType = function (type) {
-    var lo = type.toLowerCase(),
-        ms = 'MS' + type;
-    return navigator.msPointerEnabled ? ms : lo;
-  },
-
-  // was initially triggered a "touchstart" event?
-  wasTouch = false,
-      touchevents = {
-    touchstart: msEventType('PointerDown') + ' touchstart',
-    touchend: msEventType('PointerUp') + ' touchend',
-    touchmove: msEventType('PointerMove') + ' touchmove'
-  },
-      setListener = function (elm, events, callback) {
-    var eventsArray = events.split(' '),
-        i = eventsArray.length;
-
-    while (i--) {
-      elm.addEventListener(eventsArray[i], callback, false);
-    }
-  },
-      getPointerEvent = function (event) {
-    return event.targetTouches ? event.targetTouches[0] : event;
-  },
-      getTimestamp = function () {
-    return new Date().getTime();
-  },
-      sendEvent = function (elm, eventName, originalEvent, data) {
-    var customEvent = doc.createEvent('Event');
-    customEvent.originalEvent = originalEvent;
-    data = data || {};
-    data.x = currX;
-    data.y = currY;
-    data.distance = data.distance;
-
-    // jquery
-    if (useJquery) {
-      customEvent = jQuery.Event(eventName, { originalEvent: originalEvent });
-      jQuery(elm).trigger(customEvent, data);
-    }
-
-    // addEventListener
-    if (customEvent.initEvent) {
-      for (var key in data) {
-        customEvent[key] = data[key];
-      }
-      customEvent.initEvent(eventName, true, true);
-      elm.dispatchEvent(customEvent);
-    }
-
-    // detect all the inline events
-    // also on the parent nodes
-    while (elm) {
-      // inline
-      if (elm['on' + eventName]) elm['on' + eventName](customEvent);
-      elm = elm.parentNode;
-    }
-  },
-      onTouchStart = function (e) {
-    /**
-     * Skip all the mouse events
-     * events order:
-     * Chrome:
-     *   touchstart
-     *   touchmove
-     *   touchend
-     *   mousedown
-     *   mousemove
-     *   mouseup <- this must come always after a "touchstart"
-     *
-     * Safari
-     *   touchstart
-     *   mousedown
-     *   touchmove
-     *   mousemove
-     *   touchend
-     *   mouseup <- this must come always after a "touchstart"
-     */
-
-    // it looks like it was a touch event!
-    if (e.type !== 'mousedown') wasTouch = true;
-
-    // skip this event we don't need to track it now
-    if (e.type === 'mousedown' && wasTouch) return;
-
-    var pointer = getPointerEvent(e);
-
-    // caching the current x
-    cachedX = currX = pointer.pageX;
-    // caching the current y
-    cachedY = currY = pointer.pageY;
-
-    longtapTimer = setTimeout(function () {
-      sendEvent(e.target, 'longtap', e);
-      target = e.target;
-    }, longtapThreshold);
-
-    // we will use these variables on the touchend events
-    timestamp = getTimestamp();
-
-    tapNum++;
-  },
-      onTouchEnd = function (e) {
-
-    // skip the mouse events if previously a touch event was dispatched
-    // and reset the touch flag
-    if (e.type === 'mouseup' && wasTouch) {
-      wasTouch = false;
-      return;
-    }
-
-    var eventsArr = [],
-        now = getTimestamp(),
-        deltaY = cachedY - currY,
-        deltaX = cachedX - currX;
-
-    // clear the previous timer if it was set
-    clearTimeout(dblTapTimer);
-    // kill the long tap timer
-    clearTimeout(longtapTimer);
-
-    if (deltaX <= -swipeThreshold) eventsArr.push('swiperight');
-
-    if (deltaX >= swipeThreshold) eventsArr.push('swipeleft');
-
-    if (deltaY <= -swipeThreshold) eventsArr.push('swipedown');
-
-    if (deltaY >= swipeThreshold) eventsArr.push('swipeup');
-
-    if (eventsArr.length) {
-      for (var i = 0; i < eventsArr.length; i++) {
-        var eventName = eventsArr[i];
-        sendEvent(e.target, eventName, e, {
-          distance: {
-            x: Math.abs(deltaX),
-            y: Math.abs(deltaY)
-          }
-        });
-      }
-      // reset the tap counter
-      tapNum = 0;
-    } else {
-
-      if (cachedX >= currX - tapPrecision && cachedX <= currX + tapPrecision && cachedY >= currY - tapPrecision && cachedY <= currY + tapPrecision) {
-        if (timestamp + tapThreshold - now >= 0) {
-          // Here you get the Tap event
-          sendEvent(e.target, tapNum >= 2 && target === e.target ? 'dbltap' : 'tap', e);
-          target = e.target;
-        }
-      }
-
-      // reset the tap counter
-      dblTapTimer = setTimeout(function () {
-        tapNum = 0;
-      }, dbltapThreshold);
-    }
-  },
-      onTouchMove = function (e) {
-    // skip the mouse move events if the touch events were previously detected
-    if (e.type === 'mousemove' && wasTouch) return;
-
-    var pointer = getPointerEvent(e);
-    currX = pointer.pageX;
-    currY = pointer.pageY;
-  },
-      swipeThreshold = win.SWIPE_THRESHOLD || 100,
-      tapThreshold = win.TAP_THRESHOLD || 150,
-      // range of time where a tap event could be detected
-  dbltapThreshold = win.DBL_TAP_THRESHOLD || 200,
-      // delay needed to detect a double tap
-  longtapThreshold = win.LONG_TAP_THRESHOLD || 1000,
-      // delay needed to detect a long tap
-  tapPrecision = win.TAP_PRECISION / 2 || 60 / 2,
-      // touch events boundaries ( 60px by default )
-  justTouchEvents = win.JUST_ON_TOUCH_DEVICES,
-      tapNum = 0,
-      currX,
-      currY,
-      cachedX,
-      cachedY,
-      timestamp,
-      target,
-      dblTapTimer,
-      longtapTimer;
-
-  //setting the events listeners
-  // we need to debounce the callbacks because some devices multiple events are triggered at same time
-  setListener(doc, touchevents.touchstart + (justTouchEvents ? '' : ' mousedown'), onTouchStart);
-  setListener(doc, touchevents.touchend + (justTouchEvents ? '' : ' mouseup'), onTouchEnd);
-  setListener(doc, touchevents.touchmove + (justTouchEvents ? '' : ' mousemove'), onTouchMove);
-})(document, window);
-
-function inIframe() {
-	try {
-		let is = window.self !== window.top;
-		if (is) {
-			var arrFrames = parent.document.getElementsByTagName("IFRAME");
-			for (var i = 0; i < arrFrames.length; i++) {
-				let frame = arrFrames[i];
-				if (frame.contentWindow === window) {
-					is = frame;
-					frame.setAttribute('allowfullscreen', 'true');
-					frame.setAttribute('mozallowfullscreen', 'true');
-					frame.setAttribute('webkitallowfullscreen', 'true');
-					frame.setAttribute('frameborder', '0');
-				};
-			}
-		}
-		return is;
-	} catch (e) {
-		return true;
-	}
-}
-
-var deepmerge = (function () {
-	let deepmerge = function (target, src) {
-		if (src) {
-			var array = Array.isArray(src);
-			var dst = array && [] || {};
-
-			if (array) {
-				target = target || [];
-				dst = dst.concat(target);
-				src.forEach(function (e, i) {
-					if (typeof dst[i] === 'undefined') {
-						dst[i] = e;
-					} else if (typeof e === 'object') {
-						dst[i] = deepmerge(target[i], e);
-					} else {
-						if (target.indexOf(e) === -1) {
-							dst.push(e);
-						}
-					}
-				});
-			} else {
-				if (target && typeof target === 'object') {
-					Object.keys(target).forEach(function (key) {
-						dst[key] = target[key];
-					});
-				}
-				Object.keys(src).forEach(function (key) {
-					if (typeof src[key] !== 'object' || !src[key]) {
-						dst[key] = src[key];
-					} else {
-						if (!target[key]) {
-							dst[key] = src[key];
-						} else {
-							dst[key] = deepmerge(target[key], src[key]);
-						}
-					}
-				});
-			}
-			return dst;
-		} else {
-			return target || [];
-		}
-	};
-	return deepmerge;
-})();
-
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function procentFromString(v) {
-  if (v === undefined || v === null) return false;
-  let t = false;
-  if (v.indexOf) {
-    if (v.indexOf('%') > -1) {
-      t = parseFloat(v);
-    }
-  }
-  return t;
-}
-
-/**
- * Detect if the argument passed is a function
- * @param   { * } v - whatever you want to pass to this function
- * @returns { Boolean } -
- */
-function isFunction(v) {
-  return typeof v === 'function' || false; // avoid IE problems
-}
-
-function scaleFont(f, width, el) {
-  var r = false,
-      l = false;
-  if (f.units != 'px') f.units = 'em';
-  if (f.min !== false && f.ratio !== false) {
-    r = f.ratio * width / 1000;
-    if (r < f.min) r = f.min;
-    if (f.units == 'px') r = Math.ceil(r);
-    if (!isNaN(f.lineHeight) && f.lineHeight) {
-      l = r * f.lineHeight;
-      if (l < 1) l = 1;
-      l = +l.toFixed(3) + f.units;
-    }
-    r = +r.toFixed(3) + f.units;
-  }
-  if (el) {
-    if (r) el.style.fontSize = r;
-    if (l) el.style.lineHeight = l;
-  }
-  return { fontSize: r, lineHeight: l };
-};
-
 /**
  * @module dom
  * Module for easing the manipulation of dom elements
@@ -494,6 +182,52 @@ var dom = {
 	}
 };
 
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function procentFromString(v) {
+  if (v === undefined || v === null) return false;
+  let t = false;
+  if (v.indexOf) {
+    if (v.indexOf('%') > -1) {
+      t = parseFloat(v);
+    }
+  }
+  return t;
+}
+
+/**
+ * Detect if the argument passed is a function
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+function isFunction(v) {
+  return typeof v === 'function' || false; // avoid IE problems
+}
+
+function scaleFont(f, width, el) {
+  var r = false,
+      l = false;
+  if (f.units != 'px') f.units = 'em';
+  if (f.min !== false && f.ratio !== false) {
+    r = f.ratio * width / 1000;
+    if (r < f.min) r = f.min;
+    if (f.units == 'px') r = Math.ceil(r);
+    if (!isNaN(f.lineHeight) && f.lineHeight) {
+      l = r * f.lineHeight;
+      if (l < 1) l = 1;
+      l = +l.toFixed(3) + f.units;
+    }
+    r = +r.toFixed(3) + f.units;
+  }
+  if (el) {
+    if (r) el.style.fontSize = r;
+    if (l) el.style.lineHeight = l;
+  }
+  return { fontSize: r, lineHeight: l };
+};
+
 let browser = function () {
   var nVer = navigator.appVersion,
       nAgt = navigator.userAgent,
@@ -592,10 +326,56 @@ var device = {
   isIos: /(iPad|iPhone|iPod)/g.test(navigator.platform)
 };
 
+var deepmerge = (function () {
+	let deepmerge = function (target, src) {
+		if (src) {
+			var array = Array.isArray(src);
+			var dst = array && [] || {};
+
+			if (array) {
+				target = target || [];
+				dst = dst.concat(target);
+				src.forEach(function (e, i) {
+					if (typeof dst[i] === 'undefined') {
+						dst[i] = e;
+					} else if (typeof e === 'object') {
+						dst[i] = deepmerge(target[i], e);
+					} else {
+						if (target.indexOf(e) === -1) {
+							dst.push(e);
+						}
+					}
+				});
+			} else {
+				if (target && typeof target === 'object') {
+					Object.keys(target).forEach(function (key) {
+						dst[key] = target[key];
+					});
+				}
+				Object.keys(src).forEach(function (key) {
+					if (typeof src[key] !== 'object' || !src[key]) {
+						dst[key] = src[key];
+					} else {
+						if (!target[key]) {
+							dst[key] = src[key];
+						} else {
+							dst[key] = deepmerge(target[key], src[key]);
+						}
+					}
+				});
+			}
+			return dst;
+		} else {
+			return target || [];
+		}
+	};
+	return deepmerge;
+})();
+
 let autoFont = function (el, font, parent) {
 	let _enabled = false;
 	let _update = function () {
-		scaleFont(font, parent.width(), el);
+		if (_enabled) return scaleFont(font, parent.width(), el);
 	};
 	this.update = function (v) {
 		if (v !== undefined) {
@@ -603,15 +383,14 @@ let autoFont = function (el, font, parent) {
 				font = { ratio: 1, min: 1, lineHeight: false };
 			}
 			font = deepmerge(font, v);
-			return scaleFont(font, parent.width(), el);
+			return _update();
 		}
 	};
 	this.enabled = function (v) {
 		if (typeof v === 'boolean' && font) {
 			_enabled = v;
-			// v ? (window.addEventListener('resize', _update, false), scaleFont(font, _width(), el)) : window.removeEventListener('resize', _update, false);
 		}
-		return _enabled;;
+		return _enabled;
 	};
 	if (parent.on) {
 		parent.on('resize', _update);
@@ -665,8 +444,8 @@ let adaptiveSizePos = function (setttings, parent) {
 
 	let updateDomElement = function () {
 		if (_active && domElement && domElement.nodeType) {
-			if (vault.width !== null) domElement.style.width = vault.width + "px";
-			if (vault.height !== null) domElement.style.height = vault.height + "px";
+			if (vault.width != null) domElement.style.width = vault.width + "px";
+			if (vault.height != null) domElement.style.height = vault.height + "px";
 
 			if (dom.stylePrefix.transform && settings.translate) {
 				let transform = '';
@@ -1108,6 +887,1218 @@ if ('undefined' !== typeof module) {
 
 var Events = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
 
+var tinycolor = createCommonjsModule(function (module) {
+// TinyColor v1.4.1
+// https://github.com/bgrins/TinyColor
+// Brian Grinstead, MIT License
+
+(function(Math) {
+
+var trimLeft = /^\s+/,
+    trimRight = /\s+$/,
+    tinyCounter = 0,
+    mathRound = Math.round,
+    mathMin = Math.min,
+    mathMax = Math.max,
+    mathRandom = Math.random;
+
+function tinycolor (color, opts) {
+
+    color = (color) ? color : '';
+    opts = opts || { };
+
+    // If input is already a tinycolor, return itself
+    if (color instanceof tinycolor) {
+       return color;
+    }
+    // If we are called as a function, call using new instead
+    if (!(this instanceof tinycolor)) {
+        return new tinycolor(color, opts);
+    }
+
+    var rgb = inputToRGB(color);
+    this._originalInput = color,
+    this._r = rgb.r,
+    this._g = rgb.g,
+    this._b = rgb.b,
+    this._a = rgb.a,
+    this._roundA = mathRound(100*this._a) / 100,
+    this._format = opts.format || rgb.format;
+    this._gradientType = opts.gradientType;
+
+    // Don't let the range of [0,255] come back in [0,1].
+    // Potentially lose a little bit of precision here, but will fix issues where
+    // .5 gets interpreted as half of the total, instead of half of 1
+    // If it was supposed to be 128, this was already taken care of by `inputToRgb`
+    if (this._r < 1) { this._r = mathRound(this._r); }
+    if (this._g < 1) { this._g = mathRound(this._g); }
+    if (this._b < 1) { this._b = mathRound(this._b); }
+
+    this._ok = rgb.ok;
+    this._tc_id = tinyCounter++;
+}
+
+tinycolor.prototype = {
+    isDark: function() {
+        return this.getBrightness() < 128;
+    },
+    isLight: function() {
+        return !this.isDark();
+    },
+    isValid: function() {
+        return this._ok;
+    },
+    getOriginalInput: function() {
+      return this._originalInput;
+    },
+    getFormat: function() {
+        return this._format;
+    },
+    getAlpha: function() {
+        return this._a;
+    },
+    getBrightness: function() {
+        //http://www.w3.org/TR/AERT#color-contrast
+        var rgb = this.toRgb();
+        return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+    },
+    getLuminance: function() {
+        //http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+        var rgb = this.toRgb();
+        var RsRGB, GsRGB, BsRGB, R, G, B;
+        RsRGB = rgb.r/255;
+        GsRGB = rgb.g/255;
+        BsRGB = rgb.b/255;
+
+        if (RsRGB <= 0.03928) {R = RsRGB / 12.92;} else {R = Math.pow(((RsRGB + 0.055) / 1.055), 2.4);}
+        if (GsRGB <= 0.03928) {G = GsRGB / 12.92;} else {G = Math.pow(((GsRGB + 0.055) / 1.055), 2.4);}
+        if (BsRGB <= 0.03928) {B = BsRGB / 12.92;} else {B = Math.pow(((BsRGB + 0.055) / 1.055), 2.4);}
+        return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
+    },
+    setAlpha: function(value) {
+        this._a = boundAlpha(value);
+        this._roundA = mathRound(100*this._a) / 100;
+        return this;
+    },
+    toHsv: function() {
+        var hsv = rgbToHsv(this._r, this._g, this._b);
+        return { h: hsv.h * 360, s: hsv.s, v: hsv.v, a: this._a };
+    },
+    toHsvString: function() {
+        var hsv = rgbToHsv(this._r, this._g, this._b);
+        var h = mathRound(hsv.h * 360), s = mathRound(hsv.s * 100), v = mathRound(hsv.v * 100);
+        return (this._a == 1) ?
+          "hsv("  + h + ", " + s + "%, " + v + "%)" :
+          "hsva(" + h + ", " + s + "%, " + v + "%, "+ this._roundA + ")";
+    },
+    toHsl: function() {
+        var hsl = rgbToHsl(this._r, this._g, this._b);
+        return { h: hsl.h * 360, s: hsl.s, l: hsl.l, a: this._a };
+    },
+    toHslString: function() {
+        var hsl = rgbToHsl(this._r, this._g, this._b);
+        var h = mathRound(hsl.h * 360), s = mathRound(hsl.s * 100), l = mathRound(hsl.l * 100);
+        return (this._a == 1) ?
+          "hsl("  + h + ", " + s + "%, " + l + "%)" :
+          "hsla(" + h + ", " + s + "%, " + l + "%, "+ this._roundA + ")";
+    },
+    toHex: function(allow3Char) {
+        return rgbToHex(this._r, this._g, this._b, allow3Char);
+    },
+    toHexString: function(allow3Char) {
+        return '#' + this.toHex(allow3Char);
+    },
+    toHex8: function(allow4Char) {
+        return rgbaToHex(this._r, this._g, this._b, this._a, allow4Char);
+    },
+    toHex8String: function(allow4Char) {
+        return '#' + this.toHex8(allow4Char);
+    },
+    toRgb: function() {
+        return { r: mathRound(this._r), g: mathRound(this._g), b: mathRound(this._b), a: this._a };
+    },
+    toRgbString: function() {
+        return (this._a == 1) ?
+          "rgb("  + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ")" :
+          "rgba(" + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ", " + this._roundA + ")";
+    },
+    toPercentageRgb: function() {
+        return { r: mathRound(bound01(this._r, 255) * 100) + "%", g: mathRound(bound01(this._g, 255) * 100) + "%", b: mathRound(bound01(this._b, 255) * 100) + "%", a: this._a };
+    },
+    toPercentageRgbString: function() {
+        return (this._a == 1) ?
+          "rgb("  + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%)" :
+          "rgba(" + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%, " + this._roundA + ")";
+    },
+    toName: function() {
+        if (this._a === 0) {
+            return "transparent";
+        }
+
+        if (this._a < 1) {
+            return false;
+        }
+
+        return hexNames[rgbToHex(this._r, this._g, this._b, true)] || false;
+    },
+    toFilter: function(secondColor) {
+        var hex8String = '#' + rgbaToArgbHex(this._r, this._g, this._b, this._a);
+        var secondHex8String = hex8String;
+        var gradientType = this._gradientType ? "GradientType = 1, " : "";
+
+        if (secondColor) {
+            var s = tinycolor(secondColor);
+            secondHex8String = '#' + rgbaToArgbHex(s._r, s._g, s._b, s._a);
+        }
+
+        return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
+    },
+    toString: function(format) {
+        var formatSet = !!format;
+        format = format || this._format;
+
+        var formattedString = false;
+        var hasAlpha = this._a < 1 && this._a >= 0;
+        var needsAlphaFormat = !formatSet && hasAlpha && (format === "hex" || format === "hex6" || format === "hex3" || format === "hex4" || format === "hex8" || format === "name");
+
+        if (needsAlphaFormat) {
+            // Special case for "transparent", all other non-alpha formats
+            // will return rgba when there is transparency.
+            if (format === "name" && this._a === 0) {
+                return this.toName();
+            }
+            return this.toRgbString();
+        }
+        if (format === "rgb") {
+            formattedString = this.toRgbString();
+        }
+        if (format === "prgb") {
+            formattedString = this.toPercentageRgbString();
+        }
+        if (format === "hex" || format === "hex6") {
+            formattedString = this.toHexString();
+        }
+        if (format === "hex3") {
+            formattedString = this.toHexString(true);
+        }
+        if (format === "hex4") {
+            formattedString = this.toHex8String(true);
+        }
+        if (format === "hex8") {
+            formattedString = this.toHex8String();
+        }
+        if (format === "name") {
+            formattedString = this.toName();
+        }
+        if (format === "hsl") {
+            formattedString = this.toHslString();
+        }
+        if (format === "hsv") {
+            formattedString = this.toHsvString();
+        }
+
+        return formattedString || this.toHexString();
+    },
+    clone: function() {
+        return tinycolor(this.toString());
+    },
+
+    _applyModification: function(fn, args) {
+        var color = fn.apply(null, [this].concat([].slice.call(args)));
+        this._r = color._r;
+        this._g = color._g;
+        this._b = color._b;
+        this.setAlpha(color._a);
+        return this;
+    },
+    lighten: function() {
+        return this._applyModification(lighten, arguments);
+    },
+    brighten: function() {
+        return this._applyModification(brighten, arguments);
+    },
+    darken: function() {
+        return this._applyModification(darken, arguments);
+    },
+    desaturate: function() {
+        return this._applyModification(desaturate, arguments);
+    },
+    saturate: function() {
+        return this._applyModification(saturate, arguments);
+    },
+    greyscale: function() {
+        return this._applyModification(greyscale, arguments);
+    },
+    spin: function() {
+        return this._applyModification(spin, arguments);
+    },
+
+    _applyCombination: function(fn, args) {
+        return fn.apply(null, [this].concat([].slice.call(args)));
+    },
+    analogous: function() {
+        return this._applyCombination(analogous, arguments);
+    },
+    complement: function() {
+        return this._applyCombination(complement, arguments);
+    },
+    monochromatic: function() {
+        return this._applyCombination(monochromatic, arguments);
+    },
+    splitcomplement: function() {
+        return this._applyCombination(splitcomplement, arguments);
+    },
+    triad: function() {
+        return this._applyCombination(triad, arguments);
+    },
+    tetrad: function() {
+        return this._applyCombination(tetrad, arguments);
+    }
+};
+
+// If input is an object, force 1 into "1.0" to handle ratios properly
+// String input requires "1.0" as input, so 1 will be treated as 1
+tinycolor.fromRatio = function(color, opts) {
+    if (typeof color == "object") {
+        var newColor = {};
+        for (var i in color) {
+            if (color.hasOwnProperty(i)) {
+                if (i === "a") {
+                    newColor[i] = color[i];
+                }
+                else {
+                    newColor[i] = convertToPercentage(color[i]);
+                }
+            }
+        }
+        color = newColor;
+    }
+
+    return tinycolor(color, opts);
+};
+
+// Given a string or object, convert that input to RGB
+// Possible string inputs:
+//
+//     "red"
+//     "#f00" or "f00"
+//     "#ff0000" or "ff0000"
+//     "#ff000000" or "ff000000"
+//     "rgb 255 0 0" or "rgb (255, 0, 0)"
+//     "rgb 1.0 0 0" or "rgb (1, 0, 0)"
+//     "rgba (255, 0, 0, 1)" or "rgba 255, 0, 0, 1"
+//     "rgba (1.0, 0, 0, 1)" or "rgba 1.0, 0, 0, 1"
+//     "hsl(0, 100%, 50%)" or "hsl 0 100% 50%"
+//     "hsla(0, 100%, 50%, 1)" or "hsla 0 100% 50%, 1"
+//     "hsv(0, 100%, 100%)" or "hsv 0 100% 100%"
+//
+function inputToRGB(color) {
+
+    var rgb = { r: 0, g: 0, b: 0 };
+    var a = 1;
+    var s = null;
+    var v = null;
+    var l = null;
+    var ok = false;
+    var format = false;
+
+    if (typeof color == "string") {
+        color = stringInputToObject(color);
+    }
+
+    if (typeof color == "object") {
+        if (isValidCSSUnit(color.r) && isValidCSSUnit(color.g) && isValidCSSUnit(color.b)) {
+            rgb = rgbToRgb(color.r, color.g, color.b);
+            ok = true;
+            format = String(color.r).substr(-1) === "%" ? "prgb" : "rgb";
+        }
+        else if (isValidCSSUnit(color.h) && isValidCSSUnit(color.s) && isValidCSSUnit(color.v)) {
+            s = convertToPercentage(color.s);
+            v = convertToPercentage(color.v);
+            rgb = hsvToRgb(color.h, s, v);
+            ok = true;
+            format = "hsv";
+        }
+        else if (isValidCSSUnit(color.h) && isValidCSSUnit(color.s) && isValidCSSUnit(color.l)) {
+            s = convertToPercentage(color.s);
+            l = convertToPercentage(color.l);
+            rgb = hslToRgb(color.h, s, l);
+            ok = true;
+            format = "hsl";
+        }
+
+        if (color.hasOwnProperty("a")) {
+            a = color.a;
+        }
+    }
+
+    a = boundAlpha(a);
+
+    return {
+        ok: ok,
+        format: color.format || format,
+        r: mathMin(255, mathMax(rgb.r, 0)),
+        g: mathMin(255, mathMax(rgb.g, 0)),
+        b: mathMin(255, mathMax(rgb.b, 0)),
+        a: a
+    };
+}
+
+
+// Conversion Functions
+// --------------------
+
+// `rgbToHsl`, `rgbToHsv`, `hslToRgb`, `hsvToRgb` modified from:
+// <http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript>
+
+// `rgbToRgb`
+// Handle bounds / percentage checking to conform to CSS color spec
+// <http://www.w3.org/TR/css3-color/>
+// *Assumes:* r, g, b in [0, 255] or [0, 1]
+// *Returns:* { r, g, b } in [0, 255]
+function rgbToRgb(r, g, b){
+    return {
+        r: bound01(r, 255) * 255,
+        g: bound01(g, 255) * 255,
+        b: bound01(b, 255) * 255
+    };
+}
+
+// `rgbToHsl`
+// Converts an RGB color value to HSL.
+// *Assumes:* r, g, and b are contained in [0, 255] or [0, 1]
+// *Returns:* { h, s, l } in [0,1]
+function rgbToHsl(r, g, b) {
+
+    r = bound01(r, 255);
+    g = bound01(g, 255);
+    b = bound01(b, 255);
+
+    var max = mathMax(r, g, b), min = mathMin(r, g, b);
+    var h, s, l = (max + min) / 2;
+
+    if(max == min) {
+        h = s = 0; // achromatic
+    }
+    else {
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch(max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+
+        h /= 6;
+    }
+
+    return { h: h, s: s, l: l };
+}
+
+// `hslToRgb`
+// Converts an HSL color value to RGB.
+// *Assumes:* h is contained in [0, 1] or [0, 360] and s and l are contained [0, 1] or [0, 100]
+// *Returns:* { r, g, b } in the set [0, 255]
+function hslToRgb(h, s, l) {
+    var r, g, b;
+
+    h = bound01(h, 360);
+    s = bound01(s, 100);
+    l = bound01(l, 100);
+
+    function hue2rgb(p, q, t) {
+        if(t < 0) t += 1;
+        if(t > 1) t -= 1;
+        if(t < 1/6) return p + (q - p) * 6 * t;
+        if(t < 1/2) return q;
+        if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+    }
+
+    if(s === 0) {
+        r = g = b = l; // achromatic
+    }
+    else {
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+
+    return { r: r * 255, g: g * 255, b: b * 255 };
+}
+
+// `rgbToHsv`
+// Converts an RGB color value to HSV
+// *Assumes:* r, g, and b are contained in the set [0, 255] or [0, 1]
+// *Returns:* { h, s, v } in [0,1]
+function rgbToHsv(r, g, b) {
+
+    r = bound01(r, 255);
+    g = bound01(g, 255);
+    b = bound01(b, 255);
+
+    var max = mathMax(r, g, b), min = mathMin(r, g, b);
+    var h, s, v = max;
+
+    var d = max - min;
+    s = max === 0 ? 0 : d / max;
+
+    if(max == min) {
+        h = 0; // achromatic
+    }
+    else {
+        switch(max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return { h: h, s: s, v: v };
+}
+
+// `hsvToRgb`
+// Converts an HSV color value to RGB.
+// *Assumes:* h is contained in [0, 1] or [0, 360] and s and v are contained in [0, 1] or [0, 100]
+// *Returns:* { r, g, b } in the set [0, 255]
+ function hsvToRgb(h, s, v) {
+
+    h = bound01(h, 360) * 6;
+    s = bound01(s, 100);
+    v = bound01(v, 100);
+
+    var i = Math.floor(h),
+        f = h - i,
+        p = v * (1 - s),
+        q = v * (1 - f * s),
+        t = v * (1 - (1 - f) * s),
+        mod = i % 6,
+        r = [v, q, p, p, t, v][mod],
+        g = [t, v, v, q, p, p][mod],
+        b = [p, p, t, v, v, q][mod];
+
+    return { r: r * 255, g: g * 255, b: b * 255 };
+}
+
+// `rgbToHex`
+// Converts an RGB color to hex
+// Assumes r, g, and b are contained in the set [0, 255]
+// Returns a 3 or 6 character hex
+function rgbToHex(r, g, b, allow3Char) {
+
+    var hex = [
+        pad2(mathRound(r).toString(16)),
+        pad2(mathRound(g).toString(16)),
+        pad2(mathRound(b).toString(16))
+    ];
+
+    // Return a 3 character hex if possible
+    if (allow3Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1)) {
+        return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0);
+    }
+
+    return hex.join("");
+}
+
+// `rgbaToHex`
+// Converts an RGBA color plus alpha transparency to hex
+// Assumes r, g, b are contained in the set [0, 255] and
+// a in [0, 1]. Returns a 4 or 8 character rgba hex
+function rgbaToHex(r, g, b, a, allow4Char) {
+
+    var hex = [
+        pad2(mathRound(r).toString(16)),
+        pad2(mathRound(g).toString(16)),
+        pad2(mathRound(b).toString(16)),
+        pad2(convertDecimalToHex(a))
+    ];
+
+    // Return a 4 character hex if possible
+    if (allow4Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1) && hex[3].charAt(0) == hex[3].charAt(1)) {
+        return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0) + hex[3].charAt(0);
+    }
+
+    return hex.join("");
+}
+
+// `rgbaToArgbHex`
+// Converts an RGBA color to an ARGB Hex8 string
+// Rarely used, but required for "toFilter()"
+function rgbaToArgbHex(r, g, b, a) {
+
+    var hex = [
+        pad2(convertDecimalToHex(a)),
+        pad2(mathRound(r).toString(16)),
+        pad2(mathRound(g).toString(16)),
+        pad2(mathRound(b).toString(16))
+    ];
+
+    return hex.join("");
+}
+
+// `equals`
+// Can be called with any tinycolor input
+tinycolor.equals = function (color1, color2) {
+    if (!color1 || !color2) { return false; }
+    return tinycolor(color1).toRgbString() == tinycolor(color2).toRgbString();
+};
+
+tinycolor.random = function() {
+    return tinycolor.fromRatio({
+        r: mathRandom(),
+        g: mathRandom(),
+        b: mathRandom()
+    });
+};
+
+
+// Modification Functions
+// ----------------------
+// Thanks to less.js for some of the basics here
+// <https://github.com/cloudhead/less.js/blob/master/lib/less/functions.js>
+
+function desaturate(color, amount) {
+    amount = (amount === 0) ? 0 : (amount || 10);
+    var hsl = tinycolor(color).toHsl();
+    hsl.s -= amount / 100;
+    hsl.s = clamp01(hsl.s);
+    return tinycolor(hsl);
+}
+
+function saturate(color, amount) {
+    amount = (amount === 0) ? 0 : (amount || 10);
+    var hsl = tinycolor(color).toHsl();
+    hsl.s += amount / 100;
+    hsl.s = clamp01(hsl.s);
+    return tinycolor(hsl);
+}
+
+function greyscale(color) {
+    return tinycolor(color).desaturate(100);
+}
+
+function lighten (color, amount) {
+    amount = (amount === 0) ? 0 : (amount || 10);
+    var hsl = tinycolor(color).toHsl();
+    hsl.l += amount / 100;
+    hsl.l = clamp01(hsl.l);
+    return tinycolor(hsl);
+}
+
+function brighten(color, amount) {
+    amount = (amount === 0) ? 0 : (amount || 10);
+    var rgb = tinycolor(color).toRgb();
+    rgb.r = mathMax(0, mathMin(255, rgb.r - mathRound(255 * - (amount / 100))));
+    rgb.g = mathMax(0, mathMin(255, rgb.g - mathRound(255 * - (amount / 100))));
+    rgb.b = mathMax(0, mathMin(255, rgb.b - mathRound(255 * - (amount / 100))));
+    return tinycolor(rgb);
+}
+
+function darken (color, amount) {
+    amount = (amount === 0) ? 0 : (amount || 10);
+    var hsl = tinycolor(color).toHsl();
+    hsl.l -= amount / 100;
+    hsl.l = clamp01(hsl.l);
+    return tinycolor(hsl);
+}
+
+// Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
+// Values outside of this range will be wrapped into this range.
+function spin(color, amount) {
+    var hsl = tinycolor(color).toHsl();
+    var hue = (hsl.h + amount) % 360;
+    hsl.h = hue < 0 ? 360 + hue : hue;
+    return tinycolor(hsl);
+}
+
+// Combination Functions
+// ---------------------
+// Thanks to jQuery xColor for some of the ideas behind these
+// <https://github.com/infusion/jQuery-xcolor/blob/master/jquery.xcolor.js>
+
+function complement(color) {
+    var hsl = tinycolor(color).toHsl();
+    hsl.h = (hsl.h + 180) % 360;
+    return tinycolor(hsl);
+}
+
+function triad(color) {
+    var hsl = tinycolor(color).toHsl();
+    var h = hsl.h;
+    return [
+        tinycolor(color),
+        tinycolor({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
+        tinycolor({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
+    ];
+}
+
+function tetrad(color) {
+    var hsl = tinycolor(color).toHsl();
+    var h = hsl.h;
+    return [
+        tinycolor(color),
+        tinycolor({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
+        tinycolor({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
+        tinycolor({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
+    ];
+}
+
+function splitcomplement(color) {
+    var hsl = tinycolor(color).toHsl();
+    var h = hsl.h;
+    return [
+        tinycolor(color),
+        tinycolor({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
+        tinycolor({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
+    ];
+}
+
+function analogous(color, results, slices) {
+    results = results || 6;
+    slices = slices || 30;
+
+    var hsl = tinycolor(color).toHsl();
+    var part = 360 / slices;
+    var ret = [tinycolor(color)];
+
+    for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
+        hsl.h = (hsl.h + part) % 360;
+        ret.push(tinycolor(hsl));
+    }
+    return ret;
+}
+
+function monochromatic(color, results) {
+    results = results || 6;
+    var hsv = tinycolor(color).toHsv();
+    var h = hsv.h, s = hsv.s, v = hsv.v;
+    var ret = [];
+    var modification = 1 / results;
+
+    while (results--) {
+        ret.push(tinycolor({ h: h, s: s, v: v}));
+        v = (v + modification) % 1;
+    }
+
+    return ret;
+}
+
+// Utility Functions
+// ---------------------
+
+tinycolor.mix = function(color1, color2, amount) {
+    amount = (amount === 0) ? 0 : (amount || 50);
+
+    var rgb1 = tinycolor(color1).toRgb();
+    var rgb2 = tinycolor(color2).toRgb();
+
+    var p = amount / 100;
+
+    var rgba = {
+        r: ((rgb2.r - rgb1.r) * p) + rgb1.r,
+        g: ((rgb2.g - rgb1.g) * p) + rgb1.g,
+        b: ((rgb2.b - rgb1.b) * p) + rgb1.b,
+        a: ((rgb2.a - rgb1.a) * p) + rgb1.a
+    };
+
+    return tinycolor(rgba);
+};
+
+
+// Readability Functions
+// ---------------------
+// <http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef (WCAG Version 2)
+
+// `contrast`
+// Analyze the 2 colors and returns the color contrast defined by (WCAG Version 2)
+tinycolor.readability = function(color1, color2) {
+    var c1 = tinycolor(color1);
+    var c2 = tinycolor(color2);
+    return (Math.max(c1.getLuminance(),c2.getLuminance())+0.05) / (Math.min(c1.getLuminance(),c2.getLuminance())+0.05);
+};
+
+// `isReadable`
+// Ensure that foreground and background color combinations meet WCAG2 guidelines.
+// The third argument is an optional Object.
+//      the 'level' property states 'AA' or 'AAA' - if missing or invalid, it defaults to 'AA';
+//      the 'size' property states 'large' or 'small' - if missing or invalid, it defaults to 'small'.
+// If the entire object is absent, isReadable defaults to {level:"AA",size:"small"}.
+
+// *Example*
+//    tinycolor.isReadable("#000", "#111") => false
+//    tinycolor.isReadable("#000", "#111",{level:"AA",size:"large"}) => false
+tinycolor.isReadable = function(color1, color2, wcag2) {
+    var readability = tinycolor.readability(color1, color2);
+    var wcag2Parms, out;
+
+    out = false;
+
+    wcag2Parms = validateWCAG2Parms(wcag2);
+    switch (wcag2Parms.level + wcag2Parms.size) {
+        case "AAsmall":
+        case "AAAlarge":
+            out = readability >= 4.5;
+            break;
+        case "AAlarge":
+            out = readability >= 3;
+            break;
+        case "AAAsmall":
+            out = readability >= 7;
+            break;
+    }
+    return out;
+
+};
+
+// `mostReadable`
+// Given a base color and a list of possible foreground or background
+// colors for that base, returns the most readable color.
+// Optionally returns Black or White if the most readable color is unreadable.
+// *Example*
+//    tinycolor.mostReadable(tinycolor.mostReadable("#123", ["#124", "#125"],{includeFallbackColors:false}).toHexString(); // "#112255"
+//    tinycolor.mostReadable(tinycolor.mostReadable("#123", ["#124", "#125"],{includeFallbackColors:true}).toHexString();  // "#ffffff"
+//    tinycolor.mostReadable("#a8015a", ["#faf3f3"],{includeFallbackColors:true,level:"AAA",size:"large"}).toHexString(); // "#faf3f3"
+//    tinycolor.mostReadable("#a8015a", ["#faf3f3"],{includeFallbackColors:true,level:"AAA",size:"small"}).toHexString(); // "#ffffff"
+tinycolor.mostReadable = function(baseColor, colorList, args) {
+    var bestColor = null;
+    var bestScore = 0;
+    var readability;
+    var includeFallbackColors, level, size ;
+    args = args || {};
+    includeFallbackColors = args.includeFallbackColors ;
+    level = args.level;
+    size = args.size;
+
+    for (var i= 0; i < colorList.length ; i++) {
+        readability = tinycolor.readability(baseColor, colorList[i]);
+        if (readability > bestScore) {
+            bestScore = readability;
+            bestColor = tinycolor(colorList[i]);
+        }
+    }
+
+    if (tinycolor.isReadable(baseColor, bestColor, {"level":level,"size":size}) || !includeFallbackColors) {
+        return bestColor;
+    }
+    else {
+        args.includeFallbackColors=false;
+        return tinycolor.mostReadable(baseColor,["#fff", "#000"],args);
+    }
+};
+
+
+// Big List of Colors
+// ------------------
+// <http://www.w3.org/TR/css3-color/#svg-color>
+var names = tinycolor.names = {
+    aliceblue: "f0f8ff",
+    antiquewhite: "faebd7",
+    aqua: "0ff",
+    aquamarine: "7fffd4",
+    azure: "f0ffff",
+    beige: "f5f5dc",
+    bisque: "ffe4c4",
+    black: "000",
+    blanchedalmond: "ffebcd",
+    blue: "00f",
+    blueviolet: "8a2be2",
+    brown: "a52a2a",
+    burlywood: "deb887",
+    burntsienna: "ea7e5d",
+    cadetblue: "5f9ea0",
+    chartreuse: "7fff00",
+    chocolate: "d2691e",
+    coral: "ff7f50",
+    cornflowerblue: "6495ed",
+    cornsilk: "fff8dc",
+    crimson: "dc143c",
+    cyan: "0ff",
+    darkblue: "00008b",
+    darkcyan: "008b8b",
+    darkgoldenrod: "b8860b",
+    darkgray: "a9a9a9",
+    darkgreen: "006400",
+    darkgrey: "a9a9a9",
+    darkkhaki: "bdb76b",
+    darkmagenta: "8b008b",
+    darkolivegreen: "556b2f",
+    darkorange: "ff8c00",
+    darkorchid: "9932cc",
+    darkred: "8b0000",
+    darksalmon: "e9967a",
+    darkseagreen: "8fbc8f",
+    darkslateblue: "483d8b",
+    darkslategray: "2f4f4f",
+    darkslategrey: "2f4f4f",
+    darkturquoise: "00ced1",
+    darkviolet: "9400d3",
+    deeppink: "ff1493",
+    deepskyblue: "00bfff",
+    dimgray: "696969",
+    dimgrey: "696969",
+    dodgerblue: "1e90ff",
+    firebrick: "b22222",
+    floralwhite: "fffaf0",
+    forestgreen: "228b22",
+    fuchsia: "f0f",
+    gainsboro: "dcdcdc",
+    ghostwhite: "f8f8ff",
+    gold: "ffd700",
+    goldenrod: "daa520",
+    gray: "808080",
+    green: "008000",
+    greenyellow: "adff2f",
+    grey: "808080",
+    honeydew: "f0fff0",
+    hotpink: "ff69b4",
+    indianred: "cd5c5c",
+    indigo: "4b0082",
+    ivory: "fffff0",
+    khaki: "f0e68c",
+    lavender: "e6e6fa",
+    lavenderblush: "fff0f5",
+    lawngreen: "7cfc00",
+    lemonchiffon: "fffacd",
+    lightblue: "add8e6",
+    lightcoral: "f08080",
+    lightcyan: "e0ffff",
+    lightgoldenrodyellow: "fafad2",
+    lightgray: "d3d3d3",
+    lightgreen: "90ee90",
+    lightgrey: "d3d3d3",
+    lightpink: "ffb6c1",
+    lightsalmon: "ffa07a",
+    lightseagreen: "20b2aa",
+    lightskyblue: "87cefa",
+    lightslategray: "789",
+    lightslategrey: "789",
+    lightsteelblue: "b0c4de",
+    lightyellow: "ffffe0",
+    lime: "0f0",
+    limegreen: "32cd32",
+    linen: "faf0e6",
+    magenta: "f0f",
+    maroon: "800000",
+    mediumaquamarine: "66cdaa",
+    mediumblue: "0000cd",
+    mediumorchid: "ba55d3",
+    mediumpurple: "9370db",
+    mediumseagreen: "3cb371",
+    mediumslateblue: "7b68ee",
+    mediumspringgreen: "00fa9a",
+    mediumturquoise: "48d1cc",
+    mediumvioletred: "c71585",
+    midnightblue: "191970",
+    mintcream: "f5fffa",
+    mistyrose: "ffe4e1",
+    moccasin: "ffe4b5",
+    navajowhite: "ffdead",
+    navy: "000080",
+    oldlace: "fdf5e6",
+    olive: "808000",
+    olivedrab: "6b8e23",
+    orange: "ffa500",
+    orangered: "ff4500",
+    orchid: "da70d6",
+    palegoldenrod: "eee8aa",
+    palegreen: "98fb98",
+    paleturquoise: "afeeee",
+    palevioletred: "db7093",
+    papayawhip: "ffefd5",
+    peachpuff: "ffdab9",
+    peru: "cd853f",
+    pink: "ffc0cb",
+    plum: "dda0dd",
+    powderblue: "b0e0e6",
+    purple: "800080",
+    rebeccapurple: "663399",
+    red: "f00",
+    rosybrown: "bc8f8f",
+    royalblue: "4169e1",
+    saddlebrown: "8b4513",
+    salmon: "fa8072",
+    sandybrown: "f4a460",
+    seagreen: "2e8b57",
+    seashell: "fff5ee",
+    sienna: "a0522d",
+    silver: "c0c0c0",
+    skyblue: "87ceeb",
+    slateblue: "6a5acd",
+    slategray: "708090",
+    slategrey: "708090",
+    snow: "fffafa",
+    springgreen: "00ff7f",
+    steelblue: "4682b4",
+    tan: "d2b48c",
+    teal: "008080",
+    thistle: "d8bfd8",
+    tomato: "ff6347",
+    turquoise: "40e0d0",
+    violet: "ee82ee",
+    wheat: "f5deb3",
+    white: "fff",
+    whitesmoke: "f5f5f5",
+    yellow: "ff0",
+    yellowgreen: "9acd32"
+};
+
+// Make it easy to access colors via `hexNames[hex]`
+var hexNames = tinycolor.hexNames = flip(names);
+
+
+// Utilities
+// ---------
+
+// `{ 'name1': 'val1' }` becomes `{ 'val1': 'name1' }`
+function flip(o) {
+    var flipped = { };
+    for (var i in o) {
+        if (o.hasOwnProperty(i)) {
+            flipped[o[i]] = i;
+        }
+    }
+    return flipped;
+}
+
+// Return a valid alpha value [0,1] with all invalid values being set to 1
+function boundAlpha(a) {
+    a = parseFloat(a);
+
+    if (isNaN(a) || a < 0 || a > 1) {
+        a = 1;
+    }
+
+    return a;
+}
+
+// Take input from [0, n] and return it as [0, 1]
+function bound01(n, max) {
+    if (isOnePointZero(n)) { n = "100%"; }
+
+    var processPercent = isPercentage(n);
+    n = mathMin(max, mathMax(0, parseFloat(n)));
+
+    // Automatically convert percentage into number
+    if (processPercent) {
+        n = parseInt(n * max, 10) / 100;
+    }
+
+    // Handle floating point rounding errors
+    if ((Math.abs(n - max) < 0.000001)) {
+        return 1;
+    }
+
+    // Convert into [0, 1] range if it isn't already
+    return (n % max) / parseFloat(max);
+}
+
+// Force a number between 0 and 1
+function clamp01(val) {
+    return mathMin(1, mathMax(0, val));
+}
+
+// Parse a base-16 hex value into a base-10 integer
+function parseIntFromHex(val) {
+    return parseInt(val, 16);
+}
+
+// Need to handle 1.0 as 100%, since once it is a number, there is no difference between it and 1
+// <http://stackoverflow.com/questions/7422072/javascript-how-to-detect-number-as-a-decimal-including-1-0>
+function isOnePointZero(n) {
+    return typeof n == "string" && n.indexOf('.') != -1 && parseFloat(n) === 1;
+}
+
+// Check to see if string passed in is a percentage
+function isPercentage(n) {
+    return typeof n === "string" && n.indexOf('%') != -1;
+}
+
+// Force a hex value to have 2 characters
+function pad2(c) {
+    return c.length == 1 ? '0' + c : '' + c;
+}
+
+// Replace a decimal with it's percentage value
+function convertToPercentage(n) {
+    if (n <= 1) {
+        n = (n * 100) + "%";
+    }
+
+    return n;
+}
+
+// Converts a decimal to a hex value
+function convertDecimalToHex(d) {
+    return Math.round(parseFloat(d) * 255).toString(16);
+}
+// Converts a hex value to a decimal
+function convertHexToDecimal(h) {
+    return (parseIntFromHex(h) / 255);
+}
+
+var matchers = (function() {
+
+    // <http://www.w3.org/TR/css3-values/#integers>
+    var CSS_INTEGER = "[-\\+]?\\d+%?";
+
+    // <http://www.w3.org/TR/css3-values/#number-value>
+    var CSS_NUMBER = "[-\\+]?\\d*\\.\\d+%?";
+
+    // Allow positive/negative integer/number.  Don't capture the either/or, just the entire outcome.
+    var CSS_UNIT = "(?:" + CSS_NUMBER + ")|(?:" + CSS_INTEGER + ")";
+
+    // Actual matching.
+    // Parentheses and commas are optional, but not required.
+    // Whitespace can take the place of commas or opening paren
+    var PERMISSIVE_MATCH3 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
+    var PERMISSIVE_MATCH4 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
+
+    return {
+        CSS_UNIT: new RegExp(CSS_UNIT),
+        rgb: new RegExp("rgb" + PERMISSIVE_MATCH3),
+        rgba: new RegExp("rgba" + PERMISSIVE_MATCH4),
+        hsl: new RegExp("hsl" + PERMISSIVE_MATCH3),
+        hsla: new RegExp("hsla" + PERMISSIVE_MATCH4),
+        hsv: new RegExp("hsv" + PERMISSIVE_MATCH3),
+        hsva: new RegExp("hsva" + PERMISSIVE_MATCH4),
+        hex3: /^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
+        hex6: /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/,
+        hex4: /^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
+        hex8: /^#?([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/
+    };
+})();
+
+// `isValidCSSUnit`
+// Take in a single string / number and check to see if it looks like a CSS unit
+// (see `matchers` above for definition).
+function isValidCSSUnit(color) {
+    return !!matchers.CSS_UNIT.exec(color);
+}
+
+// `stringInputToObject`
+// Permissive string parsing.  Take in a number of formats, and output an object
+// based on detected format.  Returns `{ r, g, b }` or `{ h, s, l }` or `{ h, s, v}`
+function stringInputToObject(color) {
+
+    color = color.replace(trimLeft,'').replace(trimRight, '').toLowerCase();
+    var named = false;
+    if (names[color]) {
+        color = names[color];
+        named = true;
+    }
+    else if (color == 'transparent') {
+        return { r: 0, g: 0, b: 0, a: 0, format: "name" };
+    }
+
+    // Try to match string input using regular expressions.
+    // Keep most of the number bounding out of this function - don't worry about [0,1] or [0,100] or [0,360]
+    // Just return an object and let the conversion functions handle that.
+    // This way the result will be the same whether the tinycolor is initialized with string or object.
+    var match;
+    if ((match = matchers.rgb.exec(color))) {
+        return { r: match[1], g: match[2], b: match[3] };
+    }
+    if ((match = matchers.rgba.exec(color))) {
+        return { r: match[1], g: match[2], b: match[3], a: match[4] };
+    }
+    if ((match = matchers.hsl.exec(color))) {
+        return { h: match[1], s: match[2], l: match[3] };
+    }
+    if ((match = matchers.hsla.exec(color))) {
+        return { h: match[1], s: match[2], l: match[3], a: match[4] };
+    }
+    if ((match = matchers.hsv.exec(color))) {
+        return { h: match[1], s: match[2], v: match[3] };
+    }
+    if ((match = matchers.hsva.exec(color))) {
+        return { h: match[1], s: match[2], v: match[3], a: match[4] };
+    }
+    if ((match = matchers.hex8.exec(color))) {
+        return {
+            r: parseIntFromHex(match[1]),
+            g: parseIntFromHex(match[2]),
+            b: parseIntFromHex(match[3]),
+            a: convertHexToDecimal(match[4]),
+            format: named ? "name" : "hex8"
+        };
+    }
+    if ((match = matchers.hex6.exec(color))) {
+        return {
+            r: parseIntFromHex(match[1]),
+            g: parseIntFromHex(match[2]),
+            b: parseIntFromHex(match[3]),
+            format: named ? "name" : "hex"
+        };
+    }
+    if ((match = matchers.hex4.exec(color))) {
+        return {
+            r: parseIntFromHex(match[1] + '' + match[1]),
+            g: parseIntFromHex(match[2] + '' + match[2]),
+            b: parseIntFromHex(match[3] + '' + match[3]),
+            a: convertHexToDecimal(match[4] + '' + match[4]),
+            format: named ? "name" : "hex8"
+        };
+    }
+    if ((match = matchers.hex3.exec(color))) {
+        return {
+            r: parseIntFromHex(match[1] + '' + match[1]),
+            g: parseIntFromHex(match[2] + '' + match[2]),
+            b: parseIntFromHex(match[3] + '' + match[3]),
+            format: named ? "name" : "hex"
+        };
+    }
+
+    return false;
+}
+
+function validateWCAG2Parms(parms) {
+    // return valid WCAG2 parms for isReadable.
+    // If input parms are invalid, return {"level":"AA", "size":"small"}
+    var level, size;
+    parms = parms || {"level":"AA", "size":"small"};
+    level = (parms.level || "AA").toUpperCase();
+    size = (parms.size || "small").toLowerCase();
+    if (level !== "AA" && level !== "AAA") {
+        level = "AA";
+    }
+    if (size !== "small" && size !== "large") {
+        size = "small";
+    }
+    return {"level":level, "size":size};
+}
+
+// Node: Export function
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = tinycolor;
+}
+// AMD/requirejs: Define the module
+else if (typeof define === 'function' && define.amd) {
+    define(function () {return tinycolor;});
+}
+// Browser: Expose to window
+else {
+    window.tinycolor = tinycolor;
+}
+
+})(Math);
+});
+
+var tinycolor$1 = (tinycolor && typeof tinycolor === 'object' && 'default' in tinycolor ? tinycolor['default'] : tinycolor);
+
+function backgroundColor(el) {
+	var el = el || this;
+	return function (c, a = 0.6) {
+		var color = tinycolor$1(c);
+		if (color.isValid()) {
+			color.setAlpha(a);
+			el.style.backgroundColor = color.toString();
+		}
+		return el.style.backgroundColor;
+	};
+}
+
 let defaults$3 = {
 	x: 0,
 	y: 0,
@@ -1140,6 +2131,7 @@ class Container extends Events {
 		let isVisible = false;
 		let externalControls = false;
 		let body = dom.select('.body', el);
+		body.backgroundColor = backgroundColor(body);
 		super();
 		this.ctx = ctx;
 		this.body = body;
@@ -1155,6 +2147,7 @@ class Container extends Events {
 				body.style.left = d.y + "%";
 			}
 			this.emit('config');
+			return d;
 		};
 		this.config();
 		player.on('resize', this.config);
@@ -1245,15 +2238,15 @@ class Popup extends Container {
 		this.body.appendChild(header);
 		//end header
 
-		this.backgroundColor = function (v) {
-			if (v != null) {
-				overlay.style.backgroundColor = v;
-			}
-			return overlay.style.backgroundColor;
-		};
+		this.backgroundColor = backgroundColor(overlay);
 
 		this.scaleSize = function (s) {
-			this.config({ x: (100 - s) / 2 + "%", y: (100 - s) / 2 + "%", width: s + "%", height: s + "%" });
+			let d = this.config({ x: (100 - s) / 2 + "%", y: (100 - s) / 2 + "%", width: s + "%", height: s + "%" });
+			if (d.y < 10) {
+				header.style.transform = 'translateY(0)';
+			} else {
+				header.style.transform = 'translateY(-100%)';
+			}
 		};
 
 		//EVENTS
@@ -1261,9 +2254,8 @@ class Popup extends Container {
 			this.emit('resize');
 		});
 
-		['resize', 'config', 'beforeShow'].map(evt => {
+		['resize', 'config', 'show'].map(evt => {
 			this.on(evt, () => {
-				console.log(evt);
 				this.autoLineHeight();
 			});
 		});
@@ -1274,7 +2266,6 @@ class Popup extends Container {
 		}
 	}
 	destroy() {
-		console.log('popup');
 		this.removeAllListeners();
 		this.ctx.remove(this.body);
 		dom.removeElement(this.body.parentNode);
@@ -1296,6 +2287,28 @@ class Popup extends Container {
 			return v;
 		}
 		return this._title.innerHTML;
+	}
+}
+
+function inIframe() {
+	try {
+		let is = window.self !== window.top;
+		if (is) {
+			var arrFrames = parent.document.getElementsByTagName("IFRAME");
+			for (var i = 0; i < arrFrames.length; i++) {
+				let frame = arrFrames[i];
+				if (frame.contentWindow === window) {
+					is = frame;
+					frame.setAttribute('allowfullscreen', 'true');
+					frame.setAttribute('mozallowfullscreen', 'true');
+					frame.setAttribute('webkitallowfullscreen', 'true');
+					frame.setAttribute('frameborder', '0');
+				};
+			}
+		}
+		return is;
+	} catch (e) {
+		return true;
 	}
 }
 
@@ -2074,7 +3087,7 @@ var ajax = (function () {
   return ajax;
 })();
 
-const fn_contextmenu$1 = function (e) {
+const fn_contextmenu = function (e) {
 	e.stopPropagation();
 	e.preventDefault();
 	return false;
@@ -2099,16 +3112,21 @@ class Player extends Media {
 		let el = settings.video;
 		super(el);
 		if (el == null) return;
-		this.device = device;
+		//initSettings
 		this.__settings = {};
+		this.settings(deepmerge(defaults$4, settings));
+
+		//setup Player
+		this.device = device;
+		this.iframe = inIframe();
 		dom.addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
 		this.wrapper = dom.wrap(this.media, dom.createElement('div', {
 			class: 'kmlPlayer'
 		}));
 		dom.triggerWebkitHardwareAcceleration(this.wrapper);
-
-		//initSettings
-		this.settings(deepmerge(defaults$4, settings));
+		if (this.inIframe) {
+			dom.addClass(this.wrapper, "inFrame");
+		}
 
 		//initPageVisibility
 		this.pageVisibility = new pageVisibility(el);
@@ -2151,7 +3169,7 @@ class Player extends Media {
 
 	contextMenu(v) {
 		if (typeof v === 'boolean') {
-			v ? this.media.removeEventListener('contextmenu', fn_contextmenu$1) : this.media.addEventListener('contextmenu', fn_contextmenu$1);
+			v ? this.media.removeEventListener('contextmenu', fn_contextmenu) : this.media.addEventListener('contextmenu', fn_contextmenu);
 		}
 	}
 
@@ -2189,7 +3207,7 @@ class Player extends Media {
 
 	bounds(v) {
 		let data = containerBounds(this.media);
-		if (data[v] !== null) return data[v];
+		if (data[v] != null) return data[v];
 		return data;
 	}
 
@@ -2305,14 +3323,18 @@ class videoContainer extends Popup {
 			};
 			x = (100 - fw) / 2;
 			y = (100 - fh) / 2;
-			//this._title.parentNode.style.transform = 'translateY(-100%)';	
 			this._title.parentNode.style.height = headerHeight + '%';
-			this.config({
+			let d = this.config({
 				x: x / w * ww + '%',
 				y: 5 + y / h * hh + '%',
 				width: fw + "%",
 				height: fh + "%"
 			});
+			if (headerHeight <= d.y) {
+				this._title.parentNode.style.transform = 'translateY(-100%)';
+			} else {
+				this._title.parentNode.style.transform = 'translateY(0)';
+			}
 			this.autoLineHeight();
 		});
 
@@ -2442,1346 +3464,13 @@ class Containers {
 	}
 }
 
-/** Virtual DOM Node */
-function VNode(nodeName, attributes, children) {
-	/** @type {string|function} */
-	this.nodeName = nodeName;
+// import clock from './clock';
 
-	/** @type {object<string>|undefined} */
-	this.attributes = attributes;
-
-	/** @type {array<VNode>|undefined} */
-	this.children = children;
-}
-
-// render modes
-const NO_RENDER = { render: false };
-const SYNC_RENDER = { renderSync: true };
-const DOM_RENDER = { build: true };
-
-const EMPTY = {};
-const EMPTY_BASE = '';
-
-// is this a DOM environment
-const HAS_DOM = typeof document!=='undefined';
-const TEXT_CONTENT = !HAS_DOM || 'textContent' in document ? 'textContent' : 'nodeValue';
-
-const ATTR_KEY = typeof Symbol!=='undefined' ? Symbol.for('preactattr') : '__preactattr_';
-
-const UNDEFINED_ELEMENT = 'undefined';
-
-// DOM properties that should NOT have "px" added when numeric
-const NON_DIMENSION_PROPS = {
-	boxFlex:1, boxFlexGroup:1, columnCount:1, fillOpacity:1, flex:1, flexGrow:1,
-	flexPositive:1, flexShrink:1, flexNegative:1, fontWeight:1, lineClamp:1, lineHeight:1,
-	opacity:1, order:1, orphans:1, strokeOpacity:1, widows:1, zIndex:1, zoom:1
-};
-
-/** Copy own-properties from `props` onto `obj`.
- *	@returns obj
- *	@private
- */
-function extend$1(obj, props) {
-	for (let i in props) if (hasOwnProperty.call(props, i)) {
-		obj[i] = props[i];
-	}
-	return obj;
-}
-
-
-/** Fast clone. Note: does not filter out non-own properties. */
-function clone(obj) {
-	let out = {};
-	/*eslint guard-for-in:0*/
-	for (let i in obj) out[i] = obj[i];
-	return out;
-}
-
-
-/** Create a caching wrapper for the given function.
- *	@private
- */
-function memoize(fn, mem) {
-	mem = mem || {};
-	return k => hasOwnProperty.call(mem, k) ? mem[k] : (mem[k] = fn(k));
-}
-
-
-/** Get a deep property value from the given object, expressed in dot-notation.
- *	@private
- */
-function delve(obj, key) {
-	for (let p=key.split('.'), i=0; i<p.length && obj; i++) {
-		obj = obj[p[i]];
-	}
-	return obj;
-}
-
-
-/** Convert an Array-like object to an Array
- *	@private
- */
-function toArray(obj) {
-	let arr = [],
-		i = obj.length;
-	while (i--) arr[i] = obj[i];
-	return arr;
-}
-
-
-/** @private is the given object a Function? */
-const isFunction$1 = obj => 'function'===typeof obj;
-
-
-/** @private is the given object a String? */
-const isString$1 = obj => 'string'===typeof obj;
-
-
-/** @private Safe reference to builtin hasOwnProperty */
-const hasOwnProperty = {}.hasOwnProperty;
-
-
-/** Check if a value is `null` or `undefined`.
- *	@private
- */
-const empty = x => x==null;
-
-
-/** Check if a value is `null`, `undefined`, or explicitly `false`. */
-const falsey = value => value===false || value==null;
-
-
-/** Convert a hashmap of styles to CSSText
- *	@private
- */
-function styleObjToCss(s) {
-	let str = '';
-	for (let prop in s) {
-		let val = s[prop];
-		if (!empty(val)) {
-			if (str) str += ' ';
-			str += jsToCss(prop);
-			str += ': ';
-			str += val;
-			if (typeof val==='number' && !NON_DIMENSION_PROPS[prop]) {
-				str += 'px';
-			}
-			str += ';';
-		}
-	}
-	return str;
-}
-
-
-
-/** Convert a hashmap of CSS classes to a space-delimited className string
- *	@private
- */
-function hashToClassName(c) {
-	let str = '';
-	for (let prop in c) {
-		if (c[prop]) {
-			if (str) str += ' ';
-			str += prop;
-		}
-	}
-	return str;
-}
-
-
-
-/** Convert a JavaScript camel-case CSS property name to a CSS property name
- *	@private
- *	@function
- */
-const jsToCss = memoize( s => s.replace(/([A-Z])/g,'-$1').toLowerCase() );
-
-
-/** Just a memoized String.prototype.toLowerCase */
-const toLowerCase = memoize( s => s.toLowerCase() );
-
-
-// For animations, rAF is vastly superior. However, it scores poorly on benchmarks :(
-// export const setImmediate = typeof requestAnimationFrame==='function' ? requestAnimationFrame : setTimeout;
-
-let ch;
-try { ch = new MessageChannel(); } catch (e) {}
-
-/** Call a function asynchronously, as soon as possible.
- *	@param {Function} callback
- */
-const setImmediate = ch ? ( f => {
-	ch.port1.onmessage = f;
-	ch.port2.postMessage('');
-}) : setTimeout;
-
-/** Global options
- *	@public
- *	@namespace options {Object}
- */
-var options = {
-
-	/** If `true`, `prop` changes trigger synchronous component updates.
-	 *	@name syncComponentUpdates
-	 *	@type Boolean
-	 *	@default true
-	 */
-	//syncComponentUpdates: true,
-
-	/** Processes all created VNodes.
-	 *	@param {VNode} vnode	A newly-created VNode to normalize/process
-	 */
-	vnode(n) {
-		let attrs = n.attributes;
-		if (!attrs || isFunction$1(n.nodeName)) return;
-
-		// normalize className to class.
-		let p = attrs.className;
-		if (p) {
-			attrs['class'] = p;
-			delete attrs.className;
-		}
-
-		if (attrs['class']) normalize(attrs, 'class', hashToClassName);
-		if (attrs.style) normalize(attrs, 'style', styleObjToCss);
-	}
-};
-
-
-function normalize(obj, prop, fn) {
-	let v = obj[prop];
-	if (v && !isString$1(v)) {
-		obj[prop] = fn(v);
-	}
-}
-
-/** Invoke a hook on the `options` export. */
-function optionsHook(name, a, b) {
-	return hook(options, name, a, b);
-}
-
-
-/** Invoke a "hook" method with arguments if it exists.
- *	@private
- */
-function hook(obj, name, a, b, c) {
-	if (obj[name]) return obj[name](a, b, c);
-}
-
-
-/** Invoke hook() on a component and child components (recursively)
- *	@private
- */
-function deepHook(obj, type) {
-	do {
-		hook(obj, type);
-	} while ((obj=obj._component));
-}
-
-const SHARED_TEMP_ARRAY = [];
-
-
-/** JSX/hyperscript reviver
- *	@see http://jasonformat.com/wtf-is-jsx
- *	@public
- *  @example
- *  /** @jsx h *\/
- *  import { render, h } from 'preact';
- *  render(<span>foo</span>, document.body);
- */
-function h(nodeName, attributes) {
-	let len = arguments.length,
-		attributeChildren = attributes && attributes.children,
-		children, arr, lastSimple;
-
-	if (attributeChildren) {
-		delete attributes.children;
-
-		// if (len<3) {
-		// 	unfilteredChildren = attributeChildren;
-		// 	start = 0;
-		// }
-		if (len<3) return h(nodeName, attributes, attributeChildren);
-	}
-
-	for (let i=2; i<len; i++) {
-		let p = arguments[i];
-		if (falsey(p)) continue;
-		if (!children) children = [];
-		if (p.join) {
-			arr = p;
-		}
-		else {
-			arr = SHARED_TEMP_ARRAY;
-			arr[0] = p;
-		}
-		for (let j=0; j<arr.length; j++) {
-			let child = arr[j],
-				simple = !falsey(child) && !(child instanceof VNode);
-			if (simple) child = String(child);
-			if (simple && lastSimple) {
-				children[children.length-1] += child;
-			}
-			else if (!falsey(child)) {
-				children.push(child);
-			}
-			lastSimple = simple;
-		}
-	}
-
-	let p = new VNode(nodeName, attributes || undefined, children || undefined);
-	optionsHook('vnode', p);
-	return p;
-}
-
-/** Create an Event handler function that sets a given state property.
- *	@param {Component} component	The component whose state should be updated
- *	@param {string} key				A dot-notated key path to update in the component's state
- *	@param {string} eventPath		A dot-notated key path to the value that should be retrieved from the Event or component
- *	@returns {function} linkedStateHandler
- *	@private
- */
-function createLinkedState(component, key, eventPath) {
-	let path = key.split('.'),
-		p0 = path[0],
-		len = path.length;
-	return function(e) {
-		let t = this,
-			s = component.state,
-			obj = s,
-			v, i;
-		if (isString$1(eventPath)) {
-			v = delve(e, eventPath);
-			if (empty(v) && (t=t._component)) {
-				v = delve(t, eventPath);
-			}
-		}
-		else {
-			v = (t.nodeName+t.type).match(/^input(check|rad)/i) ? t.checked : t.value;
-		}
-		if (isFunction$1(v)) v = v.call(t);
-		if (len>1) {
-			for (i=0; i<len-1; i++) {
-				obj = obj[path[i]] || (obj[path[i]] = {});
-			}
-			obj[path[i]] = v;
-			v = s[p0];
-		}
-		component.setState({ [p0]: v });
-	};
-}
-
-let items = [];
-let itemsOffline = [];
-function enqueueRender(component) {
-	if (items.push(component)!==1) return;
-
-	(options.debounceRendering || setImmediate)(rerender);
-}
-
-
-function rerender() {
-	if (!items.length) return;
-
-	let currentItems = items,
-		p;
-
-	// swap online & offline
-	items = itemsOffline;
-	itemsOffline = currentItems;
-
-	while ( (p = currentItems.pop()) ) {
-		if (p._dirty) renderComponent(p);
-	}
-}
-
-/** Check if a VNode is a reference to a stateless functional component.
- *	A function component is represented as a VNode whose `nodeName` property is a reference to a function.
- *	If that function is not a Component (ie, has no `.render()` method on a prototype), it is considered a stateless functional component.
- *	@param {VNode} vnode	A VNode
- *	@private
- */
-function isFunctionalComponent({ nodeName }) {
-	return isFunction$1(nodeName) && !(nodeName.prototype && nodeName.prototype.render);
-}
-
-
-
-/** Construct a resultant VNode from a VNode referencing a stateless functional component.
- *	@param {VNode} vnode	A VNode with a `nodeName` property that is a reference to a function.
- *	@private
- */
-function buildFunctionalComponent(vnode, context) {
-	return vnode.nodeName(getNodeProps(vnode), context || EMPTY) || EMPTY_BASE;
-}
-
-function ensureNodeData(node) {
-	return node[ATTR_KEY] || (node[ATTR_KEY] = {});
-}
-
-
-function getNodeType(node) {
-	return node.nodeType;
-}
-
-
-/** Append multiple children to a Node.
- *	Uses a Document Fragment to batch when appending 2 or more children
- *	@private
- */
-function appendChildren(parent, children) {
-	let len = children.length,
-		many = len>2,
-		into = many ? document.createDocumentFragment() : parent;
-	for (let i=0; i<len; i++) into.appendChild(children[i]);
-	if (many) parent.appendChild(into);
-}
-
-
-/** Removes a given DOM Node from its parent. */
-function removeNode(node) {
-	let p = node.parentNode;
-	if (p) p.removeChild(node);
-}
-
-
-/** Retrieve the value of a rendered attribute
- *	@private
- */
-function getAccessor(node, name, value, cache) {
-	if (name!=='type' && name!=='style' && name in node) return node[name];
-	let attrs = node[ATTR_KEY];
-	if (cache!==false && attrs && hasOwnProperty.call(attrs, name)) return attrs[name];
-	if (name==='class') return node.className;
-	if (name==='style') return node.style.cssText;
-	return value;
-}
-
-
-
-/** Set a named attribute on the given Node, with special behavior for some names and event handlers.
- *	If `value` is `null`, the attribute/handler will be removed.
- *	@param {Element} node	An element to mutate
- *	@param {string} name	The name/key to set, such as an event or attribute name
- *	@param {any} value		An attribute value, such as a function to be used as an event handler
- *	@param {any} previousValue	The last value that was set for this name/node pair
- *	@private
- */
-function setAccessor(node, name, value) {
-	if (name==='class') {
-		node.className = value || '';
-	}
-	else if (name==='style') {
-		node.style.cssText = value || '';
-	}
-	else if (name==='dangerouslySetInnerHTML') {
-		if (value && value.__html) node.innerHTML = value.__html;
-	}
-	else if (name==='key' || (name in node && name!=='type')) {
-		node[name] = value;
-		if (falsey(value)) node.removeAttribute(name);
-	}
-	else {
-		setComplexAccessor(node, name, value);
-	}
-
-	ensureNodeData(node)[name] = value;
-}
-
-
-/** For props without explicit behavior, apply to a Node as event handlers or attributes.
- *	@private
- */
-function setComplexAccessor(node, name, value) {
-	if (name.substring(0,2)==='on') {
-		let type = normalizeEventName(name),
-			l = node._listeners || (node._listeners = {}),
-			fn = !l[type] ? 'add' : !value ? 'remove' : null;
-		if (fn) node[fn+'EventListener'](type, eventProxy);
-		l[type] = value;
-		return;
-	}
-
-	let type = typeof value;
-	if (falsey(value)) {
-		node.removeAttribute(name);
-	}
-	else if (type!=='function' && type!=='object') {
-		node.setAttribute(name, value);
-	}
-}
-
-
-
-/** Proxy an event to hooked event handlers
- *	@private
- */
-function eventProxy(e) {
-	let fn = this._listeners[normalizeEventName(e.type)];
-	if (fn) return fn.call(this, optionsHook('event', e) || e);
-}
-
-
-
-/** Convert an Event name/type to lowercase and strip any "on*" prefix.
- *	@function
- *	@private
- */
-let normalizeEventName = memoize(t => t.replace(/^on/i,'').toLowerCase());
-
-
-
-/** Get a hashmap of node properties, preferring preact's cached property values over the DOM's
- *	@private
- */
-function getNodeAttributes(node) {
-	return node[ATTR_KEY] || getRawNodeAttributes(node) || EMPTY;
-	// let list = getRawNodeAttributes(node),
-	// 	l = node[ATTR_KEY];
-	// return l && list ? extend(list, l) : (l || list || EMPTY);
-}
-
-
-/** Get a node's attributes as a hashmap, regardless of type.
- *	@private
- */
-function getRawNodeAttributes(node) {
-	let list = node.attributes;
-	if (!list || !list.getNamedItem) return list;
-	return getAttributesAsObject(list);
-}
-
-
-/** Convert a DOM `.attributes` NamedNodeMap to a hashmap.
- *	@private
- */
-function getAttributesAsObject(list) {
-	let attrs;
-	for (let i=list.length; i--; ) {
-		let item = list[i];
-		if (!attrs) attrs = {};
-		attrs[item.name] = item.value;
-	}
-	return attrs;
-}
-
-/** Check if two nodes are equivalent.
- *	@param {Element} node
- *	@param {VNode} vnode
- *	@private
- */
-function isSameNodeType(node, vnode) {
-	if (isFunctionalComponent(vnode)) return true;
-	let nodeName = vnode.nodeName;
-	if (isFunction$1(nodeName)) return node._componentConstructor===nodeName;
-	if (getNodeType(node)===3) return isString$1(vnode);
-	return toLowerCase(node.nodeName)===nodeName;
-}
-
-
-/**
- * Reconstruct Component-style `props` from a VNode.
- * Ensures default/fallback values from `defaultProps`:
- * Own-properties of `defaultProps` not present in `vnode.attributes` are added.
- * @param {VNode} vnode
- * @returns {Object} props
- */
-function getNodeProps(vnode) {
-	let props = clone(vnode.attributes),
-		c = vnode.children;
-	if (c) props.children = c;
-
-	let defaultProps = vnode.nodeName.defaultProps;
-	if (defaultProps) {
-		for (let i in defaultProps) {
-			if (hasOwnProperty.call(defaultProps, i) && !(i in props)) {
-				props[i] = defaultProps[i];
-			}
-		}
-	}
-
-	return props;
-}
-
-/** DOM node pool, keyed on nodeName. */
-
-let nodes = {};
-
-let normalizeName = memoize(name => name.toUpperCase());
-
-
-function collectNode(node) {
-	cleanNode(node);
-	let name = normalizeName(node.nodeName),
-		list = nodes[name];
-	if (list) list.push(node);
-	else nodes[name] = [node];
-}
-
-
-function createNode(nodeName) {
-	let name = normalizeName(nodeName),
-		list = nodes[name],
-		node = list && list.pop() || document.createElement(nodeName);
-	ensureNodeData(node);
-	return node;
-}
-
-
-function cleanNode(node) {
-	removeNode(node);
-
-	if (getNodeType(node)===3) return;
-
-	// When reclaiming externally created nodes, seed the attribute cache: (Issue #97)
-	if (!node[ATTR_KEY]) {
-		node[ATTR_KEY] = getRawNodeAttributes(node);
-	}
-
-	node._component = node._componentConstructor = null;
-
-	// if (node.childNodes.length>0) {
-	// 	console.trace(`Warning: Recycler collecting <${node.nodeName}> with ${node.childNodes.length} children.`);
-	// 	for (let i=node.childNodes.length; i--; ) collectNode(node.childNodes[i]);
-	// }
-}
-
-/** Apply differences in a given vnode (and it's deep children) to a real DOM Node.
- *	@param {Element} [dom=null]		A DOM node to mutate into the shape of the `vnode`
- *	@param {VNode} vnode			A VNode (with descendants forming a tree) representing the desired DOM structure
- *	@returns {Element} dom			The created/mutated element
- *	@private
- */
-function diff(dom, vnode, context) {
-	let originalAttributes = vnode.attributes;
-
-	while (isFunctionalComponent(vnode)) {
-		vnode = buildFunctionalComponent(vnode, context);
-	}
-
-	if (isFunction$1(vnode.nodeName)) {
-		return buildComponentFromVNode(dom, vnode, context);
-	}
-
-	if (isString$1(vnode)) {
-		if (dom) {
-			let type = getNodeType(dom);
-			if (type===3) {
-				dom[TEXT_CONTENT] = vnode;
-				return dom;
-			}
-			else if (type===1) {
-				collectNode(dom);
-			}
-		}
-		return document.createTextNode(vnode);
-	}
-
-	// return diffNode(dom, vnode, context);
-// }
-
-
-/** Morph a DOM node to look like the given VNode. Creates DOM if it doesn't exist. */
-// function diffNode(dom, vnode, context) {
-	let out = dom,
-		nodeName = vnode.nodeName || UNDEFINED_ELEMENT;
-
-	if (!dom) {
-		out = createNode(nodeName);
-	}
-	else if (toLowerCase(dom.nodeName)!==nodeName) {
-		out = createNode(nodeName);
-		// move children into the replacement node
-		appendChildren(out, toArray(dom.childNodes));
-		// reclaim element nodes
-		recollectNodeTree(dom);
-	}
-
-	innerDiffNode(out, vnode, context);
-	diffAttributes(out, vnode);
-
-	if (originalAttributes && originalAttributes.ref) {
-		(out[ATTR_KEY].ref = originalAttributes.ref)(out);
-	}
-
-	return out;
-}
-
-
-/** Apply child and attribute changes between a VNode and a DOM Node to the DOM. */
-function innerDiffNode(dom, vnode, context) {
-	let children,
-		keyed,
-		keyedLen = 0,
-		len = dom.childNodes.length,
-		childrenLen = 0;
-	if (len) {
-		children = [];
-		for (let i=0; i<len; i++) {
-			let child = dom.childNodes[i],
-				key = child._component ? child._component.__key : getAccessor(child, 'key');
-			if (!empty(key)) {
-				if (!keyed) keyed = {};
-				keyed[key] = child;
-				keyedLen++;
-			}
-			else {
-				children[childrenLen++] = child;
-			}
-		}
-	}
-
-
-	let vchildren = vnode.children,
-		vlen = vchildren && vchildren.length,
-		min = 0;
-	if (vlen) {
-		for (let i=0; i<vlen; i++) {
-			let vchild = vchildren[i],
-				child;
-
-			// if (isFunctionalComponent(vchild)) {
-			// 	vchild = buildFunctionalComponent(vchild);
-			// }
-
-			// attempt to find a node based on key matching
-			if (keyedLen) {
-				let attrs = vchild.attributes,
-					key = attrs && attrs.key;
-				if (!empty(key) && hasOwnProperty.call(keyed, key)) {
-					child = keyed[key];
-					keyed[key] = null;
-					keyedLen--;
-				}
-			}
-
-			// attempt to pluck a node of the same type from the existing children
-			if (!child && min<childrenLen) {
-				for (let j=min; j<childrenLen; j++) {
-					let c = children[j];
-					if (c && isSameNodeType(c, vchild)) {
-						child = c;
-						children[j] = null;
-						if (j===childrenLen-1) childrenLen--;
-						if (j===min) min++;
-						break;
-					}
-				}
-			}
-
-			// morph the matched/found/created DOM child to match vchild (deep)
-			child = diff(child, vchild, context);
-
-			if (dom.childNodes[i]!==child) {
-				let c = child.parentNode!==dom && child._component,
-					next = dom.childNodes[i+1];
-				if (c) deepHook(c, 'componentWillMount');
-				if (next) {
-					dom.insertBefore(child, next);
-				}
-				else {
-					dom.appendChild(child);
-				}
-				if (c) deepHook(c, 'componentDidMount');
-			}
-		}
-	}
-
-
-	if (keyedLen) {
-		/*eslint guard-for-in:0*/
-		for (let i in keyed) if (hasOwnProperty.call(keyed, i) && keyed[i]) {
-			children[min=childrenLen++] = keyed[i];
-		}
-	}
-
-	// remove orphaned children
-	if (min<childrenLen) {
-		removeOrphanedChildren(children);
-	}
-}
-
-
-/** Reclaim children that were unreferenced in the desired VTree */
-function removeOrphanedChildren(children, unmountOnly) {
-	for (let i=children.length; i--; ) {
-		let child = children[i];
-		if (child) {
-			recollectNodeTree(child, unmountOnly);
-		}
-	}
-}
-
-
-/** Reclaim an entire tree of nodes, starting at the root. */
-function recollectNodeTree(node, unmountOnly) {
-	// @TODO: Need to make a call on whether Preact should remove nodes not created by itself.
-	// Currently it *does* remove them. Discussion: https://github.com/developit/preact/issues/39
-	//if (!node[ATTR_KEY]) return;
-
-	let attrs = node[ATTR_KEY];
-	if (attrs) hook(attrs, 'ref', null);
-
-	let component = node._component;
-	if (component) {
-		unmountComponent(component, !unmountOnly);
-	}
-	else {
-		if (!unmountOnly) {
-			if (getNodeType(node)!==1) {
-				removeNode(node);
-				return;
-			}
-
-			collectNode(node);
-		}
-
-		let c = node.childNodes;
-		if (c && c.length) {
-			removeOrphanedChildren(c, unmountOnly);
-		}
-	}
-}
-
-
-/** Apply differences in attributes from a VNode to the given DOM Node. */
-function diffAttributes(dom, vnode) {
-	let old = getNodeAttributes(dom) || EMPTY,
-		attrs = vnode.attributes || EMPTY,
-		name, value;
-
-	// removed
-	for (name in old) {
-		if (empty(attrs[name])) {
-			setAccessor(dom, name, null);
-		}
-	}
-
-	// new & updated
-	if (attrs!==EMPTY) {
-		for (name in attrs) {
-			if (hasOwnProperty.call(attrs, name)) {
-				value = attrs[name];
-				if (!empty(value) && value!=getAccessor(dom, name)) {
-					setAccessor(dom, name, value);
-				}
-			}
-		}
-	}
-}
-
-/** Retains a pool of Components for re-use, keyed on component name.
- *	Note: since component names are not unique or even necessarily available, these are primarily a form of sharding.
- *	@private
- */
-const components = {};
-
-
-function collectComponent(component) {
-	let name = component.constructor.name,
-		list = components[name];
-	if (list) list.push(component);
-	else components[name] = [component];
-}
-
-
-function createComponent(Ctor, props, context) {
-	let list = components[Ctor.name],
-		len = list && list.length,
-		c;
-	for (let i=0; i<len; i++) {
-		c = list[i];
-		if (c.constructor===Ctor) {
-			list.splice(i, 1);
-			let inst = new Ctor(props, context);
-			inst.nextBase = c.base;
-			return inst;
-		}
-	}
-	return new Ctor(props, context);
-}
-
-/** Mark component as dirty and queue up a render.
- *	@param {Component} component
- *	@private
- */
-function triggerComponentRender(component) {
-	if (!component._dirty) {
-		component._dirty = true;
-		enqueueRender(component);
-	}
-}
-
-
-
-/** Set a component's `props` (generally derived from JSX attributes).
- *	@param {Object} props
- *	@param {Object} [opts]
- *	@param {boolean} [opts.renderSync=false]	If `true` and {@link options.syncComponentUpdates} is `true`, triggers synchronous rendering.
- *	@param {boolean} [opts.render=true]			If `false`, no render will be triggered.
- */
-function setComponentProps(component, props, opts, context) {
-	let d = component._disableRendering;
-
-	component.__ref = props.ref;
-	component.__key = props.key;
-	delete props.ref;
-	delete props.key;
-
-	component._disableRendering = true;
-
-	if (context) {
-		if (!component.prevContext) component.prevContext = component.context;
-		component.context = context;
-	}
-
-	if (component.base) {
-		hook(component, 'componentWillReceiveProps', props, component.context);
-	}
-
-	if (!component.prevProps) component.prevProps = component.props;
-	component.props = props;
-
-	component._disableRendering = d;
-
-	if (!opts || opts.render!==false) {
-		if ((opts && opts.renderSync) || options.syncComponentUpdates!==false) {
-			renderComponent(component);
-		}
-		else {
-			triggerComponentRender(component);
-		}
-	}
-
-	hook(component, '__ref', component);
-}
-
-
-
-/** Render a Component, triggering necessary lifecycle events and taking High-Order Components into account.
- *	@param {Component} component
- *	@param {Object} [opts]
- *	@param {boolean} [opts.build=false]		If `true`, component will build and store a DOM node if not already associated with one.
- *	@private
- */
-function renderComponent(component, opts) {
-	if (component._disableRendering) return;
-
-	let skip, rendered,
-		props = component.props,
-		state = component.state,
-		context = component.context,
-		previousProps = component.prevProps || props,
-		previousState = component.prevState || state,
-		previousContext = component.prevContext || context,
-		isUpdate = component.base,
-		initialBase = isUpdate || component.nextBase;
-
-	// if updating
-	if (isUpdate) {
-		component.props = previousProps;
-		component.state = previousState;
-		component.context = previousContext;
-		if (hook(component, 'shouldComponentUpdate', props, state, context)===false) {
-			skip = true;
-		}
-		else {
-			hook(component, 'componentWillUpdate', props, state, context);
-		}
-		component.props = props;
-		component.state = state;
-		component.context = context;
-	}
-
-	component.prevProps = component.prevState = component.prevContext = component.nextBase = null;
-	component._dirty = false;
-
-	if (!skip) {
-		rendered = hook(component, 'render', props, state, context);
-
-		let childComponent = rendered && rendered.nodeName,
-			childContext = component.getChildContext ? component.getChildContext() : context,	// @TODO might want to clone() new context obj
-			toUnmount, base;
-
-		if (isFunction$1(childComponent) && childComponent.prototype.render) {
-			// set up high order component link
-
-			let inst = component._component;
-			if (inst && inst.constructor!==childComponent) {
-				toUnmount = inst;
-				inst = null;
-			}
-
-			let childProps = getNodeProps(rendered);
-
-			if (inst) {
-				setComponentProps(inst, childProps, SYNC_RENDER, childContext);
-			}
-			else {
-				inst = createComponent(childComponent, childProps, childContext);
-				inst._parentComponent = component;
-				component._component = inst;
-				if (isUpdate) deepHook(inst, 'componentWillMount');
-				setComponentProps(inst, childProps, NO_RENDER, childContext);
-				renderComponent(inst, DOM_RENDER);
-				if (isUpdate) deepHook(inst, 'componentDidMount');
-			}
-
-			base = inst.base;
-		}
-		else {
-			let cbase = initialBase;
-
-			// destroy high order component link
-			toUnmount = component._component;
-			if (toUnmount) {
-				cbase = component._component = null;
-			}
-
-			if (initialBase || (opts && opts.build)) {
-				base = diff(cbase, rendered || EMPTY_BASE, childContext);
-			}
-		}
-
-		if (initialBase && base!==initialBase) {
-			let p = initialBase.parentNode;
-			if (p && base!==p) p.replaceChild(base, initialBase);
-		}
-
-		if (toUnmount) {
-			unmountComponent(toUnmount, true);
-		}
-
-		component.base = base;
-		if (base) {
-			let componentRef = component,
-				t = component;
-			while ((t=t._parentComponent)) { componentRef = t; }
-			base._component = componentRef;
-			base._componentConstructor = componentRef.constructor;
-		}
-
-		if (isUpdate) {
-			hook(component, 'componentDidUpdate', previousProps, previousState, previousContext);
-		}
-	}
-
-	let cb = component._renderCallbacks, fn;
-	if (cb) while ( (fn = cb.pop()) ) fn.call(component);
-
-	return rendered;
-}
-
-
-
-/** Apply the Component referenced by a VNode to the DOM.
- *	@param {Element} dom	The DOM node to mutate
- *	@param {VNode} vnode	A Component-referencing VNode
- *	@returns {Element} dom	The created/mutated element
- *	@private
- */
-function buildComponentFromVNode(dom, vnode, context) {
-	let c = dom && dom._component,
-		oldDom = dom;
-
-	let isOwner = c && dom._componentConstructor===vnode.nodeName;
-	while (c && !isOwner && (c=c._parentComponent)) {
-		isOwner = c.constructor===vnode.nodeName;
-	}
-
-	if (isOwner) {
-		setComponentProps(c, getNodeProps(vnode), SYNC_RENDER, context);
-		dom = c.base;
-	}
-	else {
-		if (c) {
-			unmountComponent(c, true);
-			dom = oldDom = null;
-		}
-		dom = createComponentFromVNode(vnode, dom, context);
-		if (oldDom && dom!==oldDom) {
-			oldDom._component = null;
-			recollectNodeTree(oldDom);
-		}
-	}
-
-	return dom;
-}
-
-
-
-/** Instantiate and render a Component, given a VNode whose nodeName is a constructor.
- *	@param {VNode} vnode
- *	@private
- */
-function createComponentFromVNode(vnode, dom, context) {
-	let props = getNodeProps(vnode);
-	let component = createComponent(vnode.nodeName, props, context);
-
-	if (dom && !component.base) component.base = dom;
-
-	setComponentProps(component, props, NO_RENDER, context);
-	renderComponent(component, DOM_RENDER);
-
-	// let node = component.base;
-	//if (!node._component) {
-	//	node._component = component;
-	//	node._componentConstructor = vnode.nodeName;
-	//}
-
-	return component.base;
-}
-
-
-
-/** Remove a component from the DOM and recycle it.
- *	@param {Element} dom			A DOM node from which to unmount the given Component
- *	@param {Component} component	The Component instance to unmount
- *	@private
- */
-function unmountComponent(component, remove) {
-	// console.log(`${remove?'Removing':'Unmounting'} component: ${component.constructor.name}`, component);
-
-	hook(component, '__ref', null);
-	hook(component, 'componentWillUnmount');
-
-	// recursively tear down & recollect high-order component children:
-	let inner = component._component;
-	if (inner) {
-		unmountComponent(inner, remove);
-		remove = false;
-	}
-
-	let base = component.base;
-	if (base) {
-		if (remove!==false) removeNode(base);
-		removeOrphanedChildren(base.childNodes, true);
-	}
-
-	if (remove) {
-		component._parentComponent = null;
-		collectComponent(component);
-	}
-
-	hook(component, 'componentDidUnmount');
-}
-
-/** Base Component class, for he ES6 Class method of creating Components
- *	@public
- *
- *	@example
- *	class MyFoo extends Component {
- *		render(props, state) {
- *			return <div />;
- *		}
- *	}
- */
-function Component(props, context) {
-	/** @private */
-	this._dirty = this._disableRendering = false;
-	/** @public */
-	this.prevState = this.prevProps = this.prevContext = this.base = this.nextBase = this._parentComponent = this._component = this.__ref = this.__key = this._linkedStates = this._renderCallbacks = null;
-	/** @public */
-	this.context = context || {};
-	/** @type {object} */
-	this.props = props;
-	/** @type {object} */
-	this.state = hook(this, 'getInitialState') || {};
-}
-
-
-extend$1(Component.prototype, {
-
-	/** Returns a `boolean` value indicating if the component should re-render when receiving the given `props` and `state`.
-	 *	@param {object} nextProps
-	 *	@param {object} nextState
-	 *	@param {object} nextContext
-	 *	@returns {Boolean} should the component re-render
-	 *	@name shouldComponentUpdate
-	 *	@function
-	 */
-	// shouldComponentUpdate() {
-	// 	return true;
-	// },
-
-
-	/** Returns a function that sets a state property when called.
-	 *	Calling linkState() repeatedly with the same arguments returns a cached link function.
-	 *
-	 *	Provides some built-in special cases:
-	 *		- Checkboxes and radio buttons link their boolean `checked` value
-	 *		- Inputs automatically link their `value` property
-	 *		- Event paths fall back to any associated Component if not found on an element
-	 *		- If linked value is a function, will invoke it and use the result
-	 *
-	 *	@param {string} key				The path to set - can be a dot-notated deep key
-	 *	@param {string} [eventPath]		If set, attempts to find the new state value at a given dot-notated path within the object passed to the linkedState setter.
-	 *	@returns {function} linkStateSetter(e)
-	 *
-	 *	@example Update a "text" state value when an input changes:
-	 *		<input onChange={ this.linkState('text') } />
-	 *
-	 *	@example Set a deep state value on click
-	 *		<button onClick={ this.linkState('touch.coords', 'touches.0') }>Tap</button
-	 */
-	linkState(key, eventPath) {
-		let c = this._linkedStates || (this._linkedStates = {}),
-			cacheKey = key + '|' + (eventPath || '');
-		return c[cacheKey] || (c[cacheKey] = createLinkedState(this, key, eventPath));
-	},
-
-
-	/** Update component state by copying properties from `state` to `this.state`.
-	 *	@param {object} state		A hash of state properties to update with new values
-	 */
-	setState(state, callback) {
-		let s = this.state;
-		if (!this.prevState) this.prevState = clone(s);
-		extend$1(s, isFunction$1(state) ? state(s, this.props) : state);
-		if (callback) (this._renderCallbacks = (this._renderCallbacks || [])).push(callback);
-		triggerComponentRender(this);
-	},
-
-
-	/** Immediately perform a synchronous re-render of the component.
-	 *	@private
-	 */
-	forceUpdate() {
-		renderComponent(this);
-	},
-
-
-	/** Accepts `props` and `state`, and returns a new Virtual DOM tree to build.
-	 *	Virtual DOM is generally constructed via [JSX](http://jasonformat.com/wtf-is-jsx).
-	 *	@param {object} props		Props (eg: JSX attributes) received from parent element/component
-	 *	@param {object} state		The component's current state
-	 *	@param {object} context		Context object (if a parent component has provided context)
-	 *	@returns VNode
-	 */
-	render() {
-		return null;
-	}
-
-});
-
-/** Render JSX into a `parent` Element.
- *	@param {VNode} vnode		A (JSX) VNode to render
- *	@param {Element} parent		DOM element to render into
- *	@param {Element} [merge]	Attempt to re-use an existing DOM tree rooted at `merge`
- *	@public
- *
- *	@example
- *	// render a div into <body>:
- *	render(<div id="hello">hello!</div>, document.body);
- *
- *	@example
- *	// render a "Thing" component into #foo:
- *	const Thing = ({ name }) => <span>{ name }</span>;
- *	render(<Thing name="one" />, document.querySelector('#foo'));
- */
-function render(vnode, parent, merge) {
-	let existing = merge && merge._component && merge._componentConstructor===vnode.nodeName,
-		built = diff(merge, vnode),
-		c = !existing && built._component;
-
-	if (c) deepHook(c, 'componentWillMount');
-
-	if (built.parentNode!==parent) {
-		parent.appendChild(built);
-	}
-
-	if (c) deepHook(c, 'componentDidMount');
-
-	return built;
-}
-
-class Clock extends Component {
-    constructor() {
-        super();
-        // set initial time:
-        this.state.time = Date.now();
-    }
-
-    componentDidMount() {
-        // update time every second
-        this.timer = setInterval(() => {
-            this.setState({ time: Date.now() });
-        }, 1000);
-    }
-
-    componentWillUnmount() {
-        // stop when not renderable
-        clearInterval(this.timer);
-    }
-
-    render(props, state) {
-        let time = new Date(state.time).toLocaleTimeString();
-        return h(
-            'span',
-            null,
-            time
-        );
-    }
-}
-function clock (el) {
-    render(h(Clock, null), el || document.body);
-}
-
-const fn_contextmenu = function (e) {
-	e.stopPropagation();
-	e.preventDefault();
-	return false;
-};
-
-const defaults = {
-	videoWidth: 920,
-	videoHeight: 520,
-	autoplay: false,
-	loop: false,
-	controls: false,
-	font: {
-		ratio: 1,
-		min: .5,
-		units: "em"
-	}
-};
-
-class kmlPlayer extends Media {
+class kmlPlayer extends Player {
 	constructor(settings, _events, app) {
-		let el = settings.video;
-		super(el);
-		this.iframe = inIframe();
-		if (el == null) return;
+		super(settings, _events);
+
 		this._bounds = {};
-		this.device = device;
-		this.__settings = deepmerge(defaults, settings);
-		dom.addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
-		this.wrapper = dom.wrap(this.media, dom.createElement('div', {
-			class: 'kmlPlayer'
-		}));
-		dom.triggerWebkitHardwareAcceleration(this.wrapper);
-		if (this.inIframe) {
-			dom.addClass(this.wrapper, "inFrame");
-		}
-		//initSettings
-		for (var k in this.__settings) {
-			if (this[k]) {
-				if (k === 'autoplay' && this.__settings[k] && !this.inIframe) {
-					this.play();
-					continue;
-				}
-				this[k](this.__settings[k]);
-			}
-			if (k === 'controls' && this.__settings[k] === "native") {
-				this.nativeControls(true);
-			}
-		}
-
-		//initPageVisibility
-		this.pageVisibility = new pageVisibility(el);
-
-		//initexternalControls
-		this.externalControls = new externalControls(el);
 
 		//initContainers
 		this.containers = new Containers(this);
@@ -3813,20 +3502,15 @@ class kmlPlayer extends Media {
 		}
 
 		this.on('loadedmetadata', () => {
-			if (this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight) {
-				this.videoWidth();
-				this.videoHeight();
-				this.emit('resize');
-			}
 			if (!this._app) {
 				app.bind(this)();
 				this._app = true;
 			}
 		});
 
-		el.addEventListener('dbltap', () => {
-			this.toggleFullScreen();
-		});
+		// this.media.addEventListener('dbltap', () => {
+		// 	this.toggleFullScreen();
+		// });
 
 		let videoSizeCache = {
 			w: this.width(),
@@ -3853,106 +3537,12 @@ class kmlPlayer extends Media {
 		checkVideoResize();
 	}
 
-	contextMenu(v) {
-		if (typeof v === 'boolean') {
-			v ? this.media.removeEventListener('contextmenu', fn_contextmenu) : this.media.addEventListener('contextmenu', fn_contextmenu);
-		}
-	}
-
-	ajax(options) {
-		return ajax(options);
-	}
-
-	videoWidth(v) {
-		if (this.media.videoWidth) {
-			this.media.width = this.media.videoWidth;
-			return this.media.videoWidth;
-		}
-		if (!isNaN(v)) {
-			v = parseFloat(v);
-			this.media.width = v;
-		}
-		return this.media.width;
-	}
-
-	videoHeight(v) {
-		if (this.media.videoHeight) {
-			this.media.height = this.media.videoHeight;
-			return this.media.videoHeight;
-		}
-		if (!isNaN(v)) {
-			v = parseFloat(v);
-			this.media.height = v;
-		}
-		return this.media.height;
-	}
-
-	scale() {
-		return this.videoWidth() / this.videoHeight();
-	}
-
+	//overwrite bounds
 	bounds(v) {
-		if (this._bounds[v] !== null) return this._bounds[v];
+		if (this._bounds[v] != null) return this._bounds[v];
 		return this._bounds;
 	}
 
-	width() {
-		return this.bounds('width');
-	}
-
-	height() {
-		return this.bounds('height');
-	}
-
-	offsetX() {
-		return this.bounds('offsetX');
-	}
-
-	offsetY() {
-		return this.bounds('offsetY');
-	}
-
-	wrapperHeight() {
-		return this.media.offsetHeight;
-	}
-
-	wrapperWidth() {
-		return this.media.offsetWidth;
-	}
-
-	wrapperScale() {
-		return this.media.offsetWidth / this.media.offsetHeight;
-	}
-
-	addClass(v, el) {
-		if (el != null) {
-			dom.addClass(v, el);
-			return;
-		}
-		dom.addClass(this.wrapper, v);
-	}
-	removeClass(v, el) {
-		if (el != null) {
-			dom.removeClass(v, el);
-			return;
-		}
-		if (v !== 'kmlPlayer') {
-			dom.removeClass(this.wrapper, v);
-		}
-	}
-	toggleClass(v, el) {
-		if (el != null) {
-			dom.toggleClass(v, el);
-			return;
-		}
-		if (v !== 'kmlPlayer') {
-			dom.toggleClass(this.wrapper, v);
-		}
-	}
-
-	clock() {
-		return clock;
-	}
 };
 
 //disable on production

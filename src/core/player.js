@@ -1,10 +1,6 @@
-import requestAnimationFrame from '../polyfills/requestAnimationFrame';
 import deepmerge from '../helpers/deepmerge';
-import {
-	capitalizeFirstLetter,
-	scaleFont,
-	debounce
-} from '../helpers/utils';
+import inFrame from '../helpers/inFrame';
+import {capitalizeFirstLetter} from '../helpers/utils';
 import dom from '../helpers/dom';
 import device from '../helpers/device';
 import Media from './media/index';
@@ -38,16 +34,21 @@ export default class Player extends Media {
 		let el = settings.video;
 		super(el);
 		if (el == null) return;
-		this.device = device;
+		//initSettings
 		this.__settings = {};
+		this.settings(deepmerge(defaults, settings))
+
+		//setup Player
+		this.device = device;
+		this.iframe = inFrame();
 		dom.addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
 		this.wrapper = dom.wrap(this.media, dom.createElement('div', {
 			class: 'kmlPlayer'
 		}));
 		dom.triggerWebkitHardwareAcceleration(this.wrapper);
-		
-		//initSettings
-		this.settings(deepmerge(defaults, settings))
+		if (this.inIframe) {
+			dom.addClass(this.wrapper, "inFrame");
+		}
 
 		//initPageVisibility
 		this.pageVisibility = new pageVisibility(el);
@@ -70,8 +71,8 @@ export default class Player extends Media {
 
 	}
 
-	settings(settings){
-		if(settings == null) return this.__settings;
+	settings(settings) {
+		if (settings == null) return this.__settings;
 		this.__settings = deepmerge(this.__settings, settings);
 		//initSettings
 		for (var k in this.__settings) {
@@ -129,7 +130,7 @@ export default class Player extends Media {
 
 	bounds(v) {
 		let data = containerBounds(this.media);
-		if (data[v] !== null) return data[v];
+		if (data[v] != null) return data[v];
 		return data;
 	}
 

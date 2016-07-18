@@ -52,8 +52,8 @@ let adaptiveSizePos = function(setttings, parent) {
 
 	let updateDomElement = function() {
 		if (_active && domElement && domElement.nodeType) {
-			if (vault.width !== null) domElement.style.width = vault.width + "px";
-			if (vault.height !== null) domElement.style.height = vault.height + "px";
+			if (vault.width != null) domElement.style.width = vault.width + "px";
+			if (vault.height != null) domElement.style.height = vault.height + "px";
 
 			if (dom.stylePrefix.transform && settings.translate) {
 				let transform = '';

@@ -1,5 +1,7 @@
 import dom from '../../helpers/dom';
 import Container from './container';
+import backgroundColor from '../../helpers/backgroundColor';
+
 export default class Popup extends Container {
 	constructor(el, opts, ctx, parentPlayer) {
 		super(el, opts, ctx, parentPlayer);
@@ -20,15 +22,15 @@ export default class Popup extends Container {
 		//end header
 
 
-		this.backgroundColor = function(v) {
-			if (v != null) {
-				overlay.style.backgroundColor = v;
-			}
-			return overlay.style.backgroundColor;
-		}
+		this.backgroundColor = backgroundColor(overlay);
 
 		this.scaleSize = function(s){
-			this.config({x: (100-s)/2+"%", y: (100-s)/2+"%", width: s+"%", height: s+"%"});
+			let d = this.config({x: (100-s)/2+"%", y: (100-s)/2+"%", width: s+"%", height: s+"%"});
+			if(d.y < 10) { 
+				header.style.transform = 'translateY(0)';
+			} else{
+				header.style.transform = 'translateY(-100%)';
+			}
 		}
 
 		//EVENTS
@@ -36,9 +38,8 @@ export default class Popup extends Container {
 			this.emit('resize');
 		});
 
-		['resize','config', 'beforeShow'].map((evt)=>{
+		['resize','config', 'show'].map((evt)=>{
 			this.on(evt, () => {
-				console.log(evt);
 				this.autoLineHeight();
 			});
 		});
@@ -49,7 +50,6 @@ export default class Popup extends Container {
 		}
 	}
 	destroy(){
-		console.log('popup');
 		this.removeAllListeners();
 		this.ctx.remove(this.body);
 		dom.removeElement(this.body.parentNode);

@@ -59,14 +59,18 @@ export default class videoContainer extends Popup{
 			};
 			x = (100 - fw)/2;
 			y = (100 - fh)/2;
-			//this._title.parentNode.style.transform = 'translateY(-100%)';	
 			this._title.parentNode.style.height = headerHeight+'%';
-			this.config({
+			let d = this.config({
 				x: x/w*ww+'%',
 				y: 5+y/h*hh+'%',
 				width : fw+"%",
 				height: fh+"%"
 			});
+			if(headerHeight <= d.y){
+				this._title.parentNode.style.transform = 'translateY(-100%)';
+			}else{
+				this._title.parentNode.style.transform = 'translateY(0)';
+			}
 			this.autoLineHeight();
 		});
 

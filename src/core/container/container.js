@@ -1,6 +1,7 @@
 import Events from 'eventemitter3';
 import dom from '../../helpers/dom';
 import deepmerge from '../../helpers/deepmerge';
+import backgroundColor from '../../helpers/backgroundColor';
 import relativeSizePos from './relativeSizePos';
 import {
 	isFunction
@@ -12,6 +13,7 @@ export default class Container extends Events{
 		let isVisible = false;
 		let externalControls = false;
 		let body = dom.select('.body', el);
+		body.backgroundColor = backgroundColor(body);
 		super();
 		this.ctx = ctx;
 		this.body = body;
@@ -27,6 +29,7 @@ export default class Container extends Events{
 				body.style.left = d.y + "%";
 			}
 			this.emit('config');
+			return d;
 		}
 		this.config();
 		player.on('resize', this.config);

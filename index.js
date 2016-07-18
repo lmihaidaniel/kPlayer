@@ -58,6 +58,7 @@ var config = {
     plugins: [
       babel({
         exclude: 'node_modules/**',
+        compact : true,
         presets: ['es2015-rollup'],
         plugins: [["transform-react-jsx", { "pragma":"h" }],['transform-es2015-classes', {loose: true}]] // needed to add support to classes in <=ie10
       })
@@ -146,6 +147,7 @@ gulp.task('build', function() {
         moduleName: config.build.moduleName,
         banner: config.banner,
         sourceMap: 'inline',
+        sourceMap: true,
         dest: 'test/' + config.build.moduleName + '.js', // Exit file
       });
       fs.writeFileSync('dist/kmlPlayer.js', config.banner + '\n' + js_minify(result.code));

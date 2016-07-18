@@ -54,9 +54,11 @@
     
     var player = new kmlPlayer(playerSettings, null, function(){
       this.addClass('test');
+      this.volume(0.1);
       //this.requestFullWindow();
-      // popup = this.popupContainer({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
-      // vid = this.videoContainer({x: '10%', y: '10%', width: '80%', height: '80%', visible: true, url: "http://vjs.zencdn.net/v/oceans.mp4"});
+       popup = this.popupContainer({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
+      vid = this.videoContainer({x: '10%', y: '10%', width: '80%', height: '80%', visible: true, url: "http://vjs.zencdn.net/v/oceans.mp4"});
+      vid.player.volume(0.1);
     });
    </script>
 </body>

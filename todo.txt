@@ -1,0 +1,19 @@
+bounds - °done
+contextmenu - °done
+responsive - °done
+visibility - °done
+externalcontrol - °done
+fullScreen/fullWindow - °done
+
+
+subtitles
+cuepoints
+hotspots
+
+timeline -> pluggable -> custom
+
+quiz -> quiz MC
+containers => popups => videoPopup, quizPopup, slideShowPopup
+
+
+scorm -> wrapper -> API
