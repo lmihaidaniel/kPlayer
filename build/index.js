@@ -2213,7 +2213,6 @@ class Container extends Events {
 		};
 	}
 	destroy() {
-		console.log("container");
 		this.removeAllListeners();
 		this.ctx.remove(this.body);
 	}
@@ -3464,8 +3463,6 @@ class Containers {
 	}
 }
 
-// import clock from './clock';
-
 class kmlPlayer extends Player {
 	constructor(settings, _events, app) {
 		super(settings, _events);
@@ -3492,11 +3489,6 @@ class kmlPlayer extends Player {
 		this.autoFont = new autoFont(this.wrapper, this.__settings.font, this);
 		if (this.__settings.font) this.autoFont.enabled(true);
 
-		//initCallbackEvents
-		for (var evt in _events) {
-			this.on(evt, _events[evt], this);
-		}
-
 		if (typeof app === 'function') {
 			app.bind(this);
 		}
@@ -3507,10 +3499,6 @@ class kmlPlayer extends Player {
 				this._app = true;
 			}
 		});
-
-		// this.media.addEventListener('dbltap', () => {
-		// 	this.toggleFullScreen();
-		// });
 
 		let videoSizeCache = {
 			w: this.width(),

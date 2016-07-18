@@ -34,6 +34,7 @@
     "uglify-js": "latest"
   },
   "dependencies": {
+    "decko": "latest",
     "eventemitter3": "latest",
     "preact": "latest",
     "tinycolor2": "latest"

@@ -1,7 +1,4 @@
-import h from 'preact/src/h';
-import Component from 'preact/src/component';
-import render from 'preact/src/render';
-
+import {h, Component, render} from 'preact';
 class Clock extends Component {
     constructor() {
         super();

@@ -1,5 +1,4 @@
 import requestAnimationFrame from './polyfills/requestAnimationFrame';
-// import tocca from './polyfills/tocca';
 import dom from './helpers/dom';
 import {isFunction} from './helpers/utils';
 import device from './helpers/device';
@@ -7,8 +6,6 @@ import autoFont from './core/autoFont';
 import Containers from './core/container/containers';
 import Player from './core/player';
 import containerBounds from './helpers/containerBounds';
-
-// import clock from './clock';
 
 class kmlPlayer extends Player {
 	constructor(settings, _events, app) {
@@ -36,11 +33,6 @@ class kmlPlayer extends Player {
 		this.autoFont = new autoFont(this.wrapper, this.__settings.font, this);
 		if (this.__settings.font) this.autoFont.enabled(true);
 
-		//initCallbackEvents
-		for (var evt in _events) {
-			this.on(evt, _events[evt], this);
-		}
-
 		if (typeof app === 'function') {
 			app.bind(this);
 		}
@@ -51,10 +43,6 @@ class kmlPlayer extends Player {
 				this._app = true;
 			}
 		});
-
-		// this.media.addEventListener('dbltap', () => {
-		// 	this.toggleFullScreen();
-		// });
 
 		let videoSizeCache = {
 			w: this.width(),

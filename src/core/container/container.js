@@ -95,7 +95,6 @@ export default class Container extends Events{
 		}
 	}
 	destroy(){
-		console.log("container");
 		this.removeAllListeners();
 		this.ctx.remove(this.body);
 	}
