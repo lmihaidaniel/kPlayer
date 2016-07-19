@@ -10,10 +10,14 @@ export default class Containers {
 		this.wrapper = dom.createElement('div', {
 			class: 'kmlContainers'
 		});
+
 		let popups = dom.createElement('div', {class: 'popups'});
 		let widgets = dom.createElement('div', {class: 'widgets'});
-		this.wrapper.appendChild(popups);
+		let timelines = dom.createElement('div', {class: 'timelines'});
+		
 		this.wrapper.appendChild(widgets);
+		this.wrapper.appendChild(timelines);
+		this.wrapper.appendChild(popups);
 		this._els = [];
 		let ac = new adaptiveSizePos({}, parentPlayer);
 		ac.applyTo(this.wrapper);
@@ -88,6 +92,11 @@ export default class Containers {
 					dom.addClass(containerBody, 'kmlPopup hidden ' + cls);
 					container = new Popup(containerBody, settings, this, parentPlayer);
 					popups.appendChild(container.wrapper);
+					break;
+				case 'timeline':
+					dom.addClass(containerBody, 'kmlTimeline ' + cls);
+					container = new Widget(containerBody, settings, this, parentPlayer);
+					timelines.appendChild(container.wrapper);
 					break;
 				default:
 					dom.addClass(containerBody, 'kmlWidget ' + cls);

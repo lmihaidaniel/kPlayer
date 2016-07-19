@@ -103,7 +103,7 @@ export function isNumeric(v){
  * @returns { Boolean } -
  */
 export function isStrictNumeric(v){
-  return (isNaN(v) && typeof v === 'number')
+  return (!isNaN(v) && typeof v === 'number')
 }
 
 

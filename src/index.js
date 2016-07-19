@@ -1,3 +1,6 @@
+/*@@@@*/
+import bigPlay from './core/bigPlayButton';
+/*@@@@*/
 import requestAnimationFrame from './polyfills/requestAnimationFrame';
 import dom from './helpers/dom';
 import {isFunction} from './helpers/utils';
@@ -8,8 +11,8 @@ import Player from './core/player';
 import containerBounds from './helpers/containerBounds';
 
 class kmlPlayer extends Player {
-	constructor(settings, _events, app) {
-		super(settings, _events);
+	constructor(settings, app) {
+		super(settings, app);
 
 		this._bounds = {};
 
@@ -18,6 +21,10 @@ class kmlPlayer extends Player {
 
 		this.widget = function(sttg, el) {
 			return this.containers.add(sttg, el, 'widget');
+		}
+
+		this.timelineContainer = function(sttg, el) {
+			return this.containers.add(sttg, el, 'timeline');
 		}
 
 		this.videoContainer = function(sttg) {
@@ -32,18 +39,7 @@ class kmlPlayer extends Player {
 		if (typeof this.__settings.font === "boolean" && this.__settings.font) this.__settings.font = defaults.font;
 		this.autoFont = new autoFont(this.wrapper, this.__settings.font, this);
 		if (this.__settings.font) this.autoFont.enabled(true);
-
-		if (typeof app === 'function') {
-			app.bind(this);
-		}
-
-		this.on('loadedmetadata', () => {
-			if (!this._app) {
-				app.bind(this)();
-				this._app = true;
-			}
-		});
-
+		
 		let videoSizeCache = {
 			w: this.width(),
 			x: this.offsetX(),
@@ -65,6 +61,10 @@ class kmlPlayer extends Player {
 			}
 			window.requestAnimationFrame(checkVideoResize);
 		}
+
+		this.bigPlay = new bigPlay(this);
+
+		this.initTimeline();
 
 		checkVideoResize();
 	}

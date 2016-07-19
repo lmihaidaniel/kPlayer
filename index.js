@@ -21,7 +21,7 @@ var fs = require('fs');
 var nodeResolve = require('rollup-plugin-node-resolve');
 var commonjs = require('rollup-plugin-commonjs');
 
-var default_sss = ['src/index.sss', 'src/core/**/*.sss'],
+var default_sss = ['src/core/**/*.sss'],
     default_js = [];
 
 var modules = {
@@ -67,6 +67,7 @@ var config = {
 };
 
 config.modules.sss = default_sss.concat(modules.sss);
+config.modules.sss = config.modules.sss.concat(['src/index.sss']);
 config.modules.js = default_js.concat(modules.js);
 
 var js_minify = function(entry) {

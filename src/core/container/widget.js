@@ -100,7 +100,9 @@ export default class Widget extends Events {
 			let d = new relativeSizePos(this.parentPlayer, this._settings);
 			this.wrapper.style.width = d.width + "%";
 			this.wrapper.style.height = d.height + "%";
-			dom.transform(this.wrapper, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			//dom.transform(this.wrapper, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			this.wrapper.style.left = d.x + '%';
+			this.wrapper.style.top =  d.y + '%';
 			this._cache.width = this._settings.width;
 			this._cache.height = this._settings.height;
 			this._cache.x = this._settings.x;
@@ -121,7 +123,13 @@ export default class Widget extends Events {
 			dom.toggleClass(this.wrapper, cls);
 	}
 	content(el) {
-		this.wrapper.innerHTML = el;
+		if(el != null){
+			if(el.nodeName){
+				this.wrapper.appendChild(el);
+			}else{
+				this.wrapper.innerHTML = el;
+			}
+		}
 	}
 	setFontSize(v) {
 		this.wrapper.style.fontSize = v + "%";

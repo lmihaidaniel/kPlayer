@@ -77,7 +77,7 @@ export default class Media extends Fullscreen {
 		if (typeof v === 'boolean') {
 			this.media.muted = v;
 		}
-		return this.media.muted;
+		return !!this.media.muted;
 	}
 
 	/* Mute the video */

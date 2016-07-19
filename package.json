@@ -9,7 +9,7 @@
     "build": "node index.js"
   },
   "modules": [
-    "subtitles"
+    "timelines/kumullusone"
   ],
   "devDependencies": {
     "autoprefixer": "latest",
@@ -34,9 +34,8 @@
     "uglify-js": "latest"
   },
   "dependencies": {
-    "decko": "latest",
     "eventemitter3": "latest",
-    "preact": "latest",
-    "tinycolor2": "latest"
+    "tinycolor2": "latest",
+    "mixwith": "latest"
   }
 }

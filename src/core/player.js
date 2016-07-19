@@ -1,6 +1,14 @@
+/*@@@@*/
+import Timeline from './timeline';
+/*@@@@*/
 import deepmerge from '../helpers/deepmerge';
 import inFrame from '../helpers/inFrame';
-import {capitalizeFirstLetter} from '../helpers/utils';
+import {
+	capitalizeFirstLetter
+} from '../helpers/utils';
+import {
+	isFunction
+} from '../helpers/utils';
 import dom from '../helpers/dom';
 import device from '../helpers/device';
 import Media from './media/index';
@@ -8,6 +16,7 @@ import containerBounds from '../helpers/containerBounds';
 import pageVisibility from '../helpers/pageVisibility';
 import externalControls from './media/events/externalControls';
 import ajax from '../helpers/ajax';
+import userActivity from './userActivity';
 
 const fn_contextmenu = function(e) {
 	e.stopPropagation();
@@ -20,23 +29,25 @@ const defaults = {
 	videoHeight: 540,
 	autoplay: false,
 	loop: false,
-	controls: false,
+	controls: true,
 	font: {
 		ratio: 1,
 		min: .5,
 		units: "em"
 	},
-	contextMenu: false
+	externalControls: true,
+	contextMenu: false,
+	fullWindow: false
 };
 
 export default class Player extends Media {
-	constructor(settings, _events) {
+	constructor(settings, app) {
 		let el = settings.video;
 		super(el);
 		if (el == null) return;
 		//initSettings
 		this.__settings = {};
-
+		this._controls = true;
 		//setup Player
 		this.device = device;
 		this.iframe = inFrame();
@@ -55,10 +66,15 @@ export default class Player extends Media {
 		//initexternalControls
 		this.externalControls = new externalControls(el);
 
+		//initUserActivity
+		this.userActivity = new userActivity(this);
+
 		//initCallbackEvents
-		for (var evt in _events) {
-			this.on(evt, _events[evt], this);
+		if (isFunction(app)) {
+			app.bind(this)();
 		}
+
+		this.settings(deepmerge(defaults, settings));
 
 		this.on('loadedmetadata', () => {
 			if (this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight) {
@@ -67,10 +83,37 @@ export default class Player extends Media {
 				this.emit('resize');
 			}
 		});
+		if (this.__settings['autoplay'] != null) {
+			if (this.__settings['autoplay']) {
+				this.play();
+			} else {
+				this.autoplay(false);
+			}
+		}
 
-		this.settings(deepmerge(defaults, settings));
+		if (this.__settings['fullWindow'] != null) {
+			if (this.__settings['fullWindow']) {
+				this.requestFullWindow();
+			}
+		}
+
+		this.on('resize', () => {
+			if (this.timeline.resize) {
+				this.timeline.resize();
+			}
+		});
 
 	}
+
+	initTimeline() {
+		if (this.__settings['controls'] !== "native") {
+			if (this.__settings['controls']) {
+				this.timeline = new Timeline(this);
+			}
+		}
+	}
+
+	timeline() {}
 
 	settings(settings) {
 		if (settings == null) return this.__settings;
@@ -78,21 +121,28 @@ export default class Player extends Media {
 		//initSettings
 		for (var k in this.__settings) {
 			if (this[k] != null) {
-				if (k === 'autoplay') {
-					if(this.__settings[k]) {
-						this.play();
-					}else{
-						this.autoplay(false);
-					}
-					continue;
-				}
-				this[k](this.__settings[k]);
+				if (isFunction(this[k])) this[k](this.__settings[k]);
 			}
 			if (k === 'controls' && this.__settings[k] === "native") {
 				this.nativeControls(true);
 			}
 		}
 		return this.__settings;
+	}
+
+	controls(v) {
+		if (typeof v === 'boolean') {
+			if (v) {
+				if (this.__settings['controls'] === "native") this.nativeControls(true);
+				if (this.__settings['externalControls']) this.externalControls.enabled(true);
+				this._controls = true;
+			} else {
+				this.externalControls.enabled(false);
+				this.nativeControls(false);
+				this._controls = false;
+			}
+		}
+		return this._controls;
 	}
 
 	contextMenu(v) {

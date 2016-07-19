@@ -1,0 +1,86 @@
+.kmlBigPlay{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background: rgb(34, 34, 34);
+  background: rgba(34, 34, 34, 0.6);
+  transition: opacity .3s ease;
+  transition: opacity 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: all;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.kmlBigPlay.hidden{
+  opacity: 0;
+}
+
+
+.kmlBigPlayButton {
+  display: inline-block;
+  -webkit-transition: all .5s ease;
+  margin: 0 auto;
+  color: white;
+  text-align: center;
+  position: absolute;
+  left: 40%;
+  top: 40%;
+  width: 20%;
+  height: 20%;
+  text-transform: uppercase;
+}
+
+.kmlBigPlayButton svg{
+  width: 100%;
+  height: 100%;
+}
+
+
+.kmlBigPlayButton:hover {
+    color: #23db90;
+}
+
+.kmlBigPlayButton .triangle {
+  -webkit-transition: all 0.7s ease-in-out;
+  stroke-dasharray: 240;
+  stroke-dashoffset: 480;
+  stroke: #fff;
+  transform: translateY(0);
+}
+.kmlBigPlayButton:hover .triangle {
+  stroke-dashoffset: 0;
+  opacity: 1;
+  stroke: #23db90;
+  animation: nudge 0.7s ease-in-out;
+}
+@keyframes nudge {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.kmlBigPlayButton .circle {
+    stroke: #23db90;
+    stroke-dasharray: 650;
+    stroke-dashoffset: 650;
+    -webkit-transition: all 0.5s ease-in-out;
+    opacity: 0.3;
+}
+.kmlBigPlayButton:hover .circle {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}

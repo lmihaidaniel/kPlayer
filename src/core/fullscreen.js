@@ -34,7 +34,8 @@ export default class Fullscreen extends Events {
         this.scrollPosition = new scrollPosition();
         this._fullscreenElement = null;
         this.fullscreenElementStyle = {};
-        if (supportsFullScreen) {
+        this.supportsFullScreen = supportsFullScreen;
+        if (this.supportsFullScreen) {
             let fnFullscreenChange = ()=>{
                 if(!this.isFullScreen()){
                     setTimeout(this.scrollPosition.restore,100);
@@ -66,7 +67,7 @@ export default class Fullscreen extends Events {
         return false;
     }
     isFullScreen(element) {
-        if (supportsFullScreen) {
+        if (this.supportsFullScreen) {
             let el = this.defualtFullScreenElement(element);
             switch (prefixFS) {
                 case '':
@@ -81,8 +82,14 @@ export default class Fullscreen extends Events {
         }
     }
     requestFullWindow(element){
+        if(this.__settings){
+            if(this.__settings.fullWindow){
+                return;
+            }
+        }
         if (this.isFullWindow()) return;
-        if(supportsFullScreen && this.isFullScreen()) return;
+        this.emit('enterFullScreen');
+        if(this.supportsFullScreen && this.isFullScreen()) return;
         let el = this.defualtFullScreenElement(element);
         this.scrollPosition.save();
         // let style = window.getComputedStyle(element);
@@ -110,7 +117,8 @@ export default class Fullscreen extends Events {
     }
     requestFullScreen(element) {
        let el = this.defualtFullScreenElement(element);
-        if (supportsFullScreen) {
+        if (this.supportsFullScreen) {
+            this.emit('enterFullScreen');
             this.scrollPosition.save();
             return (prefixFS === '') ? el.requestFullScreen() : el[prefixFS + (prefixFS == 'ms' ? 'RequestFullscreen' : 'RequestFullScreen')]();
         } else {
@@ -118,8 +126,14 @@ export default class Fullscreen extends Events {
         }
     }
     cancelFullWindow() {
+        if(this.__settings){
+            if(this.__settings.fullWindow){
+                return;
+            }
+        }
         if (!this.isFullWindow()) return;
-        if(supportsFullScreen && this.isFullScreen()) return;
+        this.emit('exitFullScreen');
+        if(this.supportsFullScreen && this.isFullScreen()) return;
         for (let k in this.fullscreenElementStyle) {
             this._fullscreenElement.style[k] = this.fullscreenElementStyle[k];
         }
@@ -130,7 +144,8 @@ export default class Fullscreen extends Events {
         this.scrollPosition.restore();
     }
     cancelFullScreen() {
-        if (supportsFullScreen) {
+        if (this.supportsFullScreen) {
+            this.emit('exitFullScreen');
             return (prefixFS === '') ? document.cancelFullScreen() : document[prefixFS + (prefixFS == 'ms' ? 'ExitFullscreen' : 'CancelFullScreen')]();
         } else {
             this.cancelFullWindow();
@@ -157,7 +172,7 @@ export default class Fullscreen extends Events {
         }
     }
     fullscreenElement() {
-        if (supportsFullScreen) {
+        if (this.supportsFullScreen) {
             return (prefixFS === '') ? document.fullscreenElement : document[prefixFS + 'FullscreenElement'];
         } else {
             return this._fullscreenElement;

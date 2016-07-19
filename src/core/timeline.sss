@@ -1,0 +1,106 @@
+.kmlTimeline{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: all;
+  opacity: 1;
+  transition: opacity .25s ease;
+  transition: opacity 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.kmlTimeline.hidden{
+	opacity: 0!important;
+}
+
+.kmlTimeline button{
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 5%;
+	outline: none;
+	cursor: pointer;
+	background: none;
+	/* background-color: #2B303B; */
+	padding: 0;
+	border: none;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 60%;
+
+	transition: top .25s ease;
+    transition: top 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.kmlTimeline button.play{
+	background-image: url('svg/ic_play.svg');
+}
+.kmlTimeline button.pause{
+	background-image: url('svg/ic_pause.svg');
+}
+
+.kmlTimeline button.volume{
+	background-image: url('svg/ic_volume_up.svg');
+}
+.kmlTimeline button.volume.up{
+	background-image: url('svg/ic_volume_up.svg');
+}
+.kmlTimeline button.volume.down{
+	background-image: url('svg/ic_volume_down.svg');
+}
+.kmlTimeline button.volume.off{
+	background-image: url('svg/ic_volume_mute.svg');
+}
+.kmlTimeline button.volume.mute{
+	background-image: url('svg/ic_volume_off.svg');
+}
+
+
+.kmlTimeline button.fullscreen{
+	background-image: url('svg/ic_fullscreen.svg');
+}
+
+.kmlTimeline button.fullscreen.exit{
+	background-image: url('svg/ic_fullscreen_exit.svg');
+}
+
+.kmlProgress{
+	position: absolute;
+	top: 0;
+	height: 100%;
+	cursor: pointer;
+	background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7);
+	transition: all .25s ease;
+    transition: all 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.kmlProgress:before{
+	content: "";
+	position: absolute;
+	width: 100%;
+	top: 47%;
+    left: 0;
+    height: 6%;
+	background-color: #2B303B;
+	opacity: .5;
+}
+.kmlProgress .progressline{
+	position: absolute;
+	width: 0;
+	top: 47%;
+    left: 0;
+    height: 6%;
+	background-color: #23DB90;
+}
+
+.kmlTimeline.closed button{
+	top: 100%;
+}
+.kmlTimeline.closed .kmlProgress{
+	left: 0!important;
+	width: 100%!important;
+}
+.kmlTimeline.closed .kmlProgress:before,.kmlTimeline.closed .kmlProgress .progressline{
+	top: 90%;
+	height: 10%;
+}

@@ -2,19 +2,22 @@ bounds - °done
 contextmenu - °done
 responsive - °done
 visibility - °done
-externalcontrol - °done
-fullScreen/fullWindow - °done
+externalcontrol - °done *TI
+fullScreen/fullWindow - °done *TI
+userActivity  - °done *TI
 
+widget => popup => videoPopup - °done *TI
 
-widget => popup => videoPopup, quizPopup, slideShowPopup
+quizPopup, slideShowPopup
+
+timeline - °done
+
 timeline -> pluggable -> custom
-
 
 subtitles
 cuepoints
 hotspots
 
 quiz -> quiz MC
-
 
 scorm -> wrapper -> API

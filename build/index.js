@@ -1,26 +1,3 @@
-(function () {
-    var lastTime = 0;
-    var vendors = ['ms', 'moz', 'webkit', 'o'];
-    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-    }
-
-    if (!window.requestAnimationFrame || /iP(ad|hone|od).*OS 6/.test(window.navigator.userAgent)) window.requestAnimationFrame = function (callback, element) {
-        var currTime = new Date().getTime();
-        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-        var id = window.setTimeout(function () {
-            callback(currTime + timeToCall);
-        }, timeToCall);
-        lastTime = currTime + timeToCall;
-        return id;
-    };
-
-    if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function (id) {
-        clearTimeout(id);
-    };
-})();
-
 /**
  * @module dom
  * Module for easing the manipulation of dom elements
@@ -192,6 +169,73 @@ var dom = {
 	}
 };
 
+const bigButton = '<svg x="0px" y="0px" width="98px" height="98px" viewBox="0 0 213.7 213.7" enable-background="new 0 0 213.7 213.7" xml:space="preserve"><polygon class="triangle" id="XMLID_18_" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="73.5,62.5 148.5,105.8 73.5,149.1 "></polygon><circle class="circle" id="XMLID_17_" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" cx="106.8" cy="106.8" r="103.3"></circle></svg>';
+function bigPlay (parentPlayer) {
+	return function () {
+		let bigPlayButton = function () {
+			let isMobile = parentPlayer.device.isMobile;
+			let autoplay = parentPlayer.__settings['autoplay'];
+			let wrapper = dom.createElement('div', { class: "kmlBigPlay hidden" });
+			let btn = dom.createElement('div', { class: 'kmlBigPlayButton' });
+			btn.innerHTML = bigButton;
+			wrapper.addEventListener('click', () => {
+				this.hide();
+			});
+			wrapper.appendChild(btn);
+			parentPlayer.wrapper.appendChild(wrapper);
+
+			this.show = () => {
+				if (parentPlayer.containers) {
+					parentPlayer.containers.hide();
+				}
+				parentPlayer.pause();
+				wrapper.style.display = "block";
+				dom.removeClass(wrapper, 'hidden');
+			};
+			this.hide = () => {
+				if (parentPlayer.containers) {
+					parentPlayer.containers.show();
+				}
+				dom.addClass(wrapper, 'hidden');
+				setTimeout(() => {
+					wrapper.style.display = "none";
+					parentPlayer.play();
+				}, 200);
+			};
+
+			if (!autoplay || isMobile) {
+				this.show();
+			} else {
+				wrapper.style.display = "none";
+			}
+		};
+		return new bigPlayButton();
+	}();
+};
+
+(function () {
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame || /iP(ad|hone|od).*OS 6/.test(window.navigator.userAgent)) window.requestAnimationFrame = function (callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function () {
+            callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+    };
+
+    if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function (id) {
+        clearTimeout(id);
+    };
+})();
+
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -205,6 +249,15 @@ function procentFromString(v) {
     }
   }
   return t;
+}
+
+/**
+ * Detect if the argument passed is a strict numeric
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+function isStrictNumeric(v) {
+  return !isNaN(v) && typeof v === 'number';
 }
 
 /**
@@ -238,6 +291,9 @@ function scaleFont(f, width, el) {
   return { fontSize: r, lineHeight: l };
 };
 
+let isMobile = false;
+// device detection
+if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0, 4))) isMobile = true;
 let browser = function () {
   var nVer = navigator.appVersion,
       nAgt = navigator.userAgent,
@@ -333,7 +389,8 @@ var device = {
     return false;
   }(),
   isTouch: 'ontouchstart' in document.documentElement,
-  isIos: /(iPad|iPhone|iPod)/g.test(navigator.platform)
+  isIos: /(iPad|iPhone|iPod)/g.test(navigator.platform),
+  isMobile: isMobile
 };
 
 var deepmerge = (function () {
@@ -2225,7 +2282,9 @@ class Widget extends Events {
 			let d = new relativeSizePos(this.parentPlayer, this._settings);
 			this.wrapper.style.width = d.width + "%";
 			this.wrapper.style.height = d.height + "%";
-			dom.transform(this.wrapper, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			//dom.transform(this.wrapper, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			this.wrapper.style.left = d.x + '%';
+			this.wrapper.style.top = d.y + '%';
 			this._cache.width = this._settings.width;
 			this._cache.height = this._settings.height;
 			this._cache.x = this._settings.x;
@@ -2243,7 +2302,13 @@ class Widget extends Events {
 		if (cls != 'kmlWidget') dom.toggleClass(this.wrapper, cls);
 	}
 	content(el) {
-		this.wrapper.innerHTML = el;
+		if (el != null) {
+			if (el.nodeName) {
+				this.wrapper.appendChild(el);
+			} else {
+				this.wrapper.innerHTML = el;
+			}
+		}
 	}
 	setFontSize(v) {
 		this.wrapper.style.fontSize = v + "%";
@@ -2261,7 +2326,8 @@ let defaults$4 = {
 	onShow: null,
 	externalControls: false,
 	visible: false,
-	pauseVideo: true
+	pauseVideo: true,
+	single: false
 };
 
 class Popup extends Events {
@@ -2288,6 +2354,9 @@ class Popup extends Events {
 		dom.addClass(this._closeBtn, 'closeBtn triggerClose');
 		header.appendChild(this._closeBtn);
 		this.body.appendChild(header);
+		this.header = header;
+		this.header.backgroundColor = backgroundColor(this.header);
+		this.body.backgroundColor = backgroundColor(this.body);
 		//end header
 
 		this._visible = false;
@@ -2327,6 +2396,7 @@ class Popup extends Events {
 
 		this.on('beforeShow', () => {
 			if (this._settings.externalControls != null) {
+				externalControls = parentPlayer.externalControls.enabled();
 				parentPlayer.externalControls.enabled(this._settings.externalControls);
 			}
 		});
@@ -2422,7 +2492,13 @@ class Popup extends Events {
 		if (cls != 'kmlWidget') dom.toggleClass(this.body, cls);
 	}
 	content(el) {
-		this._content.innerHTML = el;
+		if (el != null) {
+			if (el.nodeName) {
+				this._content.appendChild(el);
+			} else {
+				this._content.innerHTML = el;
+			}
+		}
 	}
 	setFontSize(v) {
 		this.body.style.fontSize = v + "%";
@@ -2450,6 +2526,152 @@ class Popup extends Events {
 		dom.removeElement(this.wrapper);
 	}
 }
+
+let defaults$6 = {
+	x: 0,
+	y: "90%",
+	width: "100%",
+	height: "10%"
+};
+function Timeline (parentPlayer) {
+	return function () {
+		let Timeline = function () {
+			let fragment = document.createDocumentFragment();
+			let playBtn = dom.createElement('button', { 'class': 'play' });
+			let volumeBtn = dom.createElement('button', { 'class': 'volume' });
+			let fullScreenBtn = dom.createElement('button', { 'class': 'fullscreen' });
+			let pw = dom.createElement('div', { 'class': 'kmlProgress' });
+			let pl = dom.createElement('div', { 'class': 'progressline' });
+			pw.appendChild(pl);
+			fragment.appendChild(playBtn);
+			fragment.appendChild(pw);
+			fragment.appendChild(volumeBtn);
+			fragment.appendChild(fullScreenBtn);
+			let wrapper = null;
+			if (parentPlayer.timelineContainer != null) {
+				this.wrapper = parentPlayer.timelineContainer(defaults$6);
+				this.wrapper.content(fragment);
+				wrapper = this.wrapper.wrapper;
+			} else {
+				this.wrapper = dom.createElement('div', { class: "kmlTimeline", style: "position: absolute; left: 0; width: 100%; height: 10%; top: auto; bottom: 0;" });
+				parentPlayer.wrapper.appendChild(this.wrapper);
+				wrapper = this.wrapper;
+				this.wrapper.appendChild(fragment);
+			}
+
+			pw.addEventListener('click', e => {
+				let dim = pw.getBoundingClientRect();
+				let x = e.clientX - dim.left;
+				let t = x / dim.width * 100;
+				let d = t * parentPlayer.duration() / 100;
+				parentPlayer.seek(d);
+			});
+			playBtn.addEventListener('click', () => {
+				try {
+					playBtn.blur();
+				} catch (e) {}
+				parentPlayer.togglePlay();
+			});
+			volumeBtn.addEventListener('click', () => {
+				try {
+					volumeBtn.blur();
+				} catch (e) {}
+				parentPlayer.toggleMute();
+			});
+			fullScreenBtn.addEventListener('click', () => {
+				try {
+					fullScreenBtn.blur();
+				} catch (e) {}
+				parentPlayer.toggleFullScreen();
+			});
+			parentPlayer.on('timeupdate', function () {
+				pl.style.width = this.currentTime() / this.duration() * 100 + "%";
+			});
+			parentPlayer.on('volumechange', function () {
+				let v = this.volume();
+				if (this.muted()) {
+					dom.addClass(volumeBtn, 'mute');
+					return;
+				} else {
+					dom.removeClass(volumeBtn, 'mute');
+				}
+				dom.removeClass(volumeBtn, 'down up off mute');
+				if (v < .5) {
+					dom.addClass(volumeBtn, 'down');
+				} else {
+					dom.addClass(volumeBtn, 'up');
+				}
+				if (v == 0) {
+					dom.addClass(volumeBtn, 'off');
+				}
+			});
+			parentPlayer.on('enterFullScreen', function () {
+				dom.addClass(fullScreenBtn, 'exit');
+			});
+			parentPlayer.on('exitFullScreen', function () {
+				dom.removeClass(fullScreenBtn, 'exit');
+			});
+			parentPlayer.on('play', () => {
+				dom.removeClass(playBtn, 'play');
+				dom.addClass(playBtn, 'pause');
+			});
+			parentPlayer.on('pause', () => {
+				dom.removeClass(playBtn, 'pause');
+				dom.addClass(playBtn, 'play');
+			});
+			let w = 0;
+			this.resize = () => {
+				let sc = procentFromString(defaults$6.height) * parentPlayer.height() / 100;
+				w = sc / parentPlayer.width() * 100;
+				playBtn.style.width = w + "%";
+				pw.style.left = sc / parentPlayer.width() * 100 + "%";
+				pw.style.width = 100 - 3 * w + "%";
+
+				volumeBtn.style.width = w + "%";
+				volumeBtn.style.left = 100 - 2 * w + "%";
+
+				fullScreenBtn.style.width = w + "%";
+				fullScreenBtn.style.left = 100 - w + "%";
+			};
+			let _closed = false;
+			this.closed = v => {
+				if (typeof v === 'boolean') {
+					if (v) {
+						dom.addClass(wrapper, 'closed');
+					} else {
+						dom.removeClass(wrapper, 'closed');
+					}
+					_closed = v;
+				}
+				return _closed;
+			};
+
+			parentPlayer.on('user-is-idle', () => {
+				if (!parentPlayer.paused()) this.closed(true);
+			});
+			parentPlayer.on('user-not-idle', () => {
+				this.closed(false);
+			});
+
+			parentPlayer.on('pause', () => {
+				if (this.closed()) {
+					this.closed(false);
+				}
+			});
+
+			this.addClass = cls => {
+				if (cls != 'kmlTimeline') dom.addClass(wrapper, cls);
+			};
+			this.removeClass = cls => {
+				if (cls != 'kmlTimeline') dom.removeClass(wrapper, cls);
+			};
+			this.toggleClass = cls => {
+				if (cls != 'kmlTimeline') dom.toggleClass(wrapper, cls);
+			};
+		};
+		return new Timeline();
+	}();
+};
 
 function inIframe() {
 	try {
@@ -2528,7 +2750,8 @@ class Fullscreen extends Events {
         this.scrollPosition = new scrollPosition();
         this._fullscreenElement = null;
         this.fullscreenElementStyle = {};
-        if (supportsFullScreen) {
+        this.supportsFullScreen = supportsFullScreen;
+        if (this.supportsFullScreen) {
             let fnFullscreenChange = () => {
                 if (!this.isFullScreen()) {
                     setTimeout(this.scrollPosition.restore, 100);
@@ -2560,7 +2783,7 @@ class Fullscreen extends Events {
         return false;
     }
     isFullScreen(element) {
-        if (supportsFullScreen) {
+        if (this.supportsFullScreen) {
             let el = this.defualtFullScreenElement(element);
             switch (prefixFS) {
                 case '':
@@ -2575,8 +2798,14 @@ class Fullscreen extends Events {
         }
     }
     requestFullWindow(element) {
+        if (this.__settings) {
+            if (this.__settings.fullWindow) {
+                return;
+            }
+        }
         if (this.isFullWindow()) return;
-        if (supportsFullScreen && this.isFullScreen()) return;
+        this.emit('enterFullScreen');
+        if (this.supportsFullScreen && this.isFullScreen()) return;
         let el = this.defualtFullScreenElement(element);
         this.scrollPosition.save();
         // let style = window.getComputedStyle(element);
@@ -2604,7 +2833,8 @@ class Fullscreen extends Events {
     }
     requestFullScreen(element) {
         let el = this.defualtFullScreenElement(element);
-        if (supportsFullScreen) {
+        if (this.supportsFullScreen) {
+            this.emit('enterFullScreen');
             this.scrollPosition.save();
             return prefixFS === '' ? el.requestFullScreen() : el[prefixFS + (prefixFS == 'ms' ? 'RequestFullscreen' : 'RequestFullScreen')]();
         } else {
@@ -2612,8 +2842,14 @@ class Fullscreen extends Events {
         }
     }
     cancelFullWindow() {
+        if (this.__settings) {
+            if (this.__settings.fullWindow) {
+                return;
+            }
+        }
         if (!this.isFullWindow()) return;
-        if (supportsFullScreen && this.isFullScreen()) return;
+        this.emit('exitFullScreen');
+        if (this.supportsFullScreen && this.isFullScreen()) return;
         for (let k in this.fullscreenElementStyle) {
             this._fullscreenElement.style[k] = this.fullscreenElementStyle[k];
         }
@@ -2624,7 +2860,8 @@ class Fullscreen extends Events {
         this.scrollPosition.restore();
     }
     cancelFullScreen() {
-        if (supportsFullScreen) {
+        if (this.supportsFullScreen) {
+            this.emit('exitFullScreen');
             return prefixFS === '' ? document.cancelFullScreen() : document[prefixFS + (prefixFS == 'ms' ? 'ExitFullscreen' : 'CancelFullScreen')]();
         } else {
             this.cancelFullWindow();
@@ -2651,7 +2888,7 @@ class Fullscreen extends Events {
         }
     }
     fullscreenElement() {
-        if (supportsFullScreen) {
+        if (this.supportsFullScreen) {
             return prefixFS === '' ? document.fullscreenElement : document[prefixFS + 'FullscreenElement'];
         } else {
             return this._fullscreenElement;
@@ -2766,7 +3003,7 @@ class Media extends Fullscreen {
 		if (typeof v === 'boolean') {
 			this.media.muted = v;
 		}
-		return this.media.muted;
+		return !!this.media.muted;
 	}
 
 	/* Mute the video */
@@ -3248,6 +3485,83 @@ var ajax = (function () {
   return ajax;
 })();
 
+function userActivity (parentPlayer, settings = { timeout: 2000 }) {
+	return function () {
+		let userActivity = function () {
+			let isMobile = parentPlayer.device.isMobile;
+			let timer = 0;
+			let tid = null;
+			let idle = true;
+			let player = parentPlayer.wrapper;
+			let forced = false;
+			let timeoutDefault = settings.timeout;
+			let check = () => {
+				if (forced) return;
+				if (tid) {
+					if (idle) {
+						parentPlayer.emit('user-not-idle');
+					}
+					clearTimeout(tid);
+				}
+				idle = false;
+				tid = setTimeout(() => {
+					idle = true;
+					parentPlayer.emit('user-is-idle');
+				}, settings.timeout);
+			};
+			this.watch = () => {
+				if (isMobile) {
+					player.addEventListener('touchstart', check);
+					player.addEventListener('touchmove', check);
+				} else {
+					player.addEventListener('mousemove', check);
+					player.addEventListener('keyup', check);
+				}
+			};
+			this.unwatch = () => {
+				if (isMobile) {
+					player.removeEventListener('touchstart', check);
+					player.removeEventListener('touchmove', check);
+				} else {
+					player.removeEventListener('mousemove', check);
+					player.removeEventListener('keyup', check);
+				}
+				clearTimeout(tid);
+			};
+			this.watch();
+			this.idle = v => {
+				if (v != null) {
+					v = !!v;
+					if (v) {
+						parentPlayer.emit('user-is-idle');
+						this.unwatch();
+					} else {
+						parentPlayer.emit('user-not-idle');
+						this.watch();
+					}
+					forced = true;
+					idle = v;
+				}
+				return idle;
+			};
+			this.reset = () => {
+				forced = false;
+				idle = true;
+			};
+			this.timeout = v => {
+				if (isStrictNumeric(v)) {
+					console.log(v);
+					settings.timeout = v;
+				} else {
+					settings.timeout = timeoutDefault;
+				}
+				return settings.timeout;
+			};
+		};
+		return new userActivity();
+	}();
+};
+
 const fn_contextmenu = function (e) {
 	e.stopPropagation();
 	e.preventDefault();
@@ -3259,23 +3573,25 @@ const defaults$5 = {
 	videoHeight: 540,
 	autoplay: false,
 	loop: false,
-	controls: false,
+	controls: true,
 	font: {
 		ratio: 1,
 		min: .5,
 		units: "em"
 	},
-	contextMenu: false
+	externalControls: true,
+	contextMenu: false,
+	fullWindow: false
 };
 
 class Player extends Media {
-	constructor(settings, _events) {
+	constructor(settings, app) {
 		let el = settings.video;
 		super(el);
 		if (el == null) return;
 		//initSettings
 		this.__settings = {};
-
+		this._controls = true;
 		//setup Player
 		this.device = device;
 		this.iframe = inIframe();
@@ -3294,10 +3610,15 @@ class Player extends Media {
 		//initexternalControls
 		this.externalControls = new externalControls(el);
 
+		//initUserActivity
+		this.userActivity = new userActivity(this);
+
 		//initCallbackEvents
-		for (var evt in _events) {
-			this.on(evt, _events[evt], this);
+		if (isFunction(app)) {
+			app.bind(this)();
 		}
+
+		this.settings(deepmerge(defaults$5, settings));
 
 		this.on('loadedmetadata', () => {
 			if (this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight) {
@@ -3306,9 +3627,36 @@ class Player extends Media {
 				this.emit('resize');
 			}
 		});
+		if (this.__settings['autoplay'] != null) {
+			if (this.__settings['autoplay']) {
+				this.play();
+			} else {
+				this.autoplay(false);
+			}
+		}
 
-		this.settings(deepmerge(defaults$5, settings));
+		if (this.__settings['fullWindow'] != null) {
+			if (this.__settings['fullWindow']) {
+				this.requestFullWindow();
+			}
+		}
+
+		this.on('resize', () => {
+			if (this.timeline.resize) {
+				this.timeline.resize();
+			}
+		});
 	}
+
+	initTimeline() {
+		if (this.__settings['controls'] !== "native") {
+			if (this.__settings['controls']) {
+				this.timeline = new Timeline(this);
+			}
+		}
+	}
+
+	timeline() {}
 
 	settings(settings) {
 		if (settings == null) return this.__settings;
@@ -3316,21 +3664,28 @@ class Player extends Media {
 		//initSettings
 		for (var k in this.__settings) {
 			if (this[k] != null) {
-				if (k === 'autoplay') {
-					if (this.__settings[k]) {
-						this.play();
-					} else {
-						this.autoplay(false);
-					}
-					continue;
-				}
-				this[k](this.__settings[k]);
+				if (isFunction(this[k])) this[k](this.__settings[k]);
 			}
 			if (k === 'controls' && this.__settings[k] === "native") {
 				this.nativeControls(true);
 			}
 		}
 		return this.__settings;
+	}
+
+	controls(v) {
+		if (typeof v === 'boolean') {
+			if (v) {
+				if (this.__settings['controls'] === "native") this.nativeControls(true);
+				if (this.__settings['externalControls']) this.externalControls.enabled(true);
+				this._controls = true;
+			} else {
+				this.externalControls.enabled(false);
+				this.nativeControls(false);
+				this._controls = false;
+			}
+		}
+		return this._controls;
 	}
 
 	contextMenu(v) {
@@ -3439,7 +3794,13 @@ class videoPopup extends Popup {
 		dom.replaceElement(this._content, domVideo);
 		//this.body.appendChild(domVideo);
 		this.player = new Player({ video: domVideo });
+		this.player.supportsFullScreen = false;
+		this.player.initTimeline();
+		this.player.media.addEventListener('click', () => {
+			this.player.togglePlay();
+		});
 		let paused = false;
+		this.player.externalControls.enabled(false);
 		this.on('beforeHide', () => {
 			paused = this.player.paused();
 			this.player.pause();
@@ -3449,15 +3810,34 @@ class videoPopup extends Popup {
 			if (!paused) {
 				this.player.play();
 			}
+			this.player.timeline.resize();
 			this.player.externalControls.enabled(true);
 		});
 		this.on('ended', () => {
 			if (isFunction(opts.onEnded)) opts.onEnded();
 		});
 		opts.sizeRatio = opts.sizeRatio || 80;
+		let defaultSize = opts.sizeRatio;
 		this.setSize = function (s) {
-			opts.sizeRatio = s;
+			defaultSize = opts.sizeRatio = s;
 			this.emit('resize');
+		};
+		this.player.requestFullWindow = () => {
+			opts.sizeRatio = 100;
+			this.emit('resize');
+			this.player.emit('enterFullScreen');
+			this.player.isFullWindow = function () {
+				return true;
+			};
+		};
+		this.player.cancelFullWindow = () => {
+			console.log('cancelFullScreen video in popup');
+			opts.sizeRatio = defaultSize;
+			this.emit('resize');
+			this.player.emit('exitFullScreen');
+			this.player.isFullWindow = function () {
+				return false;
+			};
 		};
 		this.player.on('ended', () => {
 			this.emit('ended');
@@ -3494,7 +3874,7 @@ class videoPopup extends Popup {
 			this._title.parentNode.style.height = headerHeight + '%';
 			let d = this.settings({
 				x: x / w * ww + '%',
-				y: 5 + y / h * hh + '%',
+				y: y / h * hh + '%',
 				width: fw + "%",
 				height: fh + "%"
 			});
@@ -3514,6 +3894,9 @@ class videoPopup extends Popup {
 		});
 		this.player.load(opts.url);
 	}
+	content() {
+		return this.player;
+	}
 }
 
 class Containers {
@@ -3521,10 +3904,14 @@ class Containers {
 		this.wrapper = dom.createElement('div', {
 			class: 'kmlContainers'
 		});
+
 		let popups = dom.createElement('div', { class: 'popups' });
 		let widgets = dom.createElement('div', { class: 'widgets' });
-		this.wrapper.appendChild(popups);
+		let timelines = dom.createElement('div', { class: 'timelines' });
+
 		this.wrapper.appendChild(widgets);
+		this.wrapper.appendChild(timelines);
+		this.wrapper.appendChild(popups);
 		this._els = [];
 		let ac = new adaptiveSizePos({}, parentPlayer);
 		ac.applyTo(this.wrapper);
@@ -3599,6 +3986,11 @@ class Containers {
 					container = new Popup(containerBody, settings, this, parentPlayer);
 					popups.appendChild(container.wrapper);
 					break;
+				case 'timeline':
+					dom.addClass(containerBody, 'kmlTimeline ' + cls);
+					container = new Widget(containerBody, settings, this, parentPlayer);
+					timelines.appendChild(container.wrapper);
+					break;
 				default:
 					dom.addClass(containerBody, 'kmlWidget ' + cls);
 					container = new Widget(containerBody, settings, this, parentPlayer);
@@ -3636,8 +4028,8 @@ class Containers {
 }
 
 class kmlPlayer extends Player {
-	constructor(settings, _events, app) {
-		super(settings, _events);
+	constructor(settings, app) {
+		super(settings, app);
 
 		this._bounds = {};
 
@@ -3646,6 +4038,10 @@ class kmlPlayer extends Player {
 
 		this.widget = function (sttg, el) {
 			return this.containers.add(sttg, el, 'widget');
+		};
+
+		this.timelineContainer = function (sttg, el) {
+			return this.containers.add(sttg, el, 'timeline');
 		};
 
 		this.videoContainer = function (sttg) {
@@ -3660,17 +4056,6 @@ class kmlPlayer extends Player {
 		if (typeof this.__settings.font === "boolean" && this.__settings.font) this.__settings.font = defaults.font;
 		this.autoFont = new autoFont(this.wrapper, this.__settings.font, this);
 		if (this.__settings.font) this.autoFont.enabled(true);
-
-		if (typeof app === 'function') {
-			app.bind(this);
-		}
-
-		this.on('loadedmetadata', () => {
-			if (!this._app) {
-				app.bind(this)();
-				this._app = true;
-			}
-		});
 
 		let videoSizeCache = {
 			w: this.width(),
@@ -3693,6 +4078,10 @@ class kmlPlayer extends Player {
 			}
 			window.requestAnimationFrame(checkVideoResize);
 		};
+
+		this.bigPlay = new bigPlay(this);
+
+		this.initTimeline();
 
 		checkVideoResize();
 	}

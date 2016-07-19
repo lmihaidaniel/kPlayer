@@ -11,7 +11,13 @@ export default class videoPopup extends Popup{
 		dom.replaceElement(this._content, domVideo);
 		//this.body.appendChild(domVideo);
 		this.player = new Player({video:domVideo});
+		this.player.supportsFullScreen = false;
+		this.player.initTimeline();
+		this.player.media.addEventListener('click', ()=>{
+			this.player.togglePlay();
+		});
 		let paused = false;
+		this.player.externalControls.enabled(false);
 		this.on('beforeHide', ()=>{
 			paused = this.player.paused();
 			this.player.pause();
@@ -21,15 +27,34 @@ export default class videoPopup extends Popup{
 			if(!paused){
 				this.player.play();
 			}
+			this.player.timeline.resize();
 			this.player.externalControls.enabled(true);
 		});
 		this.on('ended', ()=>{
 			if (isFunction(opts.onEnded)) opts.onEnded();
 		});
 		opts.sizeRatio = opts.sizeRatio || 80;
+		let defaultSize = opts.sizeRatio;
 		this.setSize = function(s){
-			opts.sizeRatio = s;
+			defaultSize = opts.sizeRatio = s;
 			this.emit('resize');
+		}
+		this.player.requestFullWindow = ()=>{
+			opts.sizeRatio = 100;
+			this.emit('resize');
+			this.player.emit('enterFullScreen');
+			this.player.isFullWindow = function() {
+	            return true;
+	        };
+		}
+		this.player.cancelFullWindow = ()=>{
+			console.log('cancelFullScreen video in popup');
+			opts.sizeRatio = defaultSize;
+			this.emit('resize');
+			this.player.emit('exitFullScreen');
+			this.player.isFullWindow = function() {
+	            return false;
+	        };
 		}
 		this.player.on('ended', ()=>{this.emit('ended');});
 		this.on('resize', ()=>{
@@ -64,7 +89,7 @@ export default class videoPopup extends Popup{
 			this._title.parentNode.style.height = headerHeight+'%';
 			let d = this.settings({
 				x: x/w*ww+'%',
-				y: 5+y/h*hh+'%',
+				y: y/h*hh+'%',
 				width : fw+"%",
 				height: fh+"%"
 			});
@@ -83,5 +108,8 @@ export default class videoPopup extends Popup{
 			this.emit('resize');
 		});
 		this.player.load(opts.url);
+	}
+	content(){
+		return this.player;
 	}
 }

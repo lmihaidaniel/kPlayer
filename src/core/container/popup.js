@@ -13,7 +13,8 @@ let defaults = {
 	onShow: null,
 	externalControls: false,
 	visible: false,
-	pauseVideo: true
+	pauseVideo: true,
+	single: false
 }
 
 export default class Popup extends Events {
@@ -40,6 +41,9 @@ export default class Popup extends Events {
 		dom.addClass(this._closeBtn, 'closeBtn triggerClose');
 		header.appendChild(this._closeBtn);
 		this.body.appendChild(header);
+		this.header = header;
+		this.header.backgroundColor = backgroundColorFN(this.header);
+		this.body.backgroundColor = backgroundColorFN(this.body);
 		//end header
 
 
@@ -79,6 +83,7 @@ export default class Popup extends Events {
 
 		this.on('beforeShow', ()=>{
 			if (this._settings.externalControls != null) {
+				externalControls = parentPlayer.externalControls.enabled();
 				parentPlayer.externalControls.enabled(this._settings.externalControls);
 			}
 		});
@@ -182,7 +187,13 @@ export default class Popup extends Events {
 			dom.toggleClass(this.body, cls);
 	}
 	content(el) {
-		this._content.innerHTML = el;
+		if(el != null){
+			if(el.nodeName){
+				this._content.appendChild(el);
+			}else{
+				this._content.innerHTML = el;
+			}
+		}
 	}
 	setFontSize(v) {
 		this.body.style.fontSize = v + "%";
