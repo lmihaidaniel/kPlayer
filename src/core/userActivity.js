@@ -29,7 +29,7 @@ export default function(parentPlayer, settings = {timeout: 2000}) {
 					player.addEventListener('touchmove', check);
 				}else{
 					player.addEventListener('mousemove', check);
-					player.addEventListener('keyup', check);	
+					window.addEventListener('keyup', check);	
 				}				
 			}
 			this.unwatch=()=>{
@@ -38,7 +38,7 @@ export default function(parentPlayer, settings = {timeout: 2000}) {
 					player.removeEventListener('touchmove', check);
 				}else{
 					player.removeEventListener('mousemove', check);
-					player.removeEventListener('keyup', check);
+					window.removeEventListener('keyup', check);
 				}
 				clearTimeout(tid);
 			}

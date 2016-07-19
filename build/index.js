@@ -179,7 +179,7 @@ function bigPlay (parentPlayer) {
 			let btn = dom.createElement('div', { class: 'kmlBigPlayButton' });
 			btn.innerHTML = bigButton;
 			wrapper.addEventListener('click', () => {
-				this.hide();
+				parentPlayer.play();
 			});
 			wrapper.appendChild(btn);
 			parentPlayer.wrapper.appendChild(wrapper);
@@ -199,7 +199,7 @@ function bigPlay (parentPlayer) {
 				dom.addClass(wrapper, 'hidden');
 				setTimeout(() => {
 					wrapper.style.display = "none";
-					parentPlayer.play();
+					//parentPlayer.play();
 				}, 200);
 			};
 
@@ -208,6 +208,10 @@ function bigPlay (parentPlayer) {
 			} else {
 				wrapper.style.display = "none";
 			}
+
+			parentPlayer.on('play', () => {
+				this.hide();
+			});
 		};
 		return new bigPlayButton();
 	}();
@@ -3515,7 +3519,7 @@ function userActivity (parentPlayer, settings = { timeout: 2000 }) {
 					player.addEventListener('touchmove', check);
 				} else {
 					player.addEventListener('mousemove', check);
-					player.addEventListener('keyup', check);
+					window.addEventListener('keyup', check);
 				}
 			};
 			this.unwatch = () => {
@@ -3524,7 +3528,7 @@ function userActivity (parentPlayer, settings = { timeout: 2000 }) {
 					player.removeEventListener('touchmove', check);
 				} else {
 					player.removeEventListener('mousemove', check);
-					player.removeEventListener('keyup', check);
+					window.removeEventListener('keyup', check);
 				}
 				clearTimeout(tid);
 			};

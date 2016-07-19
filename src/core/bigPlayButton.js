@@ -9,7 +9,7 @@ export default function(parentPlayer) {
 			let btn = dom.createElement('div', {class: 'kmlBigPlayButton'});
 			btn.innerHTML = bigButton;
 			wrapper.addEventListener('click', ()=>{
-				this.hide();
+				parentPlayer.play();
 			});
 			wrapper.appendChild(btn);
 			parentPlayer.wrapper.appendChild(wrapper);
@@ -29,7 +29,7 @@ export default function(parentPlayer) {
 				dom.addClass(wrapper, 'hidden');
 				setTimeout(()=>{
 					wrapper.style.display = "none";
-					parentPlayer.play();
+					//parentPlayer.play();
 				}, 200);
 			}
 
@@ -38,6 +38,10 @@ export default function(parentPlayer) {
 			}else{
 				wrapper.style.display = "none";
 			}
+
+			parentPlayer.on('play', ()=>{
+				this.hide();
+			})
 		}
 		return new bigPlayButton();
 	})();
