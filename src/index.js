@@ -16,16 +16,16 @@ class kmlPlayer extends Player {
 		//initContainers
 		this.containers = new Containers(this);
 
-		this.container = function(stg, el) {
-			return this.containers.add(stg, el, 'container');
+		this.widget = function(sttg, el) {
+			return this.containers.add(sttg, el, 'widget');
 		}
 
-		this.videoContainer = function(stg) {
-			return this.containers.add(stg, null, 'video');
+		this.videoContainer = function(sttg) {
+			return this.containers.add(sttg, null, 'video');
 		}
 
-		this.popupContainer = function(stg) {
-			return this.containers.add(stg, null, 'popup');
+		this.popupContainer = function(sttg) {
+			return this.containers.add(sttg, null, 'popup');
 		}
 
 		//autoFONT

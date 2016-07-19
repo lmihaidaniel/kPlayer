@@ -4,28 +4,30 @@ import Player from '../player';
 import {
 	isFunction
 } from '../../helpers/utils';
-export default class videoContainer extends Popup{
-	constructor(el, opts, ctx, parentPlayer){
-		super(el, opts, ctx, parentPlayer);
+export default class videoPopup extends Popup{
+	constructor(el, opts, parent, parentPlayer){
+		super(el, opts, parent, parentPlayer);
 		let domVideo = document.createElement('video');
-		this.body.appendChild(domVideo);
+		dom.replaceElement(this._content, domVideo);
+		//this.body.appendChild(domVideo);
 		this.player = new Player({video:domVideo});
-		this.player.container
 		let paused = false;
 		this.on('beforeHide', ()=>{
 			paused = this.player.paused();
 			this.player.pause();
+			this.player.externalControls.enabled(false);
 		});
 		this.on('show', ()=>{
 			if(!paused){
 				this.player.play();
 			}
+			this.player.externalControls.enabled(true);
 		});
 		this.on('ended', ()=>{
 			if (isFunction(opts.onEnded)) opts.onEnded();
 		});
 		opts.sizeRatio = opts.sizeRatio || 80;
-		this.scaleSize = function(s){
+		this.setSize = function(s){
 			opts.sizeRatio = s;
 			this.emit('resize');
 		}
@@ -60,7 +62,7 @@ export default class videoContainer extends Popup{
 			x = (100 - fw)/2;
 			y = (100 - fh)/2;
 			this._title.parentNode.style.height = headerHeight+'%';
-			let d = this.config({
+			let d = this.settings({
 				x: x/w*ww+'%',
 				y: 5+y/h*hh+'%',
 				width : fw+"%",
@@ -73,7 +75,6 @@ export default class videoContainer extends Popup{
 			}
 			this.autoLineHeight();
 		});
-
 
 		parentPlayer.on('loadedmetadata', ()=>{
 			this.emit('resize');

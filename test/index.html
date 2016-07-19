@@ -29,7 +29,7 @@
 </head>
 <body>
    <video id="videoA">
-       <source type="video/mp4" src="https://cdn.selz.com/plyr/1.5/View_From_A_Blue_Moon_Trailer-HD.mp4"></source>
+       <source type="video/mp4" src="presentation.mp4"></source>
        <p>
            Pour voir cette vidéo, merci d'activer JavaScript et d'envisager la mise à niveau vers un navigateur Web qui <a href='' target='_blank'>supporte la vidéo HTML5</a>
        </p>
@@ -43,7 +43,7 @@
    
     var test = document.getElementById('test');
     
-    var popup, vid;
+    var widget, vid;
 
     var playerSettings = {
       video: document.querySelector('#videoA'),
@@ -52,12 +52,17 @@
       controls: 'native'
     }
     
-    var player = new kmlPlayer(playerSettings, null, function(){
+    var player = new kmlPlayer(playerSettings, {
+      pause: function(){
+        console.log('cine imi pune pause');
+      }
+    }, function(){
       this.addClass('test');
       this.volume(0.1);
+      widget = this.widget({x: 0, y: '80%', width: '100%', height: '20%'});
       //this.requestFullWindow();
-       popup = this.popupContainer({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
-      vid = this.videoContainer({x: '10%', y: '10%', width: '80%', height: '80%', visible: true, url: "http://vjs.zencdn.net/v/oceans.mp4"});
+      //  popup = this.popupContainer({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
+      vid = this.videoContainer({x: '10%', y: '10%', width: '80%', height: '80%', visible: false, url: "http://vjs.zencdn.net/v/oceans.mp4"});
       vid.player.volume(0.1);
     });
    </script>

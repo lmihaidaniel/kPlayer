@@ -16,8 +16,8 @@ const fn_contextmenu = function(e) {
 }
 
 const defaults = {
-	videoWidth: 920,
-	videoHeight: 520,
+	videoWidth: 960,
+	videoHeight: 540,
 	autoplay: false,
 	loop: false,
 	controls: false,
@@ -36,7 +36,6 @@ export default class Player extends Media {
 		if (el == null) return;
 		//initSettings
 		this.__settings = {};
-		this.settings(deepmerge(defaults, settings))
 
 		//setup Player
 		this.device = device;
@@ -69,6 +68,8 @@ export default class Player extends Media {
 			}
 		});
 
+		this.settings(deepmerge(defaults, settings));
+
 	}
 
 	settings(settings) {
@@ -76,9 +77,13 @@ export default class Player extends Media {
 		this.__settings = deepmerge(this.__settings, settings);
 		//initSettings
 		for (var k in this.__settings) {
-			if (this[k]) {
-				if (k === 'autoplay' && this.__settings[k]) {
-					this.play();
+			if (this[k] != null) {
+				if (k === 'autoplay') {
+					if(this.__settings[k]) {
+						this.play();
+					}else{
+						this.autoplay(false);
+					}
 					continue;
 				}
 				this[k](this.__settings[k]);

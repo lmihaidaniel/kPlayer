@@ -42,11 +42,18 @@ if ('classList' in document.documentElement) {
 	addClass = function (elem, c) {
 		if (c != null) {
 			c = c.split(' ');
-			for (var k in c) elem.classList.add(c[k]);
+			for (var k in c) {
+				if (c[k] != '') elem.classList.add(c[k]);
+			}
 		}
 	};
 	removeClass = function (elem, c) {
-		elem.classList.remove(c);
+		if (c != null) {
+			c = c.split(' ');
+			for (var k in c) {
+				if (c[k] != '') elem.classList.remove(c[k]);
+			}
+		}
 	};
 } else {
 	hasClass = function (elem, c) {
@@ -135,6 +142,9 @@ var dom = {
 	},
 	replaceElement: function (target, elm) {
 		target.parentNode.replaceChild(elm, target);
+	},
+	addElement: function (target, elm) {
+		target.appendChild(elm);
 	},
 	removeElement: function (element) {
 		element.parentNode.removeChild(element);
@@ -397,7 +407,7 @@ let autoFont = function (el, font, parent) {
 	};
 };
 
-let defaults$2 = {
+let defaults$1 = {
 	x: 0,
 	y: 0,
 	width: '100%',
@@ -439,7 +449,7 @@ let adaptiveSizePos = function (setttings, parent) {
 	let parentX = 0;
 	let parentY = 0;
 	let domElement = null;
-	let settings = deepmerge(defaults$2, setttings);
+	let settings = deepmerge(defaults$1, setttings);
 	let _active = false;
 
 	let updateDomElement = function () {
@@ -447,7 +457,8 @@ let adaptiveSizePos = function (setttings, parent) {
 			if (vault.width != null) domElement.style.width = vault.width + "px";
 			if (vault.height != null) domElement.style.height = vault.height + "px";
 
-			if (dom.stylePrefix.transform && settings.translate) {
+			// if (dom.stylePrefix.transform && settings.translate) {
+			if (settings.translate) {
 				let transform = '';
 				if (vault.x != null && vault.y != null) {
 					transform = 'translate(' + vault.x + 'px,' + vault.y + 'px)';
@@ -2089,6 +2100,7 @@ var tinycolor$1 = (tinycolor && typeof tinycolor === 'object' && 'default' in ti
 
 function backgroundColor(el) {
 	var el = el || this;
+	if (!el.style) el.style = {};
 	return function (c, a = 0.6) {
 		var color = tinycolor$1(c);
 		if (color.isValid()) {
@@ -2125,105 +2137,147 @@ let relativeSizePos = function (ctx, settings) {
 	};
 };
 
-class Container extends Events {
-	constructor(el, opts, ctx, player) {
-		let playerPaused = false;
-		let isVisible = false;
-		let externalControls = false;
-		let body = dom.select('.body', el);
-		body.backgroundColor = backgroundColor(body);
+let defaults$2 = {
+	backgroundColor: '',
+	onHide: null,
+	onShow: null,
+	externalControls: true,
+	visible: true,
+	pauseVideo: false
+};
+
+class Widget extends Events {
+	constructor(el, opts, parent, parentPlayer) {
 		super();
-		this.ctx = ctx;
-		this.body = body;
-		this.config = function (fopts) {
-			if (fopts) opts = deepmerge(opts, fopts);
-			let d = new relativeSizePos(player, opts);
-			body.style.width = d.width + "%";
-			body.style.height = d.height + "%";
-			if (dom.stylePrefix.transform) {
-				dom.transform(body, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
-			} else {
-				body.style.top = d.x + "%";
-				body.style.left = d.y + "%";
-			}
-			this.emit('config');
-			return d;
-		};
-		this.config();
-		player.on('resize', this.config);
-
-		this.hide = () => {
-			if (isVisible) {
-				this.emit('beforeHide');
-				dom.addClass(el, 'hidden');
-				isVisible = false;
-				if (opts.pause) {
-					if (!playerPaused) {
-						player.play();
-					}
-					if (externalControls && opts.externalControls) {
-						player.externalControls.enabled(true);
-					}
-				}
-				setTimeout(() => {
-					el.style.display = "none";
-					if (isFunction(opts.onHide)) opts.onHide();
-					ctx.checkVisibleElements();
-					this.emit('hide');
-				}, 250);
-			}
-		};
-		this.show = () => {
-			if (!isVisible) {
-				isVisible = true;
-				this.emit('beforeShow');
-				ctx.enabled(true);
-				el.style.display = "block";
-				setTimeout(() => {
-					dom.removeClass(el, 'hidden');
-					if (isFunction(opts.onHide)) opts.onShow();
-					this.emit('show');
-				}, 50);
-				if (opts.pause) {
-					if (!player.paused()) {
-						playerPaused = false;
-						player.pause();
-					} else {
-						playerPaused = true;
-					}
-				}
-				if (opts.externalControls) {
-					if (player.externalControls.enabled()) {
-						externalControls = true;
-						player.externalControls.enabled(false);
-					} else {
-						externalControls = true;
-					}
-				}
-			}
-		};
-
-		if (opts.visible) {
-			this.show();
+		this.wrapper = el;
+		this._visible = false;
+		this.parentPlayerPaused = false;
+		this._settings = deepmerge(defaults$2, opts);
+		this._cache = {};
+		this.backgroundColor = backgroundColor(el);
+		this.parent = parent;
+		this.parentPlayer = parentPlayer;
+		this.init();
+	}
+	settings(fopts) {
+		if (fopts) {
+			this._settings = deepmerge(this._settings, fopts);
+			this.resize();
 		}
-
-		this.visible = function (v) {
-			if (typeof v === 'boolean') isVisible = v;
-			return isVisible;
-		};
+		return this._settings;
+	}
+	init() {
+		this.parentPlayer.on('resize', () => {
+			this.resize();
+		});
+		if (this._settings.visible) {
+			this.show();
+		} else {
+			this.wrapper.style.display = "none";
+		}
+		this.resize();
+	}
+	visible(v) {
+		if (typeof v === 'boolean') this._visible = v;
+		return this._visible;
+	}
+	hide() {
+		if (this.visible()) {
+			this.visible(false);
+			this.emit('beforeHide');
+			dom.addClass(this.wrapper, 'hidden');
+			if (this._settings.pauseVideo) {
+				if (!this.parentPlayerPaused) {
+					this.parentPlayer.play();
+				}
+			}
+			setTimeout(() => {
+				this.wrapper.style.display = "none";
+				if (isFunction(this._settings.onHide)) this._settings.onHide();
+				this.parent.checkVisibleElements();
+				this.emit('hide');
+			}, 250);
+		}
+	}
+	show() {
+		if (!this.visible()) {
+			this.visible(true);
+			this.emit('beforeShow');
+			this.parent.enabled(true);
+			this.wrapper.style.display = "block";
+			setTimeout(() => {
+				dom.removeClass(this.wrapper, 'hidden');
+				if (isFunction(this._settings.onHide)) this._settings.onShow();
+				this.emit('show');
+			}, 50);
+			if (this._settings.pauseVideo) {
+				if (!this.parentPlayer.paused()) {
+					this.parentPlayerPaused = false;
+					this.parentPlayer.pause();
+				} else {
+					this.parentPlayerPaused = true;
+				}
+			}
+		}
+	}
+	resize() {
+		if (this._cache.width != this._settings.width || this._cache.height != this._settings.height || this._cache.x != this._settings.x || this._cache.y != this._settings.y) {
+			let d = new relativeSizePos(this.parentPlayer, this._settings);
+			this.wrapper.style.width = d.width + "%";
+			this.wrapper.style.height = d.height + "%";
+			dom.transform(this.wrapper, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			this._cache.width = this._settings.width;
+			this._cache.height = this._settings.height;
+			this._cache.x = this._settings.x;
+			this._cache.y = this._settings.y;
+		}
+		this.emit('resize');
+	}
+	addClass(cls) {
+		if (cls != 'kmlWidget') dom.addClass(this.wrapper, cls);
+	}
+	removeClass(cls) {
+		if (cls != 'kmlWidget') dom.removeClass(this.wrapper, cls);
+	}
+	toggleClass(cls) {
+		if (cls != 'kmlWidget') dom.toggleClass(this.wrapper, cls);
+	}
+	content(el) {
+		this.wrapper.innerHTML = el;
+	}
+	setFontSize(v) {
+		this.wrapper.style.fontSize = v + "%";
 	}
 	destroy() {
 		this.removeAllListeners();
-		this.ctx.remove(this.body);
+		this.parent.remove(this.wrapper);
+		dom.removeElement(this.wrapper);
 	}
 }
 
-class Popup extends Container {
-	constructor(el, opts, ctx, parentPlayer) {
-		super(el, opts, ctx, parentPlayer);
+let defaults$4 = {
+	backgroundColor: '',
+	onHide: null,
+	onShow: null,
+	externalControls: false,
+	visible: false,
+	pauseVideo: true
+};
+
+class Popup extends Events {
+	constructor(el, opts, parent, parentPlayer) {
+		super();
+		this.wrapper = el;
+		let body = dom.createElement('div', { 'class': 'body' });
 		let overlay = dom.createElement('div');
 		dom.addClass(overlay, 'overlay triggerClose');
-		dom.insertBefore(overlay, this.body);
+		this.wrapper.appendChild(overlay);
+		this.wrapper.appendChild(body);
+		this.body = body;
+
+		this._content = dom.createElement('div', { 'class': 'content' });
+		this.body.appendChild(this._content);
+
 		//header
 		let header = document.createElement('h1');
 		dom.addClass(header, 'header');
@@ -2231,16 +2285,21 @@ class Popup extends Container {
 		header.appendChild(this._title);
 		this._closeBtn = document.createElement('a');
 		this._closeBtn.innerHTML = "<img src='svg/ic_close.svg'/>";
-		dom.addClass(this._closeBtn, 'closeBtn');
-		this._closeBtn.addEventListener('click', this.hide);
+		dom.addClass(this._closeBtn, 'closeBtn triggerClose');
 		header.appendChild(this._closeBtn);
 		this.body.appendChild(header);
 		//end header
 
+		this._visible = false;
+		this.parentPlayerPaused = false;
+		this._settings = deepmerge(defaults$4, opts);
+		this._cache = {};
 		this.backgroundColor = backgroundColor(overlay);
+		this.parent = parent;
+		this.parentPlayer = parentPlayer;
 
-		this.scaleSize = function (s) {
-			let d = this.config({ x: (100 - s) / 2 + "%", y: (100 - s) / 2 + "%", width: s + "%", height: s + "%" });
+		this.setSize = function (s) {
+			let d = this.settings({ x: (100 - s) / 2 + "%", y: (100 - s) / 2 + "%", width: s + "%", height: s + "%" });
 			if (d.y < 10) {
 				header.style.transform = 'translateY(0)';
 			} else {
@@ -2249,27 +2308,125 @@ class Popup extends Container {
 		};
 
 		//EVENTS
-		parentPlayer.on('resize', () => {
-			this.emit('resize');
-		});
-
-		['resize', 'config', 'show'].map(evt => {
+		let events = ['resize', 'show'];
+		events.map(evt => {
 			this.on(evt, () => {
+				this.resize();
 				this.autoLineHeight();
 			});
 		});
 
 		let clsElements = dom.selectAll('.triggerClose', el);
 		for (var i = 0, n = clsElements.length; i < n; i += 1) {
-			clsElements[i].addEventListener('click', this.hide);
+			clsElements[i].addEventListener('click', () => {
+				this.hide();
+			});
+		}
+
+		let externalControls = parentPlayer.externalControls.enabled();
+
+		this.on('beforeShow', () => {
+			if (this._settings.externalControls != null) {
+				parentPlayer.externalControls.enabled(this._settings.externalControls);
+			}
+		});
+
+		this.on('beforeHide', () => {
+			if (this._settings.pauseVideo) {
+				parentPlayer.externalControls.enabled(externalControls);
+			}
+		});
+
+		this.init();
+	}
+	settings(fopts) {
+		if (fopts) {
+			this._settings = deepmerge(this._settings, fopts);
+			this.resize();
+		}
+		return this._settings;
+	}
+	init() {
+		this.parentPlayer.on('resize', () => {
+			this.emit('resize');
+		});
+		if (this._settings.visible) {
+			this.show();
+		} else {
+			this.wrapper.style.display = "none";
+		}
+		this.resize();
+	}
+	visible(v) {
+		if (typeof v === 'boolean') this._visible = v;
+		return this._visible;
+	}
+	hide() {
+		if (this._visible) {
+			this._visible = false;
+			this.emit('beforeHide');
+			dom.addClass(this.wrapper, 'hidden');
+			if (this._settings.pauseVideo) {
+				if (!this.parentPlayerPaused) {
+					this.parentPlayer.play();
+				}
+			}
+			setTimeout(() => {
+				this.wrapper.style.display = "none";
+				if (isFunction(this._settings.onHide)) this._settings.onHide();
+				this.parent.checkVisibleElements();
+				this.emit('hide');
+			}, 250);
 		}
 	}
-	destroy() {
-		this.removeAllListeners();
-		this.ctx.remove(this.body);
-		dom.removeElement(this.body.parentNode);
+	show() {
+		if (!this._visible) {
+			this._visible = true;
+			this.emit('beforeShow');
+			this.parent.enabled(true);
+			this.wrapper.style.display = "block";
+			setTimeout(() => {
+				dom.removeClass(this.wrapper, 'hidden');
+				if (isFunction(this._settings.onHide)) this._settings.onShow();
+				this.emit('show');
+			}, 50);
+			if (this._settings.pauseVideo) {
+				if (!this.parentPlayer.paused()) {
+					this.parentPlayerPaused = false;
+					this.parentPlayer.pause();
+				} else {
+					this.parentPlayerPaused = true;
+				}
+			}
+		}
 	}
-
+	resize() {
+		if (this._cache.width != this._settings.width || this._cache.height != this._settings.height || this._cache.x != this._settings.x || this._cache.y != this._settings.y) {
+			let d = new relativeSizePos(this.parentPlayer, this._settings);
+			this.body.style.width = d.width + "%";
+			this.body.style.height = d.height + "%";
+			dom.transform(this.body, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			this._cache.width = this._settings.width;
+			this._cache.height = this._settings.height;
+			this._cache.x = this._settings.x;
+			this._cache.y = this._settings.y;
+		}
+	}
+	addClass(cls) {
+		if (cls != 'kmlWidget') dom.addClass(this.body, cls);
+	}
+	removeClass(cls) {
+		if (cls != 'kmlWidget') dom.removeClass(this.body, cls);
+	}
+	toggleClass(cls) {
+		if (cls != 'kmlWidget') dom.toggleClass(this.body, cls);
+	}
+	content(el) {
+		this._content.innerHTML = el;
+	}
+	setFontSize(v) {
+		this.body.style.fontSize = v + "%";
+	}
 	autoLineHeight(el) {
 		if (this.visible()) {
 			if (el) {
@@ -2286,6 +2443,11 @@ class Popup extends Container {
 			return v;
 		}
 		return this._title.innerHTML;
+	}
+	destroy() {
+		this.removeAllListeners();
+		this.parent.remove(this.wrapper);
+		dom.removeElement(this.wrapper);
 	}
 }
 
@@ -3092,9 +3254,9 @@ const fn_contextmenu = function (e) {
 	return false;
 };
 
-const defaults$4 = {
-	videoWidth: 920,
-	videoHeight: 520,
+const defaults$5 = {
+	videoWidth: 960,
+	videoHeight: 540,
 	autoplay: false,
 	loop: false,
 	controls: false,
@@ -3113,7 +3275,6 @@ class Player extends Media {
 		if (el == null) return;
 		//initSettings
 		this.__settings = {};
-		this.settings(deepmerge(defaults$4, settings));
 
 		//setup Player
 		this.device = device;
@@ -3145,6 +3306,8 @@ class Player extends Media {
 				this.emit('resize');
 			}
 		});
+
+		this.settings(deepmerge(defaults$5, settings));
 	}
 
 	settings(settings) {
@@ -3152,9 +3315,13 @@ class Player extends Media {
 		this.__settings = deepmerge(this.__settings, settings);
 		//initSettings
 		for (var k in this.__settings) {
-			if (this[k]) {
-				if (k === 'autoplay' && this.__settings[k]) {
-					this.play();
+			if (this[k] != null) {
+				if (k === 'autoplay') {
+					if (this.__settings[k]) {
+						this.play();
+					} else {
+						this.autoplay(false);
+					}
 					continue;
 				}
 				this[k](this.__settings[k]);
@@ -3265,28 +3432,30 @@ class Player extends Media {
 	}
 };
 
-class videoContainer extends Popup {
-	constructor(el, opts, ctx, parentPlayer) {
-		super(el, opts, ctx, parentPlayer);
+class videoPopup extends Popup {
+	constructor(el, opts, parent, parentPlayer) {
+		super(el, opts, parent, parentPlayer);
 		let domVideo = document.createElement('video');
-		this.body.appendChild(domVideo);
+		dom.replaceElement(this._content, domVideo);
+		//this.body.appendChild(domVideo);
 		this.player = new Player({ video: domVideo });
-		this.player.container;
 		let paused = false;
 		this.on('beforeHide', () => {
 			paused = this.player.paused();
 			this.player.pause();
+			this.player.externalControls.enabled(false);
 		});
 		this.on('show', () => {
 			if (!paused) {
 				this.player.play();
 			}
+			this.player.externalControls.enabled(true);
 		});
 		this.on('ended', () => {
 			if (isFunction(opts.onEnded)) opts.onEnded();
 		});
 		opts.sizeRatio = opts.sizeRatio || 80;
-		this.scaleSize = function (s) {
+		this.setSize = function (s) {
 			opts.sizeRatio = s;
 			this.emit('resize');
 		};
@@ -3323,7 +3492,7 @@ class videoContainer extends Popup {
 			x = (100 - fw) / 2;
 			y = (100 - fh) / 2;
 			this._title.parentNode.style.height = headerHeight + '%';
-			let d = this.config({
+			let d = this.settings({
 				x: x / w * ww + '%',
 				y: 5 + y / h * hh + '%',
 				width: fw + "%",
@@ -3347,22 +3516,17 @@ class videoContainer extends Popup {
 	}
 }
 
-let defaults$1 = {
-	backgroundColor: '',
-	onHide: null,
-	onShow: null,
-	externalControls: true,
-	visible: false,
-	pause: true
-};
-
 class Containers {
-	constructor(ctx) {
+	constructor(parentPlayer) {
 		this.wrapper = dom.createElement('div', {
 			class: 'kmlContainers'
 		});
+		let popups = dom.createElement('div', { class: 'popups' });
+		let widgets = dom.createElement('div', { class: 'widgets' });
+		this.wrapper.appendChild(popups);
+		this.wrapper.appendChild(widgets);
 		this._els = [];
-		let ac = new adaptiveSizePos({}, ctx);
+		let ac = new adaptiveSizePos({}, parentPlayer);
 		ac.applyTo(this.wrapper);
 
 		this.enabled = function (v) {
@@ -3389,7 +3553,7 @@ class Containers {
 			this.enabled(no);
 		};
 
-		ctx.wrapper.appendChild(this.wrapper);
+		parentPlayer.wrapper.appendChild(this.wrapper);
 
 		let currentVisibles = [];
 		this.hide = function (current) {
@@ -3412,51 +3576,59 @@ class Containers {
 			currentVisibles = [];
 		};
 
-		this.add = function (opts, el = {}, type) {
-			let cls = 'Container';
-			if (type != 'container') cls = 'Popup';
-			let settings = deepmerge(defaults$1, opts);
-			let containerHolder = dom.createElement('div');
-			ctx.addClass(containerHolder, 'kml' + cls + ' hidden');
-			let kmlContainerBody = dom.createElement('div');
+		this.add = function (settings, el = {}, type) {
+			let cls = settings.className || '';
+			let containerBody = dom.createElement('div');
 			if (el) {
 				if (!el.nodeType) {
-					el = kmlContainerBody;
+					el = containerBody;
 				}
 			} else {
-				el = kmlContainerBody;
+				el = containerBody;
 			}
-			dom.addClass(el, 'body');
 
-			containerHolder.appendChild(el);
 			let container = null;
 			switch (type) {
 				case 'video':
-					container = new videoContainer(containerHolder, settings, this, ctx);
+					dom.addClass(containerBody, 'kmlPopup isVideo hidden ' + cls);
+					container = new videoPopup(containerBody, settings, this, parentPlayer);
+					popups.appendChild(container.wrapper);
 					break;
 				case 'popup':
-					container = new Popup(containerHolder, settings, this, ctx);
+					dom.addClass(containerBody, 'kmlPopup hidden ' + cls);
+					container = new Popup(containerBody, settings, this, parentPlayer);
+					popups.appendChild(container.wrapper);
 					break;
 				default:
-					container = new Container(containerHolder, settings, this, ctx);
+					dom.addClass(containerBody, 'kmlWidget ' + cls);
+					container = new Widget(containerBody, settings, this, parentPlayer);
+					widgets.appendChild(container.wrapper);
 					break;
 			}
 
 			this._els.push(container);
-			this.wrapper.appendChild(containerHolder);
 			return container;
 		};
 
 		this.remove = container => {
 			for (var i = 0, n = this._els.length; i < n; i += 1) {
 				let c = this._els[i];
-				if (c.body === container) {
+				if (c.wrapper === container) {
 					this._els.splice(i, 1);
 					if (this._els.length == 0) this.enabled(false);
 					break;
 				}
 			}
 		};
+	}
+	addClass(cls) {
+		if (cls != 'kmlContainers') dom.addClass(this.wrapper, cls);
+	}
+	removeClass(cls) {
+		if (cls != 'kmlContainers') dom.removeClass(this.wrapper, cls);
+	}
+	toggleClass(cls) {
+		if (cls != 'kmlContainers') dom.toggleClass(this.wrapper, cls);
 	}
 	els(id) {
 		return this._els[id] || this._els;
@@ -3472,16 +3644,16 @@ class kmlPlayer extends Player {
 		//initContainers
 		this.containers = new Containers(this);
 
-		this.container = function (stg, el) {
-			return this.containers.add(stg, el, 'container');
+		this.widget = function (sttg, el) {
+			return this.containers.add(sttg, el, 'widget');
 		};
 
-		this.videoContainer = function (stg) {
-			return this.containers.add(stg, null, 'video');
+		this.videoContainer = function (sttg) {
+			return this.containers.add(sttg, null, 'video');
 		};
 
-		this.popupContainer = function (stg) {
-			return this.containers.add(stg, null, 'popup');
+		this.popupContainer = function (sttg) {
+			return this.containers.add(sttg, null, 'popup');
 		};
 
 		//autoFONT

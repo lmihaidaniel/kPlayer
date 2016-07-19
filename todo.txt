@@ -6,14 +6,15 @@ externalcontrol - °done
 fullScreen/fullWindow - °done
 
 
+widget => popup => videoPopup, quizPopup, slideShowPopup
+timeline -> pluggable -> custom
+
+
 subtitles
 cuepoints
 hotspots
 
-timeline -> pluggable -> custom
-
 quiz -> quiz MC
-containers => popups => videoPopup, quizPopup, slideShowPopup
 
 
 scorm -> wrapper -> API

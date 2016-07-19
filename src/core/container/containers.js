@@ -1,26 +1,21 @@
 import dom from '../../helpers/dom';
 import deepmerge from '../../helpers/deepmerge';
 import adaptiveSizePos from './adaptiveSizePos';
-import Container from './container'
-import popup from './popup'
-import videoContainer from './videoContainer'
-
-let defaults = {
-	backgroundColor: '',
-	onHide: null,
-	onShow: null,
-	externalControls: true,
-	visible: false,
-	pause: true
-}
+import Widget from './widget'
+import Popup from './popup'
+import videoPopup from './video'
 
 export default class Containers {
-	constructor(ctx) {
+	constructor(parentPlayer) {
 		this.wrapper = dom.createElement('div', {
 			class: 'kmlContainers'
 		});
+		let popups = dom.createElement('div', {class: 'popups'});
+		let widgets = dom.createElement('div', {class: 'widgets'});
+		this.wrapper.appendChild(popups);
+		this.wrapper.appendChild(widgets);
 		this._els = [];
-		let ac = new adaptiveSizePos({}, ctx);
+		let ac = new adaptiveSizePos({}, parentPlayer);
 		ac.applyTo(this.wrapper);
 
 		this.enabled = function(v) {
@@ -47,7 +42,7 @@ export default class Containers {
 			this.enabled(no);
 		}
 
-		ctx.wrapper.appendChild(this.wrapper);
+		parentPlayer.wrapper.appendChild(this.wrapper);
 
 
 		let currentVisibles = [];
@@ -71,51 +66,62 @@ export default class Containers {
 			currentVisibles = [];
 		}
 
-		this.add = function(opts, el = {}, type) {
-			let cls = 'Container';
-			if(type != 'container') cls = 'Popup';
-			let settings = deepmerge(defaults, opts);
-			let containerHolder = dom.createElement('div');
-			ctx.addClass(containerHolder, 'kml'+cls+' hidden');
-			let kmlContainerBody = dom.createElement('div');
+		this.add = function(settings, el = {}, type) {
+			let cls = settings.className || '';
+			let containerBody = dom.createElement('div');
 			if (el) {
 				if (!el.nodeType) {
-					el = kmlContainerBody;
+					el = containerBody;
 				}
 			} else {
-				el = kmlContainerBody;
+				el = containerBody;
 			}
-			dom.addClass(el, 'body');
 			
-			containerHolder.appendChild(el);
 			let container = null;
 			switch(type){
 				case 'video':
-					container = new videoContainer(containerHolder, settings, this, ctx);
+					dom.addClass(containerBody, 'kmlPopup isVideo hidden ' + cls);
+					container = new videoPopup(containerBody, settings, this, parentPlayer);
+					popups.appendChild(container.wrapper);
 					break;
 				case 'popup':
-					container = new popup(containerHolder, settings, this, ctx);
+					dom.addClass(containerBody, 'kmlPopup hidden ' + cls);
+					container = new Popup(containerBody, settings, this, parentPlayer);
+					popups.appendChild(container.wrapper);
 					break;
 				default:
-					container = new Container(containerHolder, settings, this, ctx);
+					dom.addClass(containerBody, 'kmlWidget ' + cls);
+					container = new Widget(containerBody, settings, this, parentPlayer);
+					widgets.appendChild(container.wrapper);
 				break;
 			}
 			
 			this._els.push(container);
-			this.wrapper.appendChild(containerHolder);
 			return container;
 		}
 
 		this.remove = (container)=>{
 			for(var i = 0, n = this._els.length; i<n; i+=1){
 				let c = this._els[i];
-				if(c.body === container){
+				if(c.wrapper === container){
 					this._els.splice(i, 1);
 					if(this._els.length == 0) this.enabled(false);
 					break;
 				}
 			}
 		}
+	}
+	addClass(cls){
+		if(cls != 'kmlContainers')
+		dom.addClass(this.wrapper, cls);
+	}
+	removeClass(cls){
+		if(cls != 'kmlContainers')
+		dom.removeClass(this.wrapper, cls);	
+	}
+	toggleClass(cls){
+		if(cls != 'kmlContainers')
+		dom.toggleClass(this.wrapper, cls);		
 	}
 	els(id) {
 		return this._els[id] || this._els;

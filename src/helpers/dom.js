@@ -19,11 +19,18 @@ if ('classList' in document.documentElement) {
 	addClass = function(elem, c) {
 		if(c != null){
 			c = c.split(' ');
-			for (var k in c) elem.classList.add(c[k]);
+			for (var k in c) {
+				if(c[k] != '') elem.classList.add(c[k]);
+			}
 		}
 	};
 	removeClass = function(elem, c) {
-		elem.classList.remove(c);
+		if(c != null){
+			c = c.split(' ');
+			for (var k in c) {
+				if(c[k] != '') elem.classList.remove(c[k]);
+			}
+		}
 	};
 } else {
 	hasClass = function(elem, c) {
@@ -112,6 +119,9 @@ export default {
 	},
 	replaceElement: function(target, elm) {
 		target.parentNode.replaceChild(elm, target);
+	},
+	addElement: function(target, elm) {
+		target.appendChild(elm);
 	},
 	removeElement: function(element) {
 		element.parentNode.removeChild(element);
