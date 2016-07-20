@@ -171,812 +171,9 @@ var dom = {
 	}
 };
 
-const bigButton = '<svg x="0px" y="0px" width="98px" height="98px" viewBox="0 0 213.7 213.7" enable-background="new 0 0 213.7 213.7" xml:space="preserve"><polygon class="triangle" id="XMLID_18_" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="73.5,62.5 148.5,105.8 73.5,149.1 "></polygon><circle class="circle" id="XMLID_17_" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" cx="106.8" cy="106.8" r="103.3"></circle></svg>';
-function bigPlay (parentPlayer) {
-	return function () {
-		let bigPlayButton = function () {
-			let isMobile = parentPlayer.device.isMobile;
-			let autoplay = parentPlayer.__settings['autoplay'];
-			let wrapper = dom.createElement('div', { class: "kmlBigPlay hidden" });
-			let btn = dom.createElement('div', { class: 'kmlBigPlayButton' });
-			btn.innerHTML = bigButton;
-			wrapper.addEventListener('click', () => {
-				parentPlayer.play();
-			});
-			wrapper.appendChild(btn);
-			parentPlayer.wrapper.appendChild(wrapper);
-
-			this.show = () => {
-				if (parentPlayer.containers) {
-					parentPlayer.containers.hide();
-				}
-				parentPlayer.pause();
-				wrapper.style.display = "block";
-				dom.removeClass(wrapper, 'hidden');
-			};
-			this.hide = () => {
-				if (parentPlayer.containers) {
-					parentPlayer.containers.show();
-				}
-				dom.addClass(wrapper, 'hidden');
-				setTimeout(() => {
-					wrapper.style.display = "none";
-					//parentPlayer.play();
-				}, 200);
-			};
-
-			if (!autoplay || isMobile) {
-				this.show();
-			} else {
-				wrapper.style.display = "none";
-			}
-
-			parentPlayer.on('play', () => {
-				this.hide();
-			});
-		};
-		return new bigPlayButton();
-	}();
-};
-
-(function () {
-    var lastTime = 0;
-    var vendors = ['ms', 'moz', 'webkit', 'o'];
-    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-    }
-
-    if (!window.requestAnimationFrame || /iP(ad|hone|od).*OS 6/.test(window.navigator.userAgent)) window.requestAnimationFrame = function (callback, element) {
-        var currTime = new Date().getTime();
-        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-        var id = window.setTimeout(function () {
-            callback(currTime + timeToCall);
-        }, timeToCall);
-        lastTime = currTime + timeToCall;
-        return id;
-    };
-
-    if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function (id) {
-        clearTimeout(id);
-    };
-})();
-
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function procentFromString(v) {
-  if (v === undefined || v === null) return false;
-  let t = false;
-  if (v.indexOf) {
-    if (v.indexOf('%') > -1) {
-      t = parseFloat(v);
-    }
-  }
-  return t;
-}
-
-/**
- * Detect if the argument passed is a string
- * @param   { * } v - whatever you want to pass to this function
- * @returns { Boolean } -
- */
-function isString(v) {
-  return typeof v === 'string';
-}
-
-/**
- * Detect if the argument passed is a strict numeric
- * @param   { * } v - whatever you want to pass to this function
- * @returns { Boolean } -
- */
-function isStrictNumeric(v) {
-  return !isNaN(v) && typeof v === 'number';
-}
-
-/**
- * Detect if the argument passed is a function
- * @param   { * } v - whatever you want to pass to this function
- * @returns { Boolean } -
- */
-function isFunction(v) {
-  return typeof v === 'function' || false; // avoid IE problems
-}
-
-function scaleFont(f, width, el) {
-  var r = false,
-      l = false;
-  if (f.units != 'px') f.units = 'em';
-  if (f.min !== false && f.ratio !== false) {
-    r = f.ratio * width / 1000;
-    if (r < f.min) r = f.min;
-    if (f.units == 'px') r = Math.ceil(r);
-    if (!isNaN(f.lineHeight) && f.lineHeight) {
-      l = r * f.lineHeight;
-      if (l < 1) l = 1;
-      l = +l.toFixed(3) + f.units;
-    }
-    r = +r.toFixed(3) + f.units;
-  }
-  if (el) {
-    if (r) el.style.fontSize = r;
-    if (l) el.style.lineHeight = l;
-  }
-  return { fontSize: r, lineHeight: l };
-};
-
-let isMobile = false;
-// device detection
-if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0, 4))) isMobile = true;
-let browser = function () {
-  var nVer = navigator.appVersion,
-      nAgt = navigator.userAgent,
-      browserName = navigator.appName,
-      fullVersion = '' + parseFloat(navigator.appVersion),
-      majorVersion = parseInt(navigator.appVersion, 10),
-      nameOffset,
-      verOffset,
-      ix;
-
-  // EDGE
-  if (browserName == "Netscape" && navigator.appVersion.indexOf('Trident') > -1) {
-    browserName = "IE";
-    var edge = nAgt.indexOf('Edge/');
-    fullVersion = nAgt.substring(edge + 5, nAgt.indexOf('.', edge));
-  }
-  // MSIE 11
-  else if (navigator.appVersion.indexOf("Windows NT") !== -1 && navigator.appVersion.indexOf("rv:11") !== -1) {
-      browserName = "IE";
-      fullVersion = "11;";
-    }
-    // MSIE
-    else if ((verOffset = nAgt.indexOf("MSIE")) !== -1) {
-        browserName = "IE";
-        fullVersion = nAgt.substring(verOffset + 5);
-      }
-      // Chrome
-      else if ((verOffset = nAgt.indexOf("Chrome")) !== -1) {
-          browserName = "Chrome";
-          fullVersion = nAgt.substring(verOffset + 7);
-        }
-        // Safari
-        else if ((verOffset = nAgt.indexOf("Safari")) !== -1) {
-            browserName = "Safari";
-            fullVersion = nAgt.substring(verOffset + 7);
-            if ((verOffset = nAgt.indexOf("Version")) !== -1) {
-              fullVersion = nAgt.substring(verOffset + 8);
-            }
-          }
-          // Firefox
-          else if ((verOffset = nAgt.indexOf("Firefox")) !== -1) {
-              browserName = "Firefox";
-              fullVersion = nAgt.substring(verOffset + 8);
-            }
-            // In most other browsers, "name/version" is at the end of userAgent
-            else if ((nameOffset = nAgt.lastIndexOf(' ') + 1) < (verOffset = nAgt.lastIndexOf('/'))) {
-                browserName = nAgt.substring(nameOffset, verOffset);
-                fullVersion = nAgt.substring(verOffset + 1);
-                if (browserName.toLowerCase() == browserName.toUpperCase()) {
-                  browserName = navigator.appName;
-                }
-              }
-  // Trim the fullVersion string at semicolon/space if present
-  if ((ix = fullVersion.indexOf(";")) !== -1) {
-    fullVersion = fullVersion.substring(0, ix);
-  }
-  if ((ix = fullVersion.indexOf(" ")) !== -1) {
-    fullVersion = fullVersion.substring(0, ix);
-  }
-  // Get major version
-  majorVersion = parseInt('' + fullVersion, 10);
-  if (isNaN(majorVersion)) {
-    fullVersion = '' + parseFloat(navigator.appVersion);
-    majorVersion = parseInt(navigator.appVersion, 10);
-  }
-  // Return data
-  return [browserName, majorVersion];
-}();
-var device = {
-  browser: browser,
-  isIE: function () {
-    if (browser[0] === 'IE') {
-      return browser[1];
-    }
-    return false;
-  }(),
-  isFirefox: function () {
-    if (browser[0] === 'Firefox') {
-      return browser[1];
-    }
-    return false;
-  }(),
-  isChrome: function () {
-    if (browser[0] === 'Chrome') {
-      return browser[1];
-    }
-    return false;
-  }(),
-  isSafari: function () {
-    if (browser[0] === 'Safari') {
-      return browser[1];
-    }
-    return false;
-  }(),
-  isTouch: 'ontouchstart' in document.documentElement,
-  isIos: /(iPad|iPhone|iPod)/g.test(navigator.platform),
-  isMobile: isMobile
-};
-
-var deepmerge = (function () {
-	let deepmerge = function (target, src) {
-		if (src) {
-			var array = Array.isArray(src);
-			var dst = array && [] || {};
-
-			if (array) {
-				target = target || [];
-				dst = dst.concat(target);
-				src.forEach(function (e, i) {
-					if (typeof dst[i] === 'undefined') {
-						dst[i] = e;
-					} else if (typeof e === 'object') {
-						dst[i] = deepmerge(target[i], e);
-					} else {
-						if (target.indexOf(e) === -1) {
-							dst.push(e);
-						}
-					}
-				});
-			} else {
-				if (target && typeof target === 'object') {
-					Object.keys(target).forEach(function (key) {
-						dst[key] = target[key];
-					});
-				}
-				Object.keys(src).forEach(function (key) {
-					if (typeof src[key] !== 'object' || !src[key]) {
-						dst[key] = src[key];
-					} else {
-						if (!target[key]) {
-							dst[key] = src[key];
-						} else {
-							dst[key] = deepmerge(target[key], src[key]);
-						}
-					}
-				});
-			}
-			return dst;
-		} else {
-			return target || [];
-		}
-	};
-	return deepmerge;
-})();
-
-let autoFont = function (el, font, parent) {
-	let _enabled = false;
-	let _cache = 0;
-	let _font = {};
-	let _update = function () {
-		if (_enabled) {
-			let w = parent.width();
-			if (_cache != w) {
-				_font = scaleFont(font, parent.width(), el);
-			}
-			return _font;
-		}
-	};
-	this.update = function (v) {
-		if (v !== undefined) {
-			if (!font) {
-				font = { ratio: 1, min: 1, lineHeight: false };
-			}
-			font = deepmerge(font, v);
-			return _update();
-		}
-	};
-	this.enabled = function (v) {
-		if (typeof v === 'boolean' && font) {
-			_enabled = v;
-		}
-		return _enabled;
-	};
-	if (parent.on) {
-		parent.on('resize', _update);
-	};
-};
-
-let defaults$1 = {
-	x: 0,
-	y: 0,
-	width: '100%',
-	height: '100%',
-	fontSize: null,
-	lineHeight: null,
-	offsetX: 0,
-	offsetY: 0,
-	originPoint: "topLeft",
-	visible: false,
-	transform: {
-		x: null,
-		y: null
-	},
-	translate: true
-};
-
-let adaptiveSizePos = function (setttings, parent) {
-	let bounds = function () {
-		return {
-			offsetX: parent.offsetX(),
-			offsetY: parent.offsetY(),
-			width: parent.width(),
-			height: parent.height(),
-			scale: parent.width() / parent.videoWidth(),
-			scaleY: parent.width() / parent.videoHeight()
-		};
-	};
-	let vault = {
-		x: 0,
-		y: 0,
-		width: '100%',
-		height: '100%',
-		fontSize: null,
-		lineHeight: null
-	};
-	let parentWidth = 0;
-	let parentHeight = 0;
-	let parentX = 0;
-	let parentY = 0;
-	let domElement = null;
-	let settings = deepmerge(defaults$1, setttings);
-	let _active = false;
-
-	let updateDomElement = function () {
-		if (_active && domElement && domElement.nodeType) {
-			if (vault.width != null) domElement.style.width = vault.width + "px";
-			if (vault.height != null) domElement.style.height = vault.height + "px";
-
-			// if (dom.stylePrefix.transform && settings.translate) {
-			if (settings.translate) {
-				let transform = '';
-				if (vault.x != null && vault.y != null) {
-					transform = 'translate(' + vault.x + 'px,' + vault.y + 'px)';
-					domElement.style.left = "auto";
-					domElement.style.right = "auto";
-					domElement.style.bottom = "auto";
-					domElement.style.top = "auto";
-				} else {
-					if (vault.x != null) {
-						domElement.style.left = "auto";
-						domElement.style.right = "auto";
-						transform = 'translateX(' + vault.x + 'px)';
-					}
-					if (vault.y != null) {
-						domElement.style.bottom = "auto";
-						domElement.style.top = "auto";
-						transform = 'translateY(' + vault.y + 'px)';
-					}
-				}
-				dom.transform(domElement, transform);
-			} else {
-				if (vault.x != null && vault.y != null) {
-					domElement.style.left = vault.x + "px";
-					domElement.style.top = vault.y + "px";
-				} else {
-					if (vault.x != null) domElement.style.left = vault.x + "px";
-					if (vault.y != null) domElement.style.top = vault.y + "px";
-				}
-			}
-
-			if (settings.fontSize !== vault.fontSize) {
-				domElement.style.fontSize = vault.fontSize = settings.fontSize;
-			}
-			if (settings.lineHeight !== vault.lineHeight) {
-				domElement.style.lineHeight = vault.lineHeight = settings.lineHeight;
-			}
-		}
-	};
-
-	let updateProps = function () {
-		let _w = parent.width();
-		let _h = parent.height();
-		let _x = parent.offsetX();
-		let _y = parent.offsetY();
-		if (parentWidth != _w || parentHeight != _h || _x != parentX || _y != parentY) {
-			parentWidth = _w;
-			parentHeight = _h;
-			parentX = _x;
-			parentY = _y;
-		} else {
-			return;
-		}
-
-		let b = bounds();
-
-		let procentWidth = procentFromString(settings.width);
-		if (procentWidth) {
-			vault.width = b.width * procentWidth / 100;
-		} else {
-			if (settings.width != null) {
-				vault.width = b.width * b.scale;
-			}
-		}
-		vault.width = Math.ceil(vault.width);
-
-		let procentHeight = procentFromString(settings.height);
-		if (procentHeight) {
-			vault.height = b.height * procentHeight / 100;
-		} else {
-			if (settings.height != null) {
-				vault.height = b.height * b.scale;
-			}
-		}
-		vault.height = Math.ceil(vault.height);
-
-		if (settings.x != null) {
-			let procentX = procentFromString(settings.x);
-			if (procentX) {
-				vault.x = b.offsetX + b.width * procentX / 100;
-			} else {
-				vault.x = b.offsetX + settings.x * b.scale;
-			}
-			vault.x = Math.floor(vault.x);
-			let transformX = procentFromString(settings.transform.x);
-			if (transformX) vault.x += transformX * vault.width / 100;
-			if (settings.offsetX) vault.x += settings.offsetX;
-		}
-
-		if (settings.y != null) {
-			let procentY = procentFromString(settings.y);
-			if (procentY) {
-				vault.y = b.offsetY + b.height * procentY / 100;
-			} else {
-				vault.y = b.offsetY + settings.y * b.scale;
-			}
-			vault.y = Math.floor(vault.y);
-			let transformY = procentFromString(settings.transform.y);
-			if (transformY) vault.y += transformY * vault.width / 100;
-			if (settings.offsetY) vault.y += settings.offsetY;
-		}
-
-		updateDomElement();
-	};
-
-	this.applyTo = function (element) {
-		if (element && element.nodeType) {
-			domElement = element;
-			updateProps();
-		}
-		return domElement;
-	};
-
-	let applyNewProps = function () {
-		if (_active) {
-			updateProps();
-		}
-	};
-
-	this.data = function () {
-		return vault;
-	};
-
-	this.settings = function (newSettings) {
-		settings = deepmerge(settings, newSettings);
-		updateProps();
-		return settings;
-	};
-	this.enabled = function (v) {
-		if (typeof v === 'boolean') {
-			_active = v;
-			if (v) applyNewProps();
-			// v ? window.addEventListener('resize', applyNewProps, false) : window.removeEventListener('resize', applyNewProps, false);
-		}
-		return _active;
-	};
-
-	if (parent.on) {
-		parent.on('resize', applyNewProps);
-	}
-};
-
 function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
-
-var index = createCommonjsModule(function (module) {
-'use strict';
-
-var has = Object.prototype.hasOwnProperty;
-
-//
-// We store our EE objects in a plain object whose properties are event names.
-// If `Object.create(null)` is not supported we prefix the event names with a
-// `~` to make sure that the built-in object properties are not overridden or
-// used as an attack vector.
-// We also assume that `Object.create(null)` is available when the event name
-// is an ES6 Symbol.
-//
-var prefix = typeof Object.create !== 'function' ? '~' : false;
-
-/**
- * Representation of a single EventEmitter function.
- *
- * @param {Function} fn Event handler to be called.
- * @param {Mixed} context Context for function execution.
- * @param {Boolean} [once=false] Only emit once
- * @api private
- */
-function EE(fn, context, once) {
-  this.fn = fn;
-  this.context = context;
-  this.once = once || false;
-}
-
-/**
- * Minimal EventEmitter interface that is molded against the Node.js
- * EventEmitter interface.
- *
- * @constructor
- * @api public
- */
-function EventEmitter() { /* Nothing to set */ }
-
-/**
- * Hold the assigned EventEmitters by name.
- *
- * @type {Object}
- * @private
- */
-EventEmitter.prototype._events = undefined;
-
-/**
- * Return an array listing the events for which the emitter has registered
- * listeners.
- *
- * @returns {Array}
- * @api public
- */
-EventEmitter.prototype.eventNames = function eventNames() {
-  var events = this._events
-    , names = []
-    , name;
-
-  if (!events) return names;
-
-  for (name in events) {
-    if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
-  }
-
-  if (Object.getOwnPropertySymbols) {
-    return names.concat(Object.getOwnPropertySymbols(events));
-  }
-
-  return names;
-};
-
-/**
- * Return a list of assigned event listeners.
- *
- * @param {String} event The events that should be listed.
- * @param {Boolean} exists We only need to know if there are listeners.
- * @returns {Array|Boolean}
- * @api public
- */
-EventEmitter.prototype.listeners = function listeners(event, exists) {
-  var evt = prefix ? prefix + event : event
-    , available = this._events && this._events[evt];
-
-  if (exists) return !!available;
-  if (!available) return [];
-  if (available.fn) return [available.fn];
-
-  for (var i = 0, l = available.length, ee = new Array(l); i < l; i++) {
-    ee[i] = available[i].fn;
-  }
-
-  return ee;
-};
-
-/**
- * Emit an event to all registered event listeners.
- *
- * @param {String} event The name of the event.
- * @returns {Boolean} Indication if we've emitted an event.
- * @api public
- */
-EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
-  var evt = prefix ? prefix + event : event;
-
-  if (!this._events || !this._events[evt]) return false;
-
-  var listeners = this._events[evt]
-    , len = arguments.length
-    , args
-    , i;
-
-  if ('function' === typeof listeners.fn) {
-    if (listeners.once) this.removeListener(event, listeners.fn, undefined, true);
-
-    switch (len) {
-      case 1: return listeners.fn.call(listeners.context), true;
-      case 2: return listeners.fn.call(listeners.context, a1), true;
-      case 3: return listeners.fn.call(listeners.context, a1, a2), true;
-      case 4: return listeners.fn.call(listeners.context, a1, a2, a3), true;
-      case 5: return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
-      case 6: return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
-    }
-
-    for (i = 1, args = new Array(len -1); i < len; i++) {
-      args[i - 1] = arguments[i];
-    }
-
-    listeners.fn.apply(listeners.context, args);
-  } else {
-    var length = listeners.length
-      , j;
-
-    for (i = 0; i < length; i++) {
-      if (listeners[i].once) this.removeListener(event, listeners[i].fn, undefined, true);
-
-      switch (len) {
-        case 1: listeners[i].fn.call(listeners[i].context); break;
-        case 2: listeners[i].fn.call(listeners[i].context, a1); break;
-        case 3: listeners[i].fn.call(listeners[i].context, a1, a2); break;
-        default:
-          if (!args) for (j = 1, args = new Array(len -1); j < len; j++) {
-            args[j - 1] = arguments[j];
-          }
-
-          listeners[i].fn.apply(listeners[i].context, args);
-      }
-    }
-  }
-
-  return true;
-};
-
-/**
- * Register a new EventListener for the given event.
- *
- * @param {String} event Name of the event.
- * @param {Function} fn Callback function.
- * @param {Mixed} [context=this] The context of the function.
- * @api public
- */
-EventEmitter.prototype.on = function on(event, fn, context) {
-  var listener = new EE(fn, context || this)
-    , evt = prefix ? prefix + event : event;
-
-  if (!this._events) this._events = prefix ? {} : Object.create(null);
-  if (!this._events[evt]) this._events[evt] = listener;
-  else {
-    if (!this._events[evt].fn) this._events[evt].push(listener);
-    else this._events[evt] = [
-      this._events[evt], listener
-    ];
-  }
-
-  return this;
-};
-
-/**
- * Add an EventListener that's only called once.
- *
- * @param {String} event Name of the event.
- * @param {Function} fn Callback function.
- * @param {Mixed} [context=this] The context of the function.
- * @api public
- */
-EventEmitter.prototype.once = function once(event, fn, context) {
-  var listener = new EE(fn, context || this, true)
-    , evt = prefix ? prefix + event : event;
-
-  if (!this._events) this._events = prefix ? {} : Object.create(null);
-  if (!this._events[evt]) this._events[evt] = listener;
-  else {
-    if (!this._events[evt].fn) this._events[evt].push(listener);
-    else this._events[evt] = [
-      this._events[evt], listener
-    ];
-  }
-
-  return this;
-};
-
-/**
- * Remove event listeners.
- *
- * @param {String} event The event we want to remove.
- * @param {Function} fn The listener that we need to find.
- * @param {Mixed} context Only remove listeners matching this context.
- * @param {Boolean} once Only remove once listeners.
- * @api public
- */
-EventEmitter.prototype.removeListener = function removeListener(event, fn, context, once) {
-  var evt = prefix ? prefix + event : event;
-
-  if (!this._events || !this._events[evt]) return this;
-
-  var listeners = this._events[evt]
-    , events = [];
-
-  if (fn) {
-    if (listeners.fn) {
-      if (
-           listeners.fn !== fn
-        || (once && !listeners.once)
-        || (context && listeners.context !== context)
-      ) {
-        events.push(listeners);
-      }
-    } else {
-      for (var i = 0, length = listeners.length; i < length; i++) {
-        if (
-             listeners[i].fn !== fn
-          || (once && !listeners[i].once)
-          || (context && listeners[i].context !== context)
-        ) {
-          events.push(listeners[i]);
-        }
-      }
-    }
-  }
-
-  //
-  // Reset the array, or remove it completely if we have no more listeners.
-  //
-  if (events.length) {
-    this._events[evt] = events.length === 1 ? events[0] : events;
-  } else {
-    delete this._events[evt];
-  }
-
-  return this;
-};
-
-/**
- * Remove all listeners or only the listeners for the specified event.
- *
- * @param {String} event The event want to remove all listeners for.
- * @api public
- */
-EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
-  if (!this._events) return this;
-
-  if (event) delete this._events[prefix ? prefix + event : event];
-  else this._events = prefix ? {} : Object.create(null);
-
-  return this;
-};
-
-//
-// Alias methods names because people roll like that.
-//
-EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
-EventEmitter.prototype.addListener = EventEmitter.prototype.on;
-
-//
-// This function doesn't apply anymore.
-//
-EventEmitter.prototype.setMaxListeners = function setMaxListeners() {
-  return this;
-};
-
-//
-// Expose the prefix.
-//
-EventEmitter.prefixed = prefix;
-
-//
-// Expose the module.
-//
-if ('undefined' !== typeof module) {
-  module.exports = EventEmitter;
-}
-});
-
-var Events = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
 
 var tinycolor = createCommonjsModule(function (module) {
 // TinyColor v1.4.1
@@ -2182,14 +1379,833 @@ function backgroundColor(el) {
 	var el = el || this;
 	if (!el.style) el.style = {};
 	return function (c, a = 0.6) {
-		var color = tinycolor$1(c);
-		if (color.isValid()) {
-			color.setAlpha(a);
-			el.style.backgroundColor = color.toString();
+		let color = null;
+		if (c != null) {
+			color = tinycolor$1(c);
+			if (color.isValid()) {
+				color.setAlpha(a);
+				el.style.backgroundColor = color.toString();
+			}
+		} else {
+			color = tinycolor$1(el.style.backgroundColor);
+			if (color.isValid()) {
+				color.setAlpha(a);
+				el.style.backgroundColor = color.toString();
+			}
 		}
 		return el.style.backgroundColor;
 	};
 }
+
+const bigButton = '<svg x="0px" y="0px" width="98px" height="98px" viewBox="0 0 213.7 213.7" enable-background="new 0 0 213.7 213.7" xml:space="preserve"><polygon class="triangle" id="XMLID_18_" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="73.5,62.5 148.5,105.8 73.5,149.1 "></polygon><circle class="circle" id="XMLID_17_" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" cx="106.8" cy="106.8" r="103.3"></circle></svg>';
+function bigPlay (parentPlayer) {
+	return function () {
+		let bigPlayButton = function () {
+			let isMobile = parentPlayer.device.isMobile;
+			let autoplay = parentPlayer.__settings['autoplay'];
+			let wrapper = dom.createElement('div', { class: "kmlBigPlay hidden" });
+			let btn = dom.createElement('div', { class: 'kmlBigPlayButton' });
+			btn.innerHTML = bigButton;
+			let circle = dom.select('.triangle', btn);
+			let triangle = dom.select('.circle', btn);
+			wrapper.addEventListener('click', () => {
+				parentPlayer.play();
+			});
+			wrapper.appendChild(btn);
+			parentPlayer.wrapper.appendChild(wrapper);
+
+			this.show = () => {
+				if (parentPlayer.containers) {
+					parentPlayer.containers.hide();
+				}
+				parentPlayer.pause();
+				wrapper.style.display = "block";
+				dom.removeClass(wrapper, 'hidden');
+			};
+			this.hide = () => {
+				if (parentPlayer.containers) {
+					parentPlayer.containers.show();
+				}
+				dom.addClass(wrapper, 'hidden');
+				setTimeout(() => {
+					wrapper.style.display = "none";
+					//parentPlayer.play();
+				}, 200);
+			};
+
+			if (!autoplay || isMobile) {
+				this.show();
+			} else {
+				wrapper.style.display = "none";
+			}
+
+			parentPlayer.on('play', () => {
+				this.hide();
+			});
+
+			this.backgroundColor = backgroundColor(wrapper);
+			this.color = c => {
+				circle.style.stroke = triangle.style.stroke = c;
+			};
+		};
+		return new bigPlayButton();
+	}();
+};
+
+(function () {
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame || /iP(ad|hone|od).*OS 6/.test(window.navigator.userAgent)) window.requestAnimationFrame = function (callback, element) {
+        var currTime = new Date().getTime();
+        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        var id = window.setTimeout(function () {
+            callback(currTime + timeToCall);
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
+    };
+
+    if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function (id) {
+        clearTimeout(id);
+    };
+})();
+
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function procentFromString(v) {
+  if (v === undefined || v === null) return false;
+  let t = false;
+  if (v.indexOf) {
+    if (v.indexOf('%') > -1) {
+      t = parseFloat(v);
+    }
+  }
+  return t;
+}
+
+/**
+ * Detect if the argument passed is a string
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+function isString(v) {
+  return typeof v === 'string';
+}
+
+/**
+ * Detect if the argument passed is a strict numeric
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+function isStrictNumeric(v) {
+  return !isNaN(v) && typeof v === 'number';
+}
+
+/**
+ * Detect if the argument passed is a function
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+function isFunction(v) {
+  return typeof v === 'function' || false; // avoid IE problems
+}
+
+function scaleFont(f, width, el) {
+  var r = false,
+      l = false;
+  if (f.units != 'px') f.units = 'em';
+  if (f.min !== false && f.ratio !== false) {
+    r = f.ratio * width / 1000;
+    if (r < f.min) r = f.min;
+    if (f.units == 'px') r = Math.ceil(r);
+    if (!isNaN(f.lineHeight) && f.lineHeight) {
+      l = r * f.lineHeight;
+      if (l < 1) l = 1;
+      l = +l.toFixed(3) + f.units;
+    }
+    r = +r.toFixed(3) + f.units;
+  }
+  if (el) {
+    if (r) el.style.fontSize = r;
+    if (l) el.style.lineHeight = l;
+  }
+  return { fontSize: r, lineHeight: l };
+};
+
+let isMobile = false;
+// device detection
+if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0, 4))) isMobile = true;
+let browser = function () {
+  var nVer = navigator.appVersion,
+      nAgt = navigator.userAgent,
+      browserName = navigator.appName,
+      fullVersion = '' + parseFloat(navigator.appVersion),
+      majorVersion = parseInt(navigator.appVersion, 10),
+      nameOffset,
+      verOffset,
+      ix;
+
+  // EDGE
+  if (browserName == "Netscape" && navigator.appVersion.indexOf('Trident') > -1) {
+    browserName = "IE";
+    var edge = nAgt.indexOf('Edge/');
+    fullVersion = nAgt.substring(edge + 5, nAgt.indexOf('.', edge));
+  }
+  // MSIE 11
+  else if (navigator.appVersion.indexOf("Windows NT") !== -1 && navigator.appVersion.indexOf("rv:11") !== -1) {
+      browserName = "IE";
+      fullVersion = "11;";
+    }
+    // MSIE
+    else if ((verOffset = nAgt.indexOf("MSIE")) !== -1) {
+        browserName = "IE";
+        fullVersion = nAgt.substring(verOffset + 5);
+      }
+      // Chrome
+      else if ((verOffset = nAgt.indexOf("Chrome")) !== -1) {
+          browserName = "Chrome";
+          fullVersion = nAgt.substring(verOffset + 7);
+        }
+        // Safari
+        else if ((verOffset = nAgt.indexOf("Safari")) !== -1) {
+            browserName = "Safari";
+            fullVersion = nAgt.substring(verOffset + 7);
+            if ((verOffset = nAgt.indexOf("Version")) !== -1) {
+              fullVersion = nAgt.substring(verOffset + 8);
+            }
+          }
+          // Firefox
+          else if ((verOffset = nAgt.indexOf("Firefox")) !== -1) {
+              browserName = "Firefox";
+              fullVersion = nAgt.substring(verOffset + 8);
+            }
+            // In most other browsers, "name/version" is at the end of userAgent
+            else if ((nameOffset = nAgt.lastIndexOf(' ') + 1) < (verOffset = nAgt.lastIndexOf('/'))) {
+                browserName = nAgt.substring(nameOffset, verOffset);
+                fullVersion = nAgt.substring(verOffset + 1);
+                if (browserName.toLowerCase() == browserName.toUpperCase()) {
+                  browserName = navigator.appName;
+                }
+              }
+  // Trim the fullVersion string at semicolon/space if present
+  if ((ix = fullVersion.indexOf(";")) !== -1) {
+    fullVersion = fullVersion.substring(0, ix);
+  }
+  if ((ix = fullVersion.indexOf(" ")) !== -1) {
+    fullVersion = fullVersion.substring(0, ix);
+  }
+  // Get major version
+  majorVersion = parseInt('' + fullVersion, 10);
+  if (isNaN(majorVersion)) {
+    fullVersion = '' + parseFloat(navigator.appVersion);
+    majorVersion = parseInt(navigator.appVersion, 10);
+  }
+  // Return data
+  return [browserName, majorVersion];
+}();
+var device = {
+  browser: browser,
+  isIE: function () {
+    if (browser[0] === 'IE') {
+      return browser[1];
+    }
+    return false;
+  }(),
+  isFirefox: function () {
+    if (browser[0] === 'Firefox') {
+      return browser[1];
+    }
+    return false;
+  }(),
+  isChrome: function () {
+    if (browser[0] === 'Chrome') {
+      return browser[1];
+    }
+    return false;
+  }(),
+  isSafari: function () {
+    if (browser[0] === 'Safari') {
+      return browser[1];
+    }
+    return false;
+  }(),
+  isTouch: 'ontouchstart' in document.documentElement,
+  isIos: /(iPad|iPhone|iPod)/g.test(navigator.platform),
+  isMobile: isMobile
+};
+
+var deepmerge = (function () {
+	let deepmerge = function (target, src) {
+		if (src) {
+			var array = Array.isArray(src);
+			var dst = array && [] || {};
+
+			if (array) {
+				target = target || [];
+				dst = dst.concat(target);
+				src.forEach(function (e, i) {
+					if (typeof dst[i] === 'undefined') {
+						dst[i] = e;
+					} else if (typeof e === 'object') {
+						dst[i] = deepmerge(target[i], e);
+					} else {
+						if (target.indexOf(e) === -1) {
+							dst.push(e);
+						}
+					}
+				});
+			} else {
+				if (target && typeof target === 'object') {
+					Object.keys(target).forEach(function (key) {
+						dst[key] = target[key];
+					});
+				}
+				Object.keys(src).forEach(function (key) {
+					if (typeof src[key] !== 'object' || !src[key]) {
+						dst[key] = src[key];
+					} else {
+						if (!target[key]) {
+							dst[key] = src[key];
+						} else {
+							dst[key] = deepmerge(target[key], src[key]);
+						}
+					}
+				});
+			}
+			return dst;
+		} else {
+			return target || [];
+		}
+	};
+	return deepmerge;
+})();
+
+let autoFont = function (el, font, parent) {
+	let _enabled = false;
+	let _cache = 0;
+	let _font = {};
+	let _update = function () {
+		if (_enabled) {
+			let w = parent.width();
+			if (_cache != w) {
+				_font = scaleFont(font, parent.width(), el);
+			}
+			return _font;
+		}
+	};
+	this.update = function (v) {
+		if (v !== undefined) {
+			if (!font) {
+				font = { ratio: 1, min: 1, lineHeight: false };
+			}
+			font = deepmerge(font, v);
+			return _update();
+		}
+	};
+	this.enabled = function (v) {
+		if (typeof v === 'boolean' && font) {
+			_enabled = v;
+		}
+		return _enabled;
+	};
+	if (parent.on) {
+		parent.on('resize', _update);
+	};
+};
+
+let defaults$1 = {
+	x: 0,
+	y: 0,
+	width: '100%',
+	height: '100%',
+	fontSize: null,
+	lineHeight: null,
+	offsetX: 0,
+	offsetY: 0,
+	originPoint: "topLeft",
+	visible: false,
+	transform: {
+		x: null,
+		y: null
+	},
+	translate: true
+};
+
+let adaptiveSizePos = function (setttings, parent) {
+	let bounds = function () {
+		return {
+			offsetX: parent.offsetX(),
+			offsetY: parent.offsetY(),
+			width: parent.width(),
+			height: parent.height(),
+			scale: parent.width() / parent.videoWidth(),
+			scaleY: parent.width() / parent.videoHeight()
+		};
+	};
+	let vault = {
+		x: 0,
+		y: 0,
+		width: '100%',
+		height: '100%',
+		fontSize: null,
+		lineHeight: null
+	};
+	let parentWidth = 0;
+	let parentHeight = 0;
+	let parentX = 0;
+	let parentY = 0;
+	let domElement = null;
+	let settings = deepmerge(defaults$1, setttings);
+	let _active = false;
+
+	let updateDomElement = function () {
+		if (_active && domElement && domElement.nodeType) {
+			if (vault.width != null) domElement.style.width = vault.width + "px";
+			if (vault.height != null) domElement.style.height = vault.height + "px";
+
+			// if (dom.stylePrefix.transform && settings.translate) {
+			if (settings.translate) {
+				let transform = '';
+				if (vault.x != null && vault.y != null) {
+					transform = 'translate(' + vault.x + 'px,' + vault.y + 'px)';
+					domElement.style.left = "auto";
+					domElement.style.right = "auto";
+					domElement.style.bottom = "auto";
+					domElement.style.top = "auto";
+				} else {
+					if (vault.x != null) {
+						domElement.style.left = "auto";
+						domElement.style.right = "auto";
+						transform = 'translateX(' + vault.x + 'px)';
+					}
+					if (vault.y != null) {
+						domElement.style.bottom = "auto";
+						domElement.style.top = "auto";
+						transform = 'translateY(' + vault.y + 'px)';
+					}
+				}
+				dom.transform(domElement, transform);
+			} else {
+				if (vault.x != null && vault.y != null) {
+					domElement.style.left = vault.x + "px";
+					domElement.style.top = vault.y + "px";
+				} else {
+					if (vault.x != null) domElement.style.left = vault.x + "px";
+					if (vault.y != null) domElement.style.top = vault.y + "px";
+				}
+			}
+
+			if (settings.fontSize !== vault.fontSize) {
+				domElement.style.fontSize = vault.fontSize = settings.fontSize;
+			}
+			if (settings.lineHeight !== vault.lineHeight) {
+				domElement.style.lineHeight = vault.lineHeight = settings.lineHeight;
+			}
+		}
+	};
+
+	let updateProps = function () {
+		let _w = parent.width();
+		let _h = parent.height();
+		let _x = parent.offsetX();
+		let _y = parent.offsetY();
+		if (parentWidth != _w || parentHeight != _h || _x != parentX || _y != parentY) {
+			parentWidth = _w;
+			parentHeight = _h;
+			parentX = _x;
+			parentY = _y;
+		} else {
+			return;
+		}
+
+		let b = bounds();
+
+		let procentWidth = procentFromString(settings.width);
+		if (procentWidth) {
+			vault.width = b.width * procentWidth / 100;
+		} else {
+			if (settings.width != null) {
+				vault.width = b.width * b.scale;
+			}
+		}
+		vault.width = Math.ceil(vault.width);
+
+		let procentHeight = procentFromString(settings.height);
+		if (procentHeight) {
+			vault.height = b.height * procentHeight / 100;
+		} else {
+			if (settings.height != null) {
+				vault.height = b.height * b.scale;
+			}
+		}
+		vault.height = Math.ceil(vault.height);
+
+		if (settings.x != null) {
+			let procentX = procentFromString(settings.x);
+			if (procentX) {
+				vault.x = b.offsetX + b.width * procentX / 100;
+			} else {
+				vault.x = b.offsetX + settings.x * b.scale;
+			}
+			vault.x = Math.floor(vault.x);
+			let transformX = procentFromString(settings.transform.x);
+			if (transformX) vault.x += transformX * vault.width / 100;
+			if (settings.offsetX) vault.x += settings.offsetX;
+		}
+
+		if (settings.y != null) {
+			let procentY = procentFromString(settings.y);
+			if (procentY) {
+				vault.y = b.offsetY + b.height * procentY / 100;
+			} else {
+				vault.y = b.offsetY + settings.y * b.scale;
+			}
+			vault.y = Math.floor(vault.y);
+			let transformY = procentFromString(settings.transform.y);
+			if (transformY) vault.y += transformY * vault.width / 100;
+			if (settings.offsetY) vault.y += settings.offsetY;
+		}
+
+		updateDomElement();
+	};
+
+	this.applyTo = function (element) {
+		if (element && element.nodeType) {
+			domElement = element;
+			updateProps();
+		}
+		return domElement;
+	};
+
+	let applyNewProps = function () {
+		if (_active) {
+			updateProps();
+		}
+	};
+
+	this.data = function () {
+		return vault;
+	};
+
+	this.settings = function (newSettings) {
+		settings = deepmerge(settings, newSettings);
+		updateProps();
+		return settings;
+	};
+	this.enabled = function (v) {
+		if (typeof v === 'boolean') {
+			_active = v;
+			if (v) applyNewProps();
+			// v ? window.addEventListener('resize', applyNewProps, false) : window.removeEventListener('resize', applyNewProps, false);
+		}
+		return _active;
+	};
+
+	if (parent.on) {
+		parent.on('resize', applyNewProps);
+	}
+};
+
+var index = createCommonjsModule(function (module) {
+'use strict';
+
+var has = Object.prototype.hasOwnProperty;
+
+//
+// We store our EE objects in a plain object whose properties are event names.
+// If `Object.create(null)` is not supported we prefix the event names with a
+// `~` to make sure that the built-in object properties are not overridden or
+// used as an attack vector.
+// We also assume that `Object.create(null)` is available when the event name
+// is an ES6 Symbol.
+//
+var prefix = typeof Object.create !== 'function' ? '~' : false;
+
+/**
+ * Representation of a single EventEmitter function.
+ *
+ * @param {Function} fn Event handler to be called.
+ * @param {Mixed} context Context for function execution.
+ * @param {Boolean} [once=false] Only emit once
+ * @api private
+ */
+function EE(fn, context, once) {
+  this.fn = fn;
+  this.context = context;
+  this.once = once || false;
+}
+
+/**
+ * Minimal EventEmitter interface that is molded against the Node.js
+ * EventEmitter interface.
+ *
+ * @constructor
+ * @api public
+ */
+function EventEmitter() { /* Nothing to set */ }
+
+/**
+ * Hold the assigned EventEmitters by name.
+ *
+ * @type {Object}
+ * @private
+ */
+EventEmitter.prototype._events = undefined;
+
+/**
+ * Return an array listing the events for which the emitter has registered
+ * listeners.
+ *
+ * @returns {Array}
+ * @api public
+ */
+EventEmitter.prototype.eventNames = function eventNames() {
+  var events = this._events
+    , names = []
+    , name;
+
+  if (!events) return names;
+
+  for (name in events) {
+    if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
+  }
+
+  if (Object.getOwnPropertySymbols) {
+    return names.concat(Object.getOwnPropertySymbols(events));
+  }
+
+  return names;
+};
+
+/**
+ * Return a list of assigned event listeners.
+ *
+ * @param {String} event The events that should be listed.
+ * @param {Boolean} exists We only need to know if there are listeners.
+ * @returns {Array|Boolean}
+ * @api public
+ */
+EventEmitter.prototype.listeners = function listeners(event, exists) {
+  var evt = prefix ? prefix + event : event
+    , available = this._events && this._events[evt];
+
+  if (exists) return !!available;
+  if (!available) return [];
+  if (available.fn) return [available.fn];
+
+  for (var i = 0, l = available.length, ee = new Array(l); i < l; i++) {
+    ee[i] = available[i].fn;
+  }
+
+  return ee;
+};
+
+/**
+ * Emit an event to all registered event listeners.
+ *
+ * @param {String} event The name of the event.
+ * @returns {Boolean} Indication if we've emitted an event.
+ * @api public
+ */
+EventEmitter.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
+  var evt = prefix ? prefix + event : event;
+
+  if (!this._events || !this._events[evt]) return false;
+
+  var listeners = this._events[evt]
+    , len = arguments.length
+    , args
+    , i;
+
+  if ('function' === typeof listeners.fn) {
+    if (listeners.once) this.removeListener(event, listeners.fn, undefined, true);
+
+    switch (len) {
+      case 1: return listeners.fn.call(listeners.context), true;
+      case 2: return listeners.fn.call(listeners.context, a1), true;
+      case 3: return listeners.fn.call(listeners.context, a1, a2), true;
+      case 4: return listeners.fn.call(listeners.context, a1, a2, a3), true;
+      case 5: return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
+      case 6: return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
+    }
+
+    for (i = 1, args = new Array(len -1); i < len; i++) {
+      args[i - 1] = arguments[i];
+    }
+
+    listeners.fn.apply(listeners.context, args);
+  } else {
+    var length = listeners.length
+      , j;
+
+    for (i = 0; i < length; i++) {
+      if (listeners[i].once) this.removeListener(event, listeners[i].fn, undefined, true);
+
+      switch (len) {
+        case 1: listeners[i].fn.call(listeners[i].context); break;
+        case 2: listeners[i].fn.call(listeners[i].context, a1); break;
+        case 3: listeners[i].fn.call(listeners[i].context, a1, a2); break;
+        default:
+          if (!args) for (j = 1, args = new Array(len -1); j < len; j++) {
+            args[j - 1] = arguments[j];
+          }
+
+          listeners[i].fn.apply(listeners[i].context, args);
+      }
+    }
+  }
+
+  return true;
+};
+
+/**
+ * Register a new EventListener for the given event.
+ *
+ * @param {String} event Name of the event.
+ * @param {Function} fn Callback function.
+ * @param {Mixed} [context=this] The context of the function.
+ * @api public
+ */
+EventEmitter.prototype.on = function on(event, fn, context) {
+  var listener = new EE(fn, context || this)
+    , evt = prefix ? prefix + event : event;
+
+  if (!this._events) this._events = prefix ? {} : Object.create(null);
+  if (!this._events[evt]) this._events[evt] = listener;
+  else {
+    if (!this._events[evt].fn) this._events[evt].push(listener);
+    else this._events[evt] = [
+      this._events[evt], listener
+    ];
+  }
+
+  return this;
+};
+
+/**
+ * Add an EventListener that's only called once.
+ *
+ * @param {String} event Name of the event.
+ * @param {Function} fn Callback function.
+ * @param {Mixed} [context=this] The context of the function.
+ * @api public
+ */
+EventEmitter.prototype.once = function once(event, fn, context) {
+  var listener = new EE(fn, context || this, true)
+    , evt = prefix ? prefix + event : event;
+
+  if (!this._events) this._events = prefix ? {} : Object.create(null);
+  if (!this._events[evt]) this._events[evt] = listener;
+  else {
+    if (!this._events[evt].fn) this._events[evt].push(listener);
+    else this._events[evt] = [
+      this._events[evt], listener
+    ];
+  }
+
+  return this;
+};
+
+/**
+ * Remove event listeners.
+ *
+ * @param {String} event The event we want to remove.
+ * @param {Function} fn The listener that we need to find.
+ * @param {Mixed} context Only remove listeners matching this context.
+ * @param {Boolean} once Only remove once listeners.
+ * @api public
+ */
+EventEmitter.prototype.removeListener = function removeListener(event, fn, context, once) {
+  var evt = prefix ? prefix + event : event;
+
+  if (!this._events || !this._events[evt]) return this;
+
+  var listeners = this._events[evt]
+    , events = [];
+
+  if (fn) {
+    if (listeners.fn) {
+      if (
+           listeners.fn !== fn
+        || (once && !listeners.once)
+        || (context && listeners.context !== context)
+      ) {
+        events.push(listeners);
+      }
+    } else {
+      for (var i = 0, length = listeners.length; i < length; i++) {
+        if (
+             listeners[i].fn !== fn
+          || (once && !listeners[i].once)
+          || (context && listeners[i].context !== context)
+        ) {
+          events.push(listeners[i]);
+        }
+      }
+    }
+  }
+
+  //
+  // Reset the array, or remove it completely if we have no more listeners.
+  //
+  if (events.length) {
+    this._events[evt] = events.length === 1 ? events[0] : events;
+  } else {
+    delete this._events[evt];
+  }
+
+  return this;
+};
+
+/**
+ * Remove all listeners or only the listeners for the specified event.
+ *
+ * @param {String} event The event want to remove all listeners for.
+ * @api public
+ */
+EventEmitter.prototype.removeAllListeners = function removeAllListeners(event) {
+  if (!this._events) return this;
+
+  if (event) delete this._events[prefix ? prefix + event : event];
+  else this._events = prefix ? {} : Object.create(null);
+
+  return this;
+};
+
+//
+// Alias methods names because people roll like that.
+//
+EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+EventEmitter.prototype.addListener = EventEmitter.prototype.on;
+
+//
+// This function doesn't apply anymore.
+//
+EventEmitter.prototype.setMaxListeners = function setMaxListeners() {
+  return this;
+};
+
+//
+// Expose the prefix.
+//
+EventEmitter.prefixed = prefix;
+
+//
+// Expose the module.
+//
+if ('undefined' !== typeof module) {
+  module.exports = EventEmitter;
+}
+});
+
+var Events = (index && typeof index === 'object' && 'default' in index ? index['default'] : index);
 
 let defaults$3 = {
 	x: 0,
@@ -2219,8 +2235,11 @@ let relativeSizePos = function (ctx, settings) {
 
 let defaults$2 = {
 	backgroundColor: '',
-	onHide: null,
-	onShow: null,
+	on: {
+		hide: function () {},
+		show: function () {},
+		click: function () {}
+	},
 	externalControls: true,
 	visible: true,
 	pauseVideo: false
@@ -2237,22 +2256,7 @@ class Widget extends Events {
 		this.backgroundColor = backgroundColor(el);
 		this.parent = parent;
 		this.parentPlayer = parentPlayer;
-		this.onClick = () => {};
 		this.init();
-		el.addEventListener('click', () => {
-			this.onClick();
-		});
-	}
-	click(fn) {
-		if (fn != null) {
-			if (isFunction(fn)) {
-				this.onClick = fn;
-			} else {
-				this.onClick = () => {};
-			}
-			return;
-		}
-		this.onClick();
 	}
 	settings(fopts) {
 		if (fopts) {
@@ -2262,6 +2266,14 @@ class Widget extends Events {
 		return this._settings;
 	}
 	init() {
+		for (var k in this._settings['on']) {
+			if (isFunction(this._settings['on'][k])) {
+				this.on(k, this._settings['on'][k]);
+			}
+		}
+		this.wrapper.addEventListener('click', () => {
+			this.emit('click');
+		});
 		this.parentPlayer.on('resize', () => {
 			this.resize();
 		});
@@ -2288,7 +2300,6 @@ class Widget extends Events {
 			}
 			setTimeout(() => {
 				this.wrapper.style.display = "none";
-				if (isFunction(this._settings.onHide)) this._settings.onHide();
 				this.parent.checkVisibleElements();
 				this.emit('hide');
 			}, 250);
@@ -2302,7 +2313,6 @@ class Widget extends Events {
 			this.wrapper.style.display = "block";
 			setTimeout(() => {
 				dom.removeClass(this.wrapper, 'hidden');
-				if (isFunction(this._settings.onHide)) this._settings.onShow();
 				this.emit('show');
 			}, 50);
 			if (this._settings.pauseVideo) {
@@ -2360,8 +2370,12 @@ class Widget extends Events {
 
 let defaults$4 = {
 	backgroundColor: '',
-	onHide: null,
-	onShow: null,
+	on: {
+		show: function () {},
+		beforeShow: function () {},
+		beforeHide: function () {},
+		hide: function () {}
+	},
 	externalControls: false,
 	visible: false,
 	pauseVideo: true,
@@ -2425,6 +2439,12 @@ class Popup extends Events {
 			});
 		});
 
+		for (var k in this._settings['on']) {
+			if (isFunction(this._settings['on'][k])) {
+				this.on(k, this._settings['on'][k]);
+			}
+		}
+
 		let clsElements = dom.selectAll('.triggerClose', el);
 		for (var i = 0, n = clsElements.length; i < n; i += 1) {
 			clsElements[i].addEventListener('click', () => {
@@ -2483,7 +2503,6 @@ class Popup extends Events {
 			}
 			setTimeout(() => {
 				this.wrapper.style.display = "none";
-				if (isFunction(this._settings.onHide)) this._settings.onHide();
 				this.parent.checkVisibleElements();
 				this.emit('hide');
 			}, 250);
@@ -2497,7 +2516,6 @@ class Popup extends Events {
 			this.wrapper.style.display = "block";
 			setTimeout(() => {
 				dom.removeClass(this.wrapper, 'hidden');
-				if (isFunction(this._settings.onHide)) this._settings.onShow();
 				this.emit('show');
 			}, 50);
 			if (this._settings.pauseVideo) {
@@ -2525,13 +2543,13 @@ class Popup extends Events {
 		}
 	}
 	addClass(cls) {
-		if (cls != 'kmlWidget') dom.addClass(this.body, cls);
+		if (cls != 'kmlPopup') dom.addClass(this.body, cls);
 	}
 	removeClass(cls) {
-		if (cls != 'kmlWidget') dom.removeClass(this.body, cls);
+		if (cls != 'kmlPopup') dom.removeClass(this.body, cls);
 	}
 	toggleClass(cls) {
-		if (cls != 'kmlWidget') dom.toggleClass(this.body, cls);
+		if (cls != 'kmlPopup') dom.toggleClass(this.body, cls);
 	}
 	content(el) {
 		if (el != null) {
@@ -2632,15 +2650,29 @@ function Timeline (parentPlayer) {
 				caclPw(pw, e);
 			});
 			pw.addEventListener('mouseup', e => {
-				pwFlag = 0;
-				dom.removeClass(parentPlayer.wrapper, 'disableSelect');
-				if (!pwVFlag) {
-					parentPlayer.play();
+				if (pwFlag) {
+					pwFlag = 0;
+					dom.removeClass(parentPlayer.wrapper, 'disableSelect');
+					if (!pwVFlag) {
+						parentPlayer.play();
+					}
+					caclPw(pw, e);
 				}
-				caclPw(pw, e);
 			});
 			pw.addEventListener('mousemove', e => {
 				if (pwFlag) {
+					caclPw(pw, e);
+				} else {
+					return;
+				}
+			});
+			pw.addEventListener('mouseout', e => {
+				if (pwFlag) {
+					pwFlag = 0;
+					dom.removeClass(parentPlayer.wrapper, 'disableSelect');
+					if (!pwVFlag) {
+						parentPlayer.play();
+					}
 					caclPw(pw, e);
 				}
 			});

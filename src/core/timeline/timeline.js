@@ -65,15 +65,29 @@ export default function(parentPlayer) {
 				caclPw(pw, e);
 			});
 			pw.addEventListener('mouseup', (e) => {
-				pwFlag = 0;
-				dom.removeClass(parentPlayer.wrapper, 'disableSelect');
-				if (!pwVFlag) {
-					parentPlayer.play();
+				if(pwFlag){
+					pwFlag = 0;
+					dom.removeClass(parentPlayer.wrapper, 'disableSelect');
+					if (!pwVFlag) {
+						parentPlayer.play();
+					}
+					caclPw(pw, e);
 				}
-				caclPw(pw, e);
 			});
 			pw.addEventListener('mousemove', (e) => {
 				if (pwFlag) {
+					caclPw(pw, e);
+				}else{
+					return;
+				}
+			});
+			pw.addEventListener('mouseout', (e) => {
+				if (pwFlag) {
+					pwFlag = 0;
+					dom.removeClass(parentPlayer.wrapper, 'disableSelect');
+					if (!pwVFlag) {
+						parentPlayer.play();
+					}
 					caclPw(pw, e);
 				}
 			});

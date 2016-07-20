@@ -59,7 +59,7 @@
         //popup = this.popupContainer({x: '25%', y: '25%', width: '50%', height: '50%', visible: true}, test);
         popupVideo = this.videoContainer({x: '10%', y: '10%', width: '80%', height: '80%', visible: false, url: "http://vjs.zencdn.net/v/oceans.mp4"});
         popupVideo.player.volume(0.1);
-        logo.click(function(){
+        logo.on('click',function(){
           popupVideo.show();
         });
     });

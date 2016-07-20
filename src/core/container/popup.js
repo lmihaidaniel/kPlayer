@@ -9,8 +9,12 @@ import {
 
 let defaults = {
 	backgroundColor: '',
-	onHide: null,
-	onShow: null,
+	on:{
+		show: function(){},
+		beforeShow: function(){},
+		beforeHide: function(){},
+		hide: function(){},
+	},
 	externalControls: false,
 	visible: false,
 	pauseVideo: true,
@@ -76,6 +80,12 @@ export default class Popup extends Events {
 			});
 		});
 
+		for(var k in this._settings['on']){
+            if(isFunction(this._settings['on'][k])){
+                this.on(k, this._settings['on'][k]);
+            }
+        }
+
 		let clsElements = dom.selectAll('.triggerClose', el);
 		for (var i = 0, n = clsElements.length; i < n; i += 1) {
 			clsElements[i].addEventListener('click', ()=>{this.hide();});
@@ -132,7 +142,6 @@ export default class Popup extends Events {
 			}
 			setTimeout(() => {
 				this.wrapper.style.display = "none";
-				if (isFunction(this._settings.onHide)) this._settings.onHide();
 				this.parent.checkVisibleElements();
 				this.emit('hide');
 			}, 250);
@@ -146,7 +155,6 @@ export default class Popup extends Events {
 			this.wrapper.style.display = "block";
 			setTimeout(() => {
 				dom.removeClass(this.wrapper, 'hidden');
-				if (isFunction(this._settings.onHide)) this._settings.onShow();
 				this.emit('show');
 			}, 50);
 			if (this._settings.pauseVideo) {
@@ -179,15 +187,15 @@ export default class Popup extends Events {
 		}
 	}
 	addClass(cls) {
-		if (cls != 'kmlWidget')
+		if (cls != 'kmlPopup')
 			dom.addClass(this.body, cls);
 	}
 	removeClass(cls) {
-		if (cls != 'kmlWidget')
+		if (cls != 'kmlPopup')
 			dom.removeClass(this.body, cls);
 	}
 	toggleClass(cls) {
-		if (cls != 'kmlWidget')
+		if (cls != 'kmlPopup')
 			dom.toggleClass(this.body, cls);
 	}
 	content(el) {

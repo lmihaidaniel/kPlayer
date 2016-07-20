@@ -9,8 +9,11 @@ import {
 
 let defaults = {
 	backgroundColor: '',
-	onHide: null,
-	onShow: null,
+	on: {
+        hide: function(){},
+        show: function(){},
+        click: function(){}
+    },
 	externalControls: true,
 	visible: true,
 	pauseVideo: false
@@ -27,20 +30,7 @@ export default class Widget extends Events {
 		this.backgroundColor = backgroundColorFN(el);
 		this.parent = parent;
 		this.parentPlayer = parentPlayer;
-		this.onClick = ()=>{};
 		this.init();
-		el.addEventListener('click', ()=>{this.onClick()});
-	}
-	click(fn){
-		if(fn != null){
-			if(isFunction(fn)) {
-				this.onClick = fn;
-			}else{
-				this.onClick = ()=>{}
-			}
-			return;
-		}
-		this.onClick();
 	}
 	settings(fopts){
 		if (fopts) {
@@ -50,6 +40,12 @@ export default class Widget extends Events {
 		return this._settings;
 	}
 	init() {
+		for(var k in this._settings['on']){
+            if(isFunction(this._settings['on'][k])){
+                this.on(k, this._settings['on'][k]);
+            }
+        }
+        this.wrapper.addEventListener('click', ()=>{this.emit('click')});
 		this.parentPlayer.on('resize', () => {
 			this.resize();
 		});
@@ -76,7 +72,6 @@ export default class Widget extends Events {
 			}
 			setTimeout(() => {
 				this.wrapper.style.display = "none";
-				if (isFunction(this._settings.onHide)) this._settings.onHide();
 				this.parent.checkVisibleElements();
 				this.emit('hide');
 			}, 250);
@@ -90,7 +85,6 @@ export default class Widget extends Events {
 			this.wrapper.style.display = "block";
 			setTimeout(() => {
 				dom.removeClass(this.wrapper, 'hidden');
-				if (isFunction(this._settings.onHide)) this._settings.onShow();
 				this.emit('show');
 			}, 50);
 			if (this._settings.pauseVideo) {
