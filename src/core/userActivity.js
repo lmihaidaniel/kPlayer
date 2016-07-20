@@ -7,10 +7,8 @@ export default function(parentPlayer, settings = {timeout: 2000}) {
 			let tid = null;
 			let idle = true;
 			let player = parentPlayer.wrapper;
-			let forced = false;
 			let timeoutDefault = settings.timeout;
 			let check = ()=>{
-				if(forced) return;
   				if (tid){
   					if(idle){
   						parentPlayer.emit('user-not-idle');
@@ -43,28 +41,41 @@ export default function(parentPlayer, settings = {timeout: 2000}) {
 				clearTimeout(tid);
 			}
 			this.watch();
+			this.suspend = (v)=>{
+				if(v!=null){
+					v = !!v;
+					if(v) {
+						parentPlayer.emit('user-is-idle');
+					}else{
+						parentPlayer.emit('user-not-idle');
+					}
+					this.unwatch();
+					idle = v;
+				}
+				return idle;
+			}
 			this.idle = (v)=>{
 				if(v!=null){
 					v = !!v;
 					if(v) {
 						parentPlayer.emit('user-is-idle');
-						this.unwatch();
 					}else{
 						parentPlayer.emit('user-not-idle');
-						this.watch();
 					}
-					forced = true;
 					idle = v;
+	  				tid = setTimeout(()=>{
+					    idle = true;
+					    parentPlayer.emit('user-is-idle');
+					  }, settings.timeout);
 				}
 				return idle;
 			}
-			this.reset =()=>{
-				forced = false;
+			this.resume =()=>{
 				idle = true;
+				this.watch();
 			}
 			this.timeout = (v)=>{
 				if(isStrictNumeric(v)){
-					console.log(v);
 					settings.timeout = v;
 				}else{
 					settings.timeout = timeoutDefault;

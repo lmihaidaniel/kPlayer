@@ -4,6 +4,7 @@ import adaptiveSizePos from './adaptiveSizePos';
 import Widget from './widget'
 import Popup from './popup'
 import videoPopup from './video'
+import timelineContainer from './timelineContainer'
 
 export default class Containers {
 	constructor(parentPlayer) {
@@ -95,7 +96,7 @@ export default class Containers {
 					break;
 				case 'timeline':
 					dom.addClass(containerBody, 'kmlTimeline ' + cls);
-					container = new Widget(containerBody, settings, this, parentPlayer);
+					container = new timelineContainer(containerBody, settings, this, parentPlayer);
 					timelines.appendChild(container.wrapper);
 					break;
 				default:

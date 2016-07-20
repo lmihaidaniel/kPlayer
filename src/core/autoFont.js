@@ -2,8 +2,16 @@ import {scaleFont} from '../helpers/utils';
 import deepmerge from '../helpers/deepmerge';
 let autoFont = function(el, font, parent) {
 	let _enabled = false;
+	let _cache = 0;
+	let _font = {};
 	let _update = function(){
-		if(_enabled) return scaleFont(font, parent.width(), el);
+		if(_enabled) {
+			let w = parent.width();
+			if(_cache != w){
+				_font = scaleFont(font, parent.width(), el); 
+			}
+			return _font;
+		}
 	}
 	this.update = function(v) {
 		if(v !== undefined){

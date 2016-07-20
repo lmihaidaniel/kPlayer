@@ -14,7 +14,11 @@ export default class videoPopup extends Popup{
 		this.player.supportsFullScreen = false;
 		this.player.initTimeline();
 		this.player.media.addEventListener('click', ()=>{
-			this.player.togglePlay();
+			if(!this.player.userActivity.idle()){
+				this.player.togglePlay();
+			}else{
+				this.player.userActivity.idle(false);
+			}
 		});
 		let paused = false;
 		this.player.externalControls.enabled(false);
@@ -41,6 +45,7 @@ export default class videoPopup extends Popup{
 		}
 		this.player.requestFullWindow = ()=>{
 			opts.sizeRatio = 100;
+			this.overlay.backgroundColor("000000",0.9);
 			this.emit('resize');
 			this.player.emit('enterFullScreen');
 			this.player.isFullWindow = function() {
@@ -48,7 +53,7 @@ export default class videoPopup extends Popup{
 	        };
 		}
 		this.player.cancelFullWindow = ()=>{
-			console.log('cancelFullScreen video in popup');
+			this.overlay.backgroundColor("000000",0.6);
 			opts.sizeRatio = defaultSize;
 			this.emit('resize');
 			this.player.emit('exitFullScreen');
@@ -87,17 +92,32 @@ export default class videoPopup extends Popup{
 			x = (100 - fw)/2;
 			y = (100 - fh)/2;
 			this._title.parentNode.style.height = headerHeight+'%';
-			let d = this.settings({
-				x: x/w*ww+'%',
-				y: y/h*hh+'%',
-				width : fw+"%",
-				height: fh+"%"
-			});
+			// let d = this.settings({
+			// 	// x: x/w*ww+'%',
+			// 	// y: y/h*hh+'%',
+			// 	x: (100-fw)/2+'%',
+			// 	y: (100-fh)/2+'%',
+			// 	width : fw+"%",
+			// 	height: fh+"%"
+			// });
+			let d = {
+				// x: x/w*ww+'%',
+				// y: y/h*hh+'%',
+				x: (100-fw)/2,
+				y: (100-fh)/2,
+				width : fw,
+				height: fh
+			};
 			if(headerHeight <= d.y){
 				this._title.parentNode.style.transform = 'translateY(-100%)';
+				this.body.style.top =  d.y + headerHeight/2 + '%';
 			}else{
 				this._title.parentNode.style.transform = 'translateY(0)';
+				this.body.style.top =  d.y + '%';
 			}
+			this.body.style.width = d.width + "%";
+			this.body.style.height = d.height + "%";
+			this.body.style.left = d.x + '%';
 			this.autoLineHeight();
 		});
 

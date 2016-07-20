@@ -13,52 +13,37 @@ let defaults = {
 	onShow: null,
 	externalControls: true,
 	visible: true,
-	pauseVideo: false
+	width: "100%",
+	height: null,
+	x: 0,
+	y: null
 }
 
-export default class Widget extends Events {
+export default class TimelineContainer extends Events {
 	constructor(el, opts, parent, parentPlayer) {
 		super();
 		this.wrapper = el;
 		this._visible = false;
-		this.parentPlayerPaused = false;
 		this._settings = deepmerge(defaults, opts);
 		this._cache = {};
 		this.backgroundColor = backgroundColorFN(el);
 		this.parent = parent;
 		this.parentPlayer = parentPlayer;
-		this.onClick = ()=>{};
 		this.init();
-		el.addEventListener('click', ()=>{this.onClick()});
-	}
-	click(fn){
-		if(fn != null){
-			if(isFunction(fn)) {
-				this.onClick = fn;
-			}else{
-				this.onClick = ()=>{}
-			}
-			return;
-		}
-		this.onClick();
 	}
 	settings(fopts){
 		if (fopts) {
 			this._settings = deepmerge(this._settings, fopts);
-			this.resize();
 		}
 		return this._settings;
 	}
 	init() {
-		this.parentPlayer.on('resize', () => {
-			this.resize();
-		});
 		if (this._settings.visible) {
 			this.show();
 		} else {
 			this.wrapper.style.display = "none";
 		}
-		this.resize();
+		this.parentPlayer.on('resize', ()=>{this.resize()});
 	}
 	visible(v) {
 		if (typeof v === 'boolean') this._visible = v;
@@ -69,11 +54,6 @@ export default class Widget extends Events {
 			this.visible(false);
 			this.emit('beforeHide');
 			dom.addClass(this.wrapper, 'hidden');
-			if (this._settings.pauseVideo) {
-				if (!this.parentPlayerPaused) {
-					this.parentPlayer.play();
-				}
-			}
 			setTimeout(() => {
 				this.wrapper.style.display = "none";
 				if (isFunction(this._settings.onHide)) this._settings.onHide();
@@ -93,14 +73,6 @@ export default class Widget extends Events {
 				if (isFunction(this._settings.onHide)) this._settings.onShow();
 				this.emit('show');
 			}, 50);
-			if (this._settings.pauseVideo) {
-				if (!this.parentPlayer.paused()) {
-					this.parentPlayerPaused = false;
-					this.parentPlayer.pause();
-				} else {
-					this.parentPlayerPaused = true;
-				}
-			}
 		}
 	}
 	resize() {
@@ -108,31 +80,24 @@ export default class Widget extends Events {
 			this._cache.width != this._settings.width ||
 			this._cache.height != this._settings.height ||
 			this._cache.x != this._settings.x ||
-			this._cache.y != this._settings.y
+			this._cache.y != this._settings.y 
 		) {
-			let d = new relativeSizePos(this.parentPlayer, this._settings);
-			this.wrapper.style.width = d.width + "%";
-			this.wrapper.style.height = d.height + "%";
-			//dom.transform(this.wrapper, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
-			this.wrapper.style.left = d.x + '%';
-			this.wrapper.style.top =  d.y + '%';
-			this._cache.width = this._settings.width;
-			this._cache.height = this._settings.height;
-			this._cache.x = this._settings.x;
-			this._cache.y = this._settings.y;
+			if(this._settings.width != null) this._cache.width = this.wrapper.style.width = this._settings.width;
+			if(this._settings.height != null) this._cache.height = this.wrapper.style.height = this._settings.height;
+			if(this._settings.x != null) this._cache.x = this.wrapper.style.left = this._settings.x;
+			if(this._settings.y != null) this._cache.y = this.wrapper.style.top =  this._settings.y;
 		}
-		this.emit('resize');
 	}
 	addClass(cls) {
-		if (cls != 'kmlWidget')
+		if (cls != 'kmlTimeline')
 			dom.addClass(this.wrapper, cls);
 	}
 	removeClass(cls) {
-		if (cls != 'kmlWidget')
+		if (cls != 'kmlTimeline')
 			dom.removeClass(this.wrapper, cls);
 	}
 	toggleClass(cls) {
-		if (cls != 'kmlWidget')
+		if (cls != 'kmlTimeline')
 			dom.toggleClass(this.wrapper, cls);
 	}
 	content(el) {

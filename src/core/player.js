@@ -1,5 +1,5 @@
 /*@@@@*/
-import Timeline from './timeline';
+import Timeline from './timeline/timeline';
 /*@@@@*/
 import deepmerge from '../helpers/deepmerge';
 import inFrame from '../helpers/inFrame';
@@ -96,12 +96,6 @@ export default class Player extends Media {
 				this.requestFullWindow();
 			}
 		}
-
-		this.on('resize', () => {
-			if (this.timeline.resize) {
-				this.timeline.resize();
-			}
-		});
 
 	}
 

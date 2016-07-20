@@ -27,6 +27,7 @@ export default class Popup extends Events {
 		this.wrapper.appendChild(overlay);
 		this.wrapper.appendChild(body);
 		this.body = body;
+		this.overlay = overlay;
 
 		this._content = dom.createElement('div', {'class': 'content'});
 		this.body.appendChild(this._content);
@@ -44,6 +45,7 @@ export default class Popup extends Events {
 		this.header = header;
 		this.header.backgroundColor = backgroundColorFN(this.header);
 		this.body.backgroundColor = backgroundColorFN(this.body);
+		this.overlay.backgroundColor = backgroundColorFN(this.overlay);
 		//end header
 
 
@@ -167,7 +169,9 @@ export default class Popup extends Events {
 			let d = new relativeSizePos(this.parentPlayer, this._settings);
 			this.body.style.width = d.width + "%";
 			this.body.style.height = d.height + "%";
-			dom.transform(this.body, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			//dom.transform(this.body, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			this.body.style.left = (100 - d.width)/2 + '%';
+			this.body.style.top =  (100 - d.height)/2 + '%';
 			this._cache.width = this._settings.width;
 			this._cache.height = this._settings.height;
 			this._cache.x = this._settings.x;

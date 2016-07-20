@@ -445,8 +445,16 @@ var deepmerge = (function () {
 
 let autoFont = function (el, font, parent) {
 	let _enabled = false;
+	let _cache = 0;
+	let _font = {};
 	let _update = function () {
-		if (_enabled) return scaleFont(font, parent.width(), el);
+		if (_enabled) {
+			let w = parent.width();
+			if (_cache != w) {
+				_font = scaleFont(font, parent.width(), el);
+			}
+			return _font;
+		}
 	};
 	this.update = function (v) {
 		if (v !== undefined) {
@@ -2218,7 +2226,22 @@ class Widget extends Events {
 		this.backgroundColor = backgroundColor(el);
 		this.parent = parent;
 		this.parentPlayer = parentPlayer;
+		this.onClick = () => {};
 		this.init();
+		el.addEventListener('click', () => {
+			this.onClick();
+		});
+	}
+	click(fn) {
+		if (fn != null) {
+			if (isFunction(fn)) {
+				this.onClick = fn;
+			} else {
+				this.onClick = () => {};
+			}
+			return;
+		}
+		this.onClick();
 	}
 	settings(fopts) {
 		if (fopts) {
@@ -2344,6 +2367,7 @@ class Popup extends Events {
 		this.wrapper.appendChild(overlay);
 		this.wrapper.appendChild(body);
 		this.body = body;
+		this.overlay = overlay;
 
 		this._content = dom.createElement('div', { 'class': 'content' });
 		this.body.appendChild(this._content);
@@ -2361,6 +2385,7 @@ class Popup extends Events {
 		this.header = header;
 		this.header.backgroundColor = backgroundColor(this.header);
 		this.body.backgroundColor = backgroundColor(this.body);
+		this.overlay.backgroundColor = backgroundColor(this.overlay);
 		//end header
 
 		this._visible = false;
@@ -2479,7 +2504,9 @@ class Popup extends Events {
 			let d = new relativeSizePos(this.parentPlayer, this._settings);
 			this.body.style.width = d.width + "%";
 			this.body.style.height = d.height + "%";
-			dom.transform(this.body, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			//dom.transform(this.body, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			this.body.style.left = (100 - d.width) / 2 + '%';
+			this.body.style.top = (100 - d.height) / 2 + '%';
 			this._cache.width = this._settings.width;
 			this._cache.height = this._settings.height;
 			this._cache.x = this._settings.x;
@@ -2533,19 +2560,29 @@ class Popup extends Events {
 
 let defaults$6 = {
 	x: 0,
-	y: "90%",
-	width: "100%",
-	height: "10%"
+	width: '100%',
+	height: '8%',
+	minHeight: 32
 };
 function Timeline (parentPlayer) {
 	return function () {
 		let Timeline = function () {
 			let fragment = document.createDocumentFragment();
-			let playBtn = dom.createElement('button', { 'class': 'play' });
-			let volumeBtn = dom.createElement('button', { 'class': 'volume' });
-			let fullScreenBtn = dom.createElement('button', { 'class': 'fullscreen' });
-			let pw = dom.createElement('div', { 'class': 'kmlProgress' });
-			let pl = dom.createElement('div', { 'class': 'progressline' });
+			let playBtn = dom.createElement('button', {
+				'class': 'play'
+			});
+			let volumeBtn = dom.createElement('button', {
+				'class': 'volume'
+			});
+			let fullScreenBtn = dom.createElement('button', {
+				'class': 'fullscreen'
+			});
+			let pw = dom.createElement('div', {
+				'class': 'kmlProgress'
+			});
+			let pl = dom.createElement('div', {
+				'class': 'progressline'
+			});
 			pw.appendChild(pl);
 			fragment.appendChild(playBtn);
 			fragment.appendChild(pw);
@@ -2557,18 +2594,43 @@ function Timeline (parentPlayer) {
 				this.wrapper.content(fragment);
 				wrapper = this.wrapper.wrapper;
 			} else {
-				this.wrapper = dom.createElement('div', { class: "kmlTimeline", style: "position: absolute; left: 0; width: 100%; height: 10%; top: auto; bottom: 0;" });
+				this.wrapper = dom.createElement('div', {
+					class: "kmlTimeline",
+					style: "position: absolute; left: 0; width: " + defaults$6.width + "; height: " + defaults$6.height + "; top: auto; bottom: 0;"
+				});
 				parentPlayer.wrapper.appendChild(this.wrapper);
 				wrapper = this.wrapper;
 				this.wrapper.appendChild(fragment);
 			}
-
-			pw.addEventListener('click', e => {
-				let dim = pw.getBoundingClientRect();
+			let pwFlag = 0;
+			let pwVFlag = 0;
+			let caclPw = function (el, e) {
+				let dim = el.getBoundingClientRect();
 				let x = e.clientX - dim.left;
 				let t = x / dim.width * 100;
 				let d = t * parentPlayer.duration() / 100;
+				pl.style.width = t + "%";
 				parentPlayer.seek(d);
+			};
+			pw.addEventListener('mousedown', e => {
+				pwFlag = 1;
+				pwVFlag = parentPlayer.paused();
+				dom.addClass(parentPlayer.wrapper, 'disableSelect');
+				parentPlayer.pause();
+				caclPw(pw, e);
+			});
+			pw.addEventListener('mouseup', e => {
+				pwFlag = 0;
+				dom.removeClass(parentPlayer.wrapper, 'disableSelect');
+				if (!pwVFlag) {
+					parentPlayer.play();
+				}
+				caclPw(pw, e);
+			});
+			pw.addEventListener('mousemove', e => {
+				if (pwFlag) {
+					caclPw(pw, e);
+				}
 			});
 			playBtn.addEventListener('click', () => {
 				try {
@@ -2623,19 +2685,53 @@ function Timeline (parentPlayer) {
 				dom.removeClass(playBtn, 'pause');
 				dom.addClass(playBtn, 'play');
 			});
+			parentPlayer.on('resize', () => {
+				this.resize();
+			});
 			let w = 0;
+			let cache_sc = 0;
 			this.resize = () => {
 				let sc = procentFromString(defaults$6.height) * parentPlayer.height() / 100;
-				w = sc / parentPlayer.width() * 100;
-				playBtn.style.width = w + "%";
-				pw.style.left = sc / parentPlayer.width() * 100 + "%";
-				pw.style.width = 100 - 3 * w + "%";
+				if (cache_sc != sc) {
+					cache_sc = sc;
+					if (sc < defaults$6.minHeight) {
+						w = sc = defaults$6.minHeight;
+						if (this.wrapper.settings) {
+							this.wrapper.settings({
+								height: defaults$6.minHeight + "px"
+							});
+						} else {
+							wrapper.style.height = defaults$6.minHeight + "px";
+						}
+						playBtn.style.width = w + "px";
+						pw.style.left = w + "px";
+						pw.style.right = 2 * w + "px";
 
-				volumeBtn.style.width = w + "%";
-				volumeBtn.style.left = 100 - 2 * w + "%";
+						volumeBtn.style.width = w + "px";
+						volumeBtn.style.right = w + "px";
 
-				fullScreenBtn.style.width = w + "%";
-				fullScreenBtn.style.left = 100 - w + "%";
+						fullScreenBtn.style.width = w + "px";
+						fullScreenBtn.style.right = 0;
+					} else {
+						if (this.wrapper.settings) {
+							this.wrapper.settings({
+								height: defaults$6.height
+							});
+						} else {
+							wrapper.style.height = defaults$6.height;
+						}
+						w = sc / parentPlayer.width() * 100;
+						playBtn.style.width = w + "%";
+						pw.style.left = w + "%";
+						pw.style.right = 2 * w + "%";
+
+						volumeBtn.style.width = w + "%";
+						volumeBtn.style.right = w + "%";
+
+						fullScreenBtn.style.width = w + "%";
+						fullScreenBtn.style.right = 0;
+					}
+				}
 			};
 			let _closed = false;
 			this.closed = v => {
@@ -2759,6 +2855,9 @@ class Fullscreen extends Events {
             let fnFullscreenChange = () => {
                 if (!this.isFullScreen()) {
                     setTimeout(this.scrollPosition.restore, 100);
+                    this.emit('exitFullScreen');
+                } else {
+                    this.emit('enterFullScreen');
                 }
             };
             document.addEventListener(eventChange, fnFullscreenChange, false);
@@ -2838,7 +2937,6 @@ class Fullscreen extends Events {
     requestFullScreen(element) {
         let el = this.defualtFullScreenElement(element);
         if (this.supportsFullScreen) {
-            this.emit('enterFullScreen');
             this.scrollPosition.save();
             return prefixFS === '' ? el.requestFullScreen() : el[prefixFS + (prefixFS == 'ms' ? 'RequestFullscreen' : 'RequestFullScreen')]();
         } else {
@@ -2865,7 +2963,6 @@ class Fullscreen extends Events {
     }
     cancelFullScreen() {
         if (this.supportsFullScreen) {
-            this.emit('exitFullScreen');
             return prefixFS === '' ? document.cancelFullScreen() : document[prefixFS + (prefixFS == 'ms' ? 'ExitFullscreen' : 'CancelFullScreen')]();
         } else {
             this.cancelFullWindow();
@@ -3497,10 +3594,8 @@ function userActivity (parentPlayer, settings = { timeout: 2000 }) {
 			let tid = null;
 			let idle = true;
 			let player = parentPlayer.wrapper;
-			let forced = false;
 			let timeoutDefault = settings.timeout;
 			let check = () => {
-				if (forced) return;
 				if (tid) {
 					if (idle) {
 						parentPlayer.emit('user-not-idle');
@@ -3533,28 +3628,41 @@ function userActivity (parentPlayer, settings = { timeout: 2000 }) {
 				clearTimeout(tid);
 			};
 			this.watch();
+			this.suspend = v => {
+				if (v != null) {
+					v = !!v;
+					if (v) {
+						parentPlayer.emit('user-is-idle');
+					} else {
+						parentPlayer.emit('user-not-idle');
+					}
+					this.unwatch();
+					idle = v;
+				}
+				return idle;
+			};
 			this.idle = v => {
 				if (v != null) {
 					v = !!v;
 					if (v) {
 						parentPlayer.emit('user-is-idle');
-						this.unwatch();
 					} else {
 						parentPlayer.emit('user-not-idle');
-						this.watch();
 					}
-					forced = true;
 					idle = v;
+					tid = setTimeout(() => {
+						idle = true;
+						parentPlayer.emit('user-is-idle');
+					}, settings.timeout);
 				}
 				return idle;
 			};
-			this.reset = () => {
-				forced = false;
+			this.resume = () => {
 				idle = true;
+				this.watch();
 			};
 			this.timeout = v => {
 				if (isStrictNumeric(v)) {
-					console.log(v);
 					settings.timeout = v;
 				} else {
 					settings.timeout = timeoutDefault;
@@ -3644,12 +3752,6 @@ class Player extends Media {
 				this.requestFullWindow();
 			}
 		}
-
-		this.on('resize', () => {
-			if (this.timeline.resize) {
-				this.timeline.resize();
-			}
-		});
 	}
 
 	initTimeline() {
@@ -3801,7 +3903,11 @@ class videoPopup extends Popup {
 		this.player.supportsFullScreen = false;
 		this.player.initTimeline();
 		this.player.media.addEventListener('click', () => {
-			this.player.togglePlay();
+			if (!this.player.userActivity.idle()) {
+				this.player.togglePlay();
+			} else {
+				this.player.userActivity.idle(false);
+			}
 		});
 		let paused = false;
 		this.player.externalControls.enabled(false);
@@ -3828,6 +3934,7 @@ class videoPopup extends Popup {
 		};
 		this.player.requestFullWindow = () => {
 			opts.sizeRatio = 100;
+			this.overlay.backgroundColor("000000", 0.9);
 			this.emit('resize');
 			this.player.emit('enterFullScreen');
 			this.player.isFullWindow = function () {
@@ -3835,7 +3942,7 @@ class videoPopup extends Popup {
 			};
 		};
 		this.player.cancelFullWindow = () => {
-			console.log('cancelFullScreen video in popup');
+			this.overlay.backgroundColor("000000", 0.6);
 			opts.sizeRatio = defaultSize;
 			this.emit('resize');
 			this.player.emit('exitFullScreen');
@@ -3876,17 +3983,32 @@ class videoPopup extends Popup {
 			x = (100 - fw) / 2;
 			y = (100 - fh) / 2;
 			this._title.parentNode.style.height = headerHeight + '%';
-			let d = this.settings({
-				x: x / w * ww + '%',
-				y: y / h * hh + '%',
-				width: fw + "%",
-				height: fh + "%"
-			});
+			// let d = this.settings({
+			// 	// x: x/w*ww+'%',
+			// 	// y: y/h*hh+'%',
+			// 	x: (100-fw)/2+'%',
+			// 	y: (100-fh)/2+'%',
+			// 	width : fw+"%",
+			// 	height: fh+"%"
+			// });
+			let d = {
+				// x: x/w*ww+'%',
+				// y: y/h*hh+'%',
+				x: (100 - fw) / 2,
+				y: (100 - fh) / 2,
+				width: fw,
+				height: fh
+			};
 			if (headerHeight <= d.y) {
 				this._title.parentNode.style.transform = 'translateY(-100%)';
+				this.body.style.top = d.y + headerHeight / 2 + '%';
 			} else {
 				this._title.parentNode.style.transform = 'translateY(0)';
+				this.body.style.top = d.y + '%';
 			}
+			this.body.style.width = d.width + "%";
+			this.body.style.height = d.height + "%";
+			this.body.style.left = d.x + '%';
 			this.autoLineHeight();
 		});
 
@@ -3900,6 +4022,112 @@ class videoPopup extends Popup {
 	}
 	content() {
 		return this.player;
+	}
+}
+
+let defaults$7 = {
+	backgroundColor: '',
+	onHide: null,
+	onShow: null,
+	externalControls: true,
+	visible: true,
+	width: "100%",
+	height: null,
+	x: 0,
+	y: null
+};
+
+class TimelineContainer extends Events {
+	constructor(el, opts, parent, parentPlayer) {
+		super();
+		this.wrapper = el;
+		this._visible = false;
+		this._settings = deepmerge(defaults$7, opts);
+		this._cache = {};
+		this.backgroundColor = backgroundColor(el);
+		this.parent = parent;
+		this.parentPlayer = parentPlayer;
+		this.init();
+	}
+	settings(fopts) {
+		if (fopts) {
+			this._settings = deepmerge(this._settings, fopts);
+		}
+		return this._settings;
+	}
+	init() {
+		if (this._settings.visible) {
+			this.show();
+		} else {
+			this.wrapper.style.display = "none";
+		}
+		this.parentPlayer.on('resize', () => {
+			this.resize();
+		});
+	}
+	visible(v) {
+		if (typeof v === 'boolean') this._visible = v;
+		return this._visible;
+	}
+	hide() {
+		if (this.visible()) {
+			this.visible(false);
+			this.emit('beforeHide');
+			dom.addClass(this.wrapper, 'hidden');
+			setTimeout(() => {
+				this.wrapper.style.display = "none";
+				if (isFunction(this._settings.onHide)) this._settings.onHide();
+				this.parent.checkVisibleElements();
+				this.emit('hide');
+			}, 250);
+		}
+	}
+	show() {
+		if (!this.visible()) {
+			this.visible(true);
+			this.emit('beforeShow');
+			this.parent.enabled(true);
+			this.wrapper.style.display = "block";
+			setTimeout(() => {
+				dom.removeClass(this.wrapper, 'hidden');
+				if (isFunction(this._settings.onHide)) this._settings.onShow();
+				this.emit('show');
+			}, 50);
+		}
+	}
+	resize() {
+		if (this._cache.width != this._settings.width || this._cache.height != this._settings.height || this._cache.x != this._settings.x || this._cache.y != this._settings.y) {
+			if (this._settings.width != null) this._cache.width = this.wrapper.style.width = this._settings.width;
+			if (this._settings.height != null) this._cache.height = this.wrapper.style.height = this._settings.height;
+			if (this._settings.x != null) this._cache.x = this.wrapper.style.left = this._settings.x;
+			if (this._settings.y != null) this._cache.y = this.wrapper.style.top = this._settings.y;
+		}
+	}
+	addClass(cls) {
+		if (cls != 'kmlTimeline') dom.addClass(this.wrapper, cls);
+	}
+	removeClass(cls) {
+		if (cls != 'kmlTimeline') dom.removeClass(this.wrapper, cls);
+	}
+	toggleClass(cls) {
+		if (cls != 'kmlTimeline') dom.toggleClass(this.wrapper, cls);
+	}
+	content(el) {
+		if (el != null) {
+			if (el.nodeName) {
+				this.wrapper.appendChild(el);
+			} else {
+				this.wrapper.innerHTML = el;
+			}
+		}
+	}
+	setFontSize(v) {
+		this.wrapper.style.fontSize = v + "%";
+	}
+	destroy() {
+		this.removeAllListeners();
+		this.parent.remove(this.wrapper);
+		dom.removeElement(this.wrapper);
 	}
 }
 
@@ -3992,7 +4220,7 @@ class Containers {
 					break;
 				case 'timeline':
 					dom.addClass(containerBody, 'kmlTimeline ' + cls);
-					container = new Widget(containerBody, settings, this, parentPlayer);
+					container = new TimelineContainer(containerBody, settings, this, parentPlayer);
 					timelines.appendChild(container.wrapper);
 					break;
 				default:

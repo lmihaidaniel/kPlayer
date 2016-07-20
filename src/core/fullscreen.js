@@ -39,6 +39,9 @@ export default class Fullscreen extends Events {
             let fnFullscreenChange = ()=>{
                 if(!this.isFullScreen()){
                     setTimeout(this.scrollPosition.restore,100);
+                    this.emit('exitFullScreen');
+                }else{
+                    this.emit('enterFullScreen');
                 }
             }
             document.addEventListener(eventChange, fnFullscreenChange, false);
@@ -118,7 +121,6 @@ export default class Fullscreen extends Events {
     requestFullScreen(element) {
        let el = this.defualtFullScreenElement(element);
         if (this.supportsFullScreen) {
-            this.emit('enterFullScreen');
             this.scrollPosition.save();
             return (prefixFS === '') ? el.requestFullScreen() : el[prefixFS + (prefixFS == 'ms' ? 'RequestFullscreen' : 'RequestFullScreen')]();
         } else {
@@ -145,7 +147,6 @@ export default class Fullscreen extends Events {
     }
     cancelFullScreen() {
         if (this.supportsFullScreen) {
-            this.emit('exitFullScreen');
             return (prefixFS === '') ? document.cancelFullScreen() : document[prefixFS + (prefixFS == 'ms' ? 'ExitFullscreen' : 'CancelFullScreen')]();
         } else {
             this.cancelFullWindow();
