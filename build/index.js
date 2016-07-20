@@ -2233,6 +2233,171 @@ let relativeSizePos = function (ctx, settings) {
 	};
 };
 
+let defaults$4 = {
+    once: null,
+    start: 0,
+    end: -1,
+    on: {
+        start: function () {},
+        end: function () {},
+        click: function () {}
+    },
+    className: 'kmlCuepoint',
+    classActive: null,
+    classInactive: null,
+    label: null,
+    width: null,
+    content: null
+};
+class Cuepoint extends Events {
+    constructor(parentPlayer, options, parentWrapper) {
+        super();
+        this.__settings = deepmerge(defaults$4, options);
+        this.__fired = false;
+        this.__onceStart = false;
+        this.__onceEnd = false;
+
+        this.el = false;
+        this.parentPlayer = parentPlayer;
+        this.parentWrapper = parentWrapper;
+        for (var k in this.__settings['on']) {
+            if (isFunction(this.__settings['on'][k])) {
+                this.on(k, this.__settings['on'][k]);
+            }
+        }
+        this.addVisual(this.__settings['content']);
+        this.activate();
+    }
+    processHandler() {
+        let d = this.parentPlayer.currentTime();
+        //Check if current time is between start and end
+        if (d >= this.__settings['start'] && (this.__settings['end'] < 0 || d < this.__settings['end'])) {
+            if (this.__fired) {
+                //Do nothing if start has already been called
+                return;
+            }
+            if (!this.__onceStart) {
+                this.emit('start'); //Call start function
+                if (this.el) {
+                    if (!dom.hasClass(this.el, this.__settings['classActive'])) {
+                        dom.removeClass(this.el, this.__settings['classInactive']);
+                        dom.addClass(this.el, this.__settings['classActive']);
+                    }
+                }
+                if (this.__settings['once']) {
+                    this.__onceStart = true;
+                }
+            }
+            this.__fired = true;
+        } else {
+            if (!this.__onceEnd) {
+                if (this.el) {
+                    if (!dom.hasClass(this.el, this.__settings['classInactive'])) {
+                        dom.removeClass(this.el, this.__settings['classActive']);
+                        dom.addClass(this.el, this.__settings['classInactive']);
+                    }
+                }
+            }
+            if (!this.__fired) {
+                //Do nothing if end has already been called
+                return;
+            }
+            if (!this.__onceEnd) {
+                this.emit('end');
+                if (this.__settings['once']) {
+                    this.__onceEnd = true;
+                }
+            }
+            this.__fired = false;
+        }
+    }
+    activate() {
+        if (!this.__process) {
+            this.__process = () => {
+                this.processHandler();
+            };
+        }
+        this.parentPlayer.on('timeupdate', this.__process);
+        this.emit('activate');
+    }
+    suspend() {
+        this.parentPlayer.off('timeupdate', this.__process);
+        this.emit('suspend');
+    }
+    destroy() {
+        if (this.el) {
+            this.el.style.display = "none";
+        }
+        this.emit('destroy');
+        this.__fired = false;
+        if (this.el) {
+            if (suspend) this.suspend();
+            this.el.style.display = "none";
+        }
+    }
+    addVisual(visual) {
+        if (!this.el) {
+            if (visual) {
+                if (visual instanceof HTMLElement) {
+                    this.el = visual;
+                } else if (!!visual) {
+                    this.el = document.createElement('div');
+                    //add label only when visual is set to true - default
+                    if (isString(this.__settings['label'])) {
+                        this.label = document.createElement('span');
+                        this.label.innerHTML = this.__settings['label'];
+                        this.el.appendChild(this.label);
+                    }
+                } else {
+                    return;
+                }
+                dom.addClass(this.el, this.__settings['className']);
+                if (this.__settings['start'] > 0) {
+                    dom.addClass(this.el, this.__settings['classInactive']);
+                    this.el.style.left = this.__settings['start'] / this.parentPlayer.duration() * 100 + '%';
+                }
+                if (this.__settings['width'] && this.__settings['end'] > 1) {
+                    this.el.style.right = 100 - this.__settings['end'] / this.parentPlayer.duration() * 100 + '%';
+                }
+
+                this.el.addEventListener('click', () => {
+                    this.emit('click');
+                });
+                if (this.parentWrapper) {
+                    this.parentWrapper.appendChild(this.el);
+                }
+            }
+        }
+    }
+    activateVisual(resume) {
+        if (this.el) {
+            if (resume) this.activate();
+            this.el.style.display = "block";
+        }
+    }
+    disableVisual(suspend) {
+        if (this.el) {
+            if (suspend) this.suspend();
+            this.el.style.display = "none";
+        }
+    }
+    addClass(cls) {
+        if (this.el) {
+            dom.addClass(this.el, cls);
+        }
+    }
+    removeClass(cls) {
+        if (this.el) {
+            dom.removeClass(this.el, cls);
+        }
+    }
+    toggleClass(cls) {
+        if (this.el) {
+            dom.toggleClass(this.el, cls);
+        }
+    }
+}
+
 let defaults$2 = {
 	backgroundColor: '',
 	on: {
@@ -2240,6 +2405,7 @@ let defaults$2 = {
 		show: function () {},
 		click: function () {}
 	},
+	cuepoints: [],
 	externalControls: true,
 	visible: true,
 	pauseVideo: false
@@ -2270,6 +2436,21 @@ class Widget extends Events {
 			if (isFunction(this._settings['on'][k])) {
 				this.on(k, this._settings['on'][k]);
 			}
+		}
+		let cuepoints = [];
+		this.cuepoint = options => {
+			let cp = new Cuepoint(parentPlayer, options);
+			//check if you keep them by default
+			//cp.on('start', ()=>{console.log('logo show');this.show();});
+			//cp.on('end', ()=>{console.log('logo hide');this.hide();});
+			cuepoints.push(cp);
+			return cp;
+		};
+		this.cuepoints = () => {
+			return cuepoints;
+		};
+		for (var k in this._settings['cuepoints']) {
+			this.cuepoint(this._settings['cuepoints'][k]);
 		}
 		this.wrapper.addEventListener('click', () => {
 			this.emit('click');
@@ -2368,7 +2549,7 @@ class Widget extends Events {
 	}
 }
 
-let defaults$4 = {
+let defaults$5 = {
 	backgroundColor: '',
 	on: {
 		show: function () {},
@@ -2376,6 +2557,7 @@ let defaults$4 = {
 		beforeHide: function () {},
 		hide: function () {}
 	},
+	cuepoints: [],
 	externalControls: false,
 	visible: false,
 	pauseVideo: true,
@@ -2415,7 +2597,7 @@ class Popup extends Events {
 
 		this._visible = false;
 		this.parentPlayerPaused = false;
-		this._settings = deepmerge(defaults$4, opts);
+		this._settings = deepmerge(defaults$5, opts);
 		this._cache = {};
 		this.backgroundColor = backgroundColor(overlay);
 		this.parent = parent;
@@ -2444,6 +2626,19 @@ class Popup extends Events {
 				this.on(k, this._settings['on'][k]);
 			}
 		}
+
+		let cuepoints = [];
+		this.cuepoint = options => {
+			let cp = new Cuepoint(parentPlayer, options);
+			//check if you keep them by default
+			//cp.on('start', ()=>{console.log('logo show');this.show();});
+			//cp.on('end', ()=>{console.log('logo hide');this.hide();});
+			cuepoints.push(cp);
+			return cp;
+		};
+		this.cuepoints = () => {
+			return cuepoints;
+		};
 
 		let clsElements = dom.selectAll('.triggerClose', el);
 		for (var i = 0, n = clsElements.length; i < n; i += 1) {
@@ -2587,7 +2782,7 @@ class Popup extends Events {
 	}
 }
 
-let defaults$6 = {
+let defaults$7 = {
 	x: 0,
 	width: '100%',
 	height: '8%',
@@ -2609,6 +2804,9 @@ function Timeline (parentPlayer) {
 			let pw = dom.createElement('div', {
 				'class': 'kmlProgress'
 			});
+			let pc = dom.createElement('div', {
+				'class': 'kmlCuepoints'
+			});
 			let pl = dom.createElement('div', {
 				'class': 'progressline'
 			});
@@ -2616,17 +2814,19 @@ function Timeline (parentPlayer) {
 			pw.appendChild(pl);
 			fragment.appendChild(playBtn);
 			fragment.appendChild(pw);
+			fragment.appendChild(pc);
 			fragment.appendChild(volumeBtn);
 			fragment.appendChild(fullScreenBtn);
+			this.cuepointsWrapper = pc;
 			let wrapper = null;
 			if (parentPlayer.timelineContainer != null) {
-				this.wrapper = parentPlayer.timelineContainer(defaults$6);
+				this.wrapper = parentPlayer.timelineContainer(defaults$7);
 				this.wrapper.content(fragment);
 				wrapper = this.wrapper.wrapper;
 			} else {
 				this.wrapper = dom.createElement('div', {
 					class: "kmlTimeline",
-					style: "position: absolute; left: 0; width: " + defaults$6.width + "; height: " + defaults$6.height + "; top: auto; bottom: 0;"
+					style: "position: absolute; left: 0; width: " + defaults$7.width + "; height: " + defaults$7.height + "; top: auto; bottom: 0;"
 				});
 				parentPlayer.wrapper.appendChild(this.wrapper);
 				wrapper = this.wrapper;
@@ -2735,21 +2935,21 @@ function Timeline (parentPlayer) {
 			let w = 0;
 			let cache_sc = 0;
 			this.resize = () => {
-				let sc = procentFromString(defaults$6.height) * parentPlayer.height() / 100;
+				let sc = procentFromString(defaults$7.height) * parentPlayer.height() / 100;
 				if (cache_sc != sc) {
 					cache_sc = sc;
-					if (sc < defaults$6.minHeight) {
-						w = sc = defaults$6.minHeight;
+					if (sc < defaults$7.minHeight) {
+						w = sc = defaults$7.minHeight;
 						if (this.wrapper.settings) {
 							this.wrapper.settings({
-								height: defaults$6.minHeight + "px"
+								height: defaults$7.minHeight + "px"
 							});
 						} else {
-							wrapper.style.height = defaults$6.minHeight + "px";
+							wrapper.style.height = defaults$7.minHeight + "px";
 						}
 						playBtn.style.width = w + "px";
-						pw.style.left = w + "px";
-						pw.style.right = 2 * w + "px";
+						pc.style.left = pw.style.left = w + "px";
+						pc.style.right = pw.style.right = 2 * w + "px";
 
 						volumeBtn.style.width = w + "px";
 						volumeBtn.style.right = w + "px";
@@ -2759,15 +2959,15 @@ function Timeline (parentPlayer) {
 					} else {
 						if (this.wrapper.settings) {
 							this.wrapper.settings({
-								height: defaults$6.height
+								height: defaults$7.height
 							});
 						} else {
-							wrapper.style.height = defaults$6.height;
+							wrapper.style.height = defaults$7.height;
 						}
 						w = sc / parentPlayer.width() * 100;
 						playBtn.style.width = w + "%";
-						pw.style.left = w + "%";
-						pw.style.right = 2 * w + "%";
+						pc.style.left = pw.style.left = w + "%";
+						pc.style.right = pw.style.right = 2 * w + "%";
 
 						volumeBtn.style.width = w + "%";
 						volumeBtn.style.right = w + "%";
@@ -3403,169 +3603,103 @@ let externalControls = function (el) {
 	this.init();
 };
 
-let defaults$7 = {
-    once: null,
-    start: 0,
-    end: -1,
-    on: {
-        start: function () {},
-        end: function () {},
-        click: function () {}
-    },
-    className: 'kmlCuepoint',
-    classActive: null,
-    classInactive: null,
-    label: null,
-    width: null,
-    content: null
+let defaults$8 = {
+	wrapper: null,
+	on: {
+		show: function () {},
+		hide: function () {}
+	}
 };
-class Cuepoint extends Events {
-    constructor(parentPlayer, options, parentWrapper) {
-        super();
-        this.__settings = deepmerge(defaults$7, options);
-        this.__fired = false;
-        this.__onceStart = false;
-        this.__onceEnd = false;
-
-        this.el = false;
-        this.parentPlayer = parentPlayer;
-        this.parentWrapper = parentWrapper;
-        for (var k in this.__settings['on']) {
-            if (isFunction(this.__settings['on'][k])) {
-                this.on(k, this.__settings['on'][k]);
-            }
-        }
-        this.addVisual(this.__settings['content']);
-        this.activate();
-    }
-    processHandler() {
-        let d = this.parentPlayer.currentTime();
-        //Check if current time is between start and end
-        if (d >= this.__settings['start'] && (this.__settings['end'] < 0 || d < this.__settings['end'])) {
-            if (this.__fired) {
-                //Do nothing if start has already been called
-                return;
-            }
-            if (!this.__onceStart) {
-                this.emit('start'); //Call start function
-                if (this.el) {
-                    if (!dom.hasClass(this.el, this.__settings['classActive'])) {
-                        dom.removeClass(this.el, this.__settings['classInactive']);
-                        dom.addClass(this.el, this.__settings['classActive']);
-                    }
-                }
-                if (this.__settings['once']) {
-                    this.__onceStart = true;
-                }
-            }
-            this.__fired = true;
-        } else {
-            if (!this.__onceEnd) {
-                if (this.el) {
-                    if (!dom.hasClass(this.el, this.__settings['classInactive'])) {
-                        dom.removeClass(this.el, this.__settings['classActive']);
-                        dom.addClass(this.el, this.__settings['classInactive']);
-                    }
-                }
-            }
-            if (!this.__fired) {
-                //Do nothing if end has already been called
-                return;
-            }
-            if (!this.__onceEnd) {
-                this.emit('end');
-                if (this.__settings['once']) {
-                    this.__onceEnd = true;
-                }
-            }
-            this.__fired = false;
-        }
-    }
-    activate() {
-        if (!this.__process) {
-            this.__process = () => {
-                this.processHandler();
-            };
-        }
-        this.parentPlayer.on('timeupdate', this.__process);
-        this.emit('activate');
-    }
-    suspend() {
-        this.parentPlayer.off('timeupdate', this.__process);
-        this.emit('suspend');
-    }
-    destroy() {
-        if (this.el) {
-            this.el.style.display = "none";
-        }
-        this.emit('destroy');
-        this.__fired = false;
-        if (this.el) {
-            if (suspend) this.suspend();
-            this.el.style.display = "none";
-        }
-    }
-    addVisual(visual) {
-        if (!this.el) {
-            if (visual) {
-                if (visual instanceof HTMLElement) {
-                    this.el = visual;
-                } else if (!!visual) {
-                    this.el = document.createElement('div');
-                    //add label only when visual is set to true - default
-                    if (isString(this.__settings['label'])) {
-                        this.label = document.createElement('span');
-                        this.label.innerHTML = this.__settings['label'];
-                        this.el.appendChild(this.label);
-                    }
-                } else {
-                    return;
-                }
-                dom.addClass(this.el, this.__settings['className']);
-                if (this.__settings['start'] > 0) {
-                    dom.addClass(this.el, this.__settings['classInactive']);
-                    this.el.style.left = this.__settings['start'] / this.parentPlayer.duration() * 100 + '%';
-                }
-                if (this.__settings['width'] && this.__settings['end'] > 1) {
-                    this.el.style.right = 100 - this.__settings['end'] / this.parentPlayer.duration() * 100 + '%';
-                }
-
-                this.el.addEventListener('click', function () {
-                    this.emit('click');
-                });
-                if (this.parentWrapper) {
-                    this.parentWrapper.appendChild(this.el);
-                }
-            }
-        }
-    }
-    activateVisual(resume) {
-        if (this.el) {
-            if (resume) this.activate();
-            this.el.style.display = "block";
-        }
-    }
-    disableVisual(suspend) {
-        if (this.el) {
-            if (suspend) this.suspend();
-            this.el.style.display = "none";
-        }
-    }
-    addClass(cls) {
-        if (this.el) {
-            dom.addClass(this.el, cls);
-        }
-    }
-    removeClass(cls) {
-        if (this.el) {
-            dom.removeClass(this.el, cls);
-        }
-    }
-    toggleClass(cls) {
-        if (this.el) {
-            dom.toggleClass(this.el, cls);
-        }
-    }
+class Cuepoints extends Events {
+	constructor(parentPlayer, options) {
+		super();
+		this.parentPlayer = parentPlayer;
+		this.settings = deepmerge(defaults$8, options);
+		this.instances = [];
+		this.wrapper = null;
+		for (var k in this.settings['on']) {
+			if (isFunction(this.settings['on'][k])) {
+				this.on(k, this.settings['on'][k]);
+			}
+		}
+		let el = this.settings["wrapper"];
+		if (typeof el === 'string') this.wrapper = document.querySelector(el);
+		if (el instanceof HTMLElement) this.wrapper = el;
+		if (this.wrapper != null) {
+			if (parentPlayer.timeline) {
+				if (parentPlayer.timeline.cuepointsWrapper) {
+					this.wrapper = parentPlayer.timeline.cuepointsWrapper;
+				}
+			}
+		}
+	}
+	add(options, wrapper) {
+		if (wrapper != null) this.wrapper = wrapper;
+		var cp = new Cuepoint(this.parentPlayer, options, this.wrapper);
+		this.instances.push(cp);
+		this.emit('add');
+		return cp;
+	}
+	show() {
+		for (var i = this.instances.length - 1; i >= 0; i--) {
+			let cp = this.instances[i];
+			if (cp.el) {
+				cp.el.style.display = "block";
+			}
+		}
+		this.emit('show');
+	}
+	hide() {
+		for (var i = this.instances.length - 1; i >= 0; i--) {
+			let cp = this.instances[i];
+			if (cp.el) {
+				cp.el.style.display = "none";
+			}
+		}
+		this.emit('hide');
+	}
+	suspend() {
+		for (var i = this.instances.length - 1; i >= 0; i--) {
+			let cp = this.instances[i];
+			cp.suspend();
+		}
+		this.emit('suspend');
+	}
+	activate() {
+		for (var i = this.instances.length - 1; i >= 0; i--) {
+			let cp = this.instances[i];
+			cp.activate();
+		}
+		this.emit('activate');
+	}
+	destroy(keep) {
+		for (var i = this.instances.length - 1; i >= 0; i--) {
+			let cp = this.instances[i];
+			if (cp.el) {
+				cp.parentWrapper.removeChild(cp.el);
+			}
+			cp.destroy();
+			if (keep == undefined) this.instances[i] = null;
+		}
+		if (keep == undefined) this.instances = [];
+	}
+	changeWrapper(el) {
+		if (typeof el === 'string') this.wrapper = document.querySelector(el);
+		if (el instanceof HTMLElement) this.wrapper = el;
+		if (this.wrapper != null) {
+			this.destroy(true);
+			let j = this.instances.length;
+			for (var i = 0; i < j; i++) {
+				let cp = this.instances[i];
+				if (cp.el) {
+					cp.parentWrapper = this.wrapper;
+					this.wrapper.appendChild(cp.el);
+				}
+				cp.activate();
+			}
+			this.emit('changeWrapper');
+		}
+	}
 }
 
 function userActivity (parentPlayer, settings = { timeout: 2000 }) {
@@ -3889,7 +4023,7 @@ const fn_contextmenu = function (e) {
 	return false;
 };
 
-const defaults$5 = {
+const defaults$6 = {
 	videoWidth: 960,
 	videoHeight: 540,
 	autoplay: false,
@@ -3939,7 +4073,7 @@ class Player extends Media {
 			app.bind(this)();
 		}
 
-		this.settings(deepmerge(defaults$5, settings));
+		this.settings(deepmerge(defaults$6, settings));
 
 		this.on('loadedmetadata', () => {
 			if (this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight) {
@@ -3965,12 +4099,17 @@ class Player extends Media {
 		this.cuepoint = function (options) {
 			return new Cuepoint(this, options, null);
 		};
+
+		this.cuepoints = new Cuepoints(this);
 	}
 
 	initTimeline() {
 		if (this.__settings['controls'] !== "native") {
 			if (this.__settings['controls']) {
 				this.timeline = new Timeline(this);
+				if (!this.cuepoints.wrapper) {
+					this.cuepoints.changeWrapper(this.timeline.cuepointsWrapper);
+				}
 			}
 		}
 	}
@@ -4238,7 +4377,7 @@ class videoPopup extends Popup {
 	}
 }
 
-let defaults$8 = {
+let defaults$9 = {
 	backgroundColor: '',
 	onHide: null,
 	onShow: null,
@@ -4255,7 +4394,7 @@ class TimelineContainer extends Events {
 		super();
 		this.wrapper = el;
 		this._visible = false;
-		this._settings = deepmerge(defaults$8, opts);
+		this._settings = deepmerge(defaults$9, opts);
 		this._cache = {};
 		this.backgroundColor = backgroundColor(el);
 		this.parent = parent;

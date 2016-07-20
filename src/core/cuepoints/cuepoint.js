@@ -125,7 +125,7 @@ export default class Cuepoint extends Events{
                     this.el.style.right = (100 - this.__settings['end'] / this.parentPlayer.duration() * 100) + '%';
                 }
 
-                this.el.addEventListener('click', function() {
+                this.el.addEventListener('click', ()=>{
                     this.emit('click');
                 });
                 if (this.parentWrapper) {

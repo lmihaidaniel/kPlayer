@@ -24,6 +24,9 @@ export default function(parentPlayer) {
 			let pw = dom.createElement('div', {
 				'class': 'kmlProgress'
 			});
+			let pc = dom.createElement('div', {
+				'class': 'kmlCuepoints'
+			});
 			let pl = dom.createElement('div', {
 				'class': 'progressline'
 			});
@@ -31,8 +34,10 @@ export default function(parentPlayer) {
 			pw.appendChild(pl);
 			fragment.appendChild(playBtn);
 			fragment.appendChild(pw);
+			fragment.appendChild(pc);
 			fragment.appendChild(volumeBtn);
 			fragment.appendChild(fullScreenBtn);
+			this.cuepointsWrapper = pc;
 			let wrapper = null;
 			if (parentPlayer.timelineContainer != null) {
 				this.wrapper = parentPlayer.timelineContainer(defaults);
@@ -163,8 +168,8 @@ export default function(parentPlayer) {
 							wrapper.style.height = defaults.minHeight + "px";
 						}
 						playBtn.style.width = w + "px";
-						pw.style.left = w + "px";
-						pw.style.right = 2 * w + "px";
+						pc.style.left = pw.style.left = w + "px";
+						pc.style.right = pw.style.right = 2 * w + "px";
 
 						volumeBtn.style.width = w + "px";
 						volumeBtn.style.right = w + "px";
@@ -181,8 +186,8 @@ export default function(parentPlayer) {
 						}
 						w = sc / parentPlayer.width() * 100;
 						playBtn.style.width = w + "%";
-						pw.style.left = w + "%";
-						pw.style.right = 2 * w + "%";
+						pc.style.left = pw.style.left = w + "%";
+						pc.style.right = pw.style.right = 2 * w + "%";
 
 						volumeBtn.style.width = w + "%";
 						volumeBtn.style.right = w + "%";

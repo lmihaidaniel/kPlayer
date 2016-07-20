@@ -3,6 +3,7 @@ import dom from '../../helpers/dom';
 import deepmerge from '../../helpers/deepmerge';
 import backgroundColorFN from '../../helpers/backgroundColor';
 import relativeSizePos from './relativeSizePos';
+import Cuepoint from '../cuepoints/cuepoint';
 import {
 	isFunction
 } from '../../helpers/utils';
@@ -15,6 +16,7 @@ let defaults = {
 		beforeHide: function(){},
 		hide: function(){},
 	},
+	cuepoints: [],
 	externalControls: false,
 	visible: false,
 	pauseVideo: true,
@@ -85,6 +87,19 @@ export default class Popup extends Events {
                 this.on(k, this._settings['on'][k]);
             }
         }
+
+        let cuepoints = [];
+		this.cuepoint = (options)=>{
+			let cp = new Cuepoint(parentPlayer, options);
+			//check if you keep them by default
+			//cp.on('start', ()=>{console.log('logo show');this.show();});
+			//cp.on('end', ()=>{console.log('logo hide');this.hide();});
+			cuepoints.push(cp)
+			return cp;
+		}
+		this.cuepoints = ()=>{
+			return cuepoints;
+		}
 
 		let clsElements = dom.selectAll('.triggerClose', el);
 		for (var i = 0, n = clsElements.length; i < n; i += 1) {

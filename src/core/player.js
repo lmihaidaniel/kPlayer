@@ -14,6 +14,7 @@ import device from '../helpers/device';
 import Media from './media/index';
 import externalControls from './media/events/externalControls';
 import Cuepoint from './cuepoints/cuepoint';
+import Cuepoints from './cuepoints/index';
 import userActivity from './userActivity';
 import containerBounds from '../helpers/containerBounds';
 import pageVisibility from '../helpers/pageVisibility';
@@ -103,12 +104,17 @@ export default class Player extends Media {
 			return new Cuepoint(this, options, null);
 		}
 
+		this.cuepoints = new Cuepoints(this);
+
 	}
 
 	initTimeline() {
 		if (this.__settings['controls'] !== "native") {
 			if (this.__settings['controls']) {
 				this.timeline = new Timeline(this);
+				if(!this.cuepoints.wrapper){
+					this.cuepoints.changeWrapper(this.timeline.cuepointsWrapper);
+				}
 			}
 		}
 	}

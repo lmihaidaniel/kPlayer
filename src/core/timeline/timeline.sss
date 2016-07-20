@@ -109,11 +109,21 @@
 	pointer-events: none;
 }
 
+.kmlCuepoints{
+	position: absolute;
+	top: 0;
+	height: 100%;
+	pointer-events: none;
+	transition: all .25s ease;
+    transition: all 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
 .kmlTimeline.closed button{
 	top: 100%;
 }
-.kmlTimeline.closed .kmlProgress{
+.kmlTimeline.closed .kmlProgress, .kmlTimeline.closed .kmlCuepoints{
 	left: 0!important;
+	right: 0!important;
 	width: 100%!important;
 }
 .kmlTimeline.closed .kmlProgress:before,.kmlTimeline.closed .kmlProgress .progressline{

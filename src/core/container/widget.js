@@ -3,6 +3,7 @@ import dom from '../../helpers/dom';
 import deepmerge from '../../helpers/deepmerge';
 import backgroundColorFN from '../../helpers/backgroundColor';
 import relativeSizePos from './relativeSizePos';
+import Cuepoint from '../cuepoints/cuepoint';
 import {
 	isFunction
 } from '../../helpers/utils';
@@ -14,6 +15,7 @@ let defaults = {
         show: function(){},
         click: function(){}
     },
+    cuepoints: [],
 	externalControls: true,
 	visible: true,
 	pauseVideo: false
@@ -44,6 +46,21 @@ export default class Widget extends Events {
             if(isFunction(this._settings['on'][k])){
                 this.on(k, this._settings['on'][k]);
             }
+        }
+        let cuepoints = [];
+		this.cuepoint = (options)=>{
+			let cp = new Cuepoint(parentPlayer, options);
+			//check if you keep them by default
+			//cp.on('start', ()=>{console.log('logo show');this.show();});
+			//cp.on('end', ()=>{console.log('logo hide');this.hide();});
+			cuepoints.push(cp)
+			return cp;
+		}
+		this.cuepoints = ()=>{
+			return cuepoints;
+		}
+        for(var k in this._settings['cuepoints']){
+            this.cuepoint(this._settings['cuepoints'][k]);
         }
         this.wrapper.addEventListener('click', ()=>{this.emit('click')});
 		this.parentPlayer.on('resize', () => {
