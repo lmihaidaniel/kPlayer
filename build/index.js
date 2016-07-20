@@ -47,8 +47,10 @@ if ('classList' in document.documentElement) {
 }
 
 toggleClass = function (elem, c) {
-	var fn = hasClass(elem, c) ? removeClass : addClass;
-	fn(elem, c);
+	if (c != null) {
+		var fn = hasClass(elem, c) ? removeClass : addClass;
+		fn(elem, c);
+	}
 };
 
 let getPrefixedStylePropName = function getPrefixedStylePropName(propName) {
@@ -253,6 +255,15 @@ function procentFromString(v) {
     }
   }
   return t;
+}
+
+/**
+ * Detect if the argument passed is a string
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+function isString(v) {
+  return typeof v === 'string';
 }
 
 /**
@@ -2583,6 +2594,7 @@ function Timeline (parentPlayer) {
 			let pl = dom.createElement('div', {
 				'class': 'progressline'
 			});
+			//pl.appendChild(dom.createElement('div', {'class': 'progressBubble'}));
 			pw.appendChild(pl);
 			fragment.appendChild(playBtn);
 			fragment.appendChild(pw);
@@ -3261,128 +3273,7 @@ class Media extends Fullscreen {
 	}
 }
 
-var containerBounds = (function () {
-	let scale = 0;
-	let bounds = function (el, updateScale) {
-		if (updateScale !== undefined) scale = updateScale;
-		var data = {
-			wrapperWidth: el.offsetWidth,
-			wrapperHeight: el.offsetHeight,
-			scale: scale || el.width / el.height,
-			width: 0,
-			height: 0,
-			offsetX: 0,
-			offsetY: 0
-		};
-		data['wrapperScale'] = data.wrapperWidth / data.wrapperHeight;
-		if (data.wrapperScale > data.scale) {
-			data.height = data.wrapperHeight;
-			data.width = data.scale * data.height;
-			data.offsetX = (data.wrapperWidth - data.width) / 2;
-		} else {
-			data.width = data.wrapperWidth;
-			data.height = data.width / data.scale;
-			data.offsetY = (data.wrapperHeight - data.height) / 2;
-		}
-		return data;
-	};
-	return bounds;
-})();
-
-var _doc = document || {};
-// Set the name of the hidden property and the change event for visibility
-var hidden;
-var visibilityChange;
-if (typeof _doc.hidden !== "undefined") {
-	// Opera 12.10 and Firefox 18 and later support 
-	hidden = "hidden";
-	visibilityChange = "visibilitychange";
-} else if (typeof _doc.mozHidden !== "undefined") {
-	hidden = "mozHidden";
-	visibilityChange = "mozvisibilitychange";
-} else if (typeof _doc.msHidden !== "undefined") {
-	hidden = "msHidden";
-	visibilityChange = "msvisibilitychange";
-} else if (typeof _doc.webkitHidden !== "undefined") {
-	hidden = "webkitHidden";
-	visibilityChange = "webkitvisibilitychange";
-}
-
-const isAvailable = function () {
-	return !(typeof _doc[hidden] === "undefined");
-};
-
-function pageVisibility(_media, settings = {}) {
-	let _available = isAvailable();
-	if (_available) {
-		let _enabled = false;
-		let _playing = false;
-		let paused = false;
-		let setFlagPlaying = function () {
-			_playing = true;
-		};
-		let events = {
-			visible: function () {},
-			hidden: function () {}
-		};
-		let destroyVisibility = function () {
-			events = {
-				visible: function () {},
-				hidden: function () {}
-			};
-			_enabled = false;
-			_playing = false;
-			_doc.removeEventListener(visibilityChange, handleVisibilityChange, false);
-			_media.removeEventListener('playing', setFlagPlaying);
-		};
-		let handleVisibilityChange = function () {
-			if (_enabled) {
-				if (_doc[hidden]) {
-					if (_playing && !_media.paused) {
-						_media.pause();
-						paused = true;
-					}
-					events.hidden();
-				} else {
-					if (paused && _media.paused) {
-						_media.play();
-						paused = false;
-					}
-					events.visible();
-				}
-			}
-		};
-		let initVisibility = function initVisibility(settings) {
-			if (_available) {
-				_doc.removeEventListener(visibilityChange, handleVisibilityChange, false);
-				_media.removeEventListener('playing', setFlagPlaying);
-
-				events.visible = settings.onVisible || events.visible;
-				events.hidden = settings.onHidden || events.hidden;
-				_enabled = true;
-				_doc.addEventListener(visibilityChange, handleVisibilityChange, false);
-				_media.addEventListener('playing', setFlagPlaying);
-			}
-		};
-		events.visible = settings.onVisible || events.visible;
-		events.hidden = settings.onHidden || events.hidden;
-		_enabled = true;
-		_doc.addEventListener(visibilityChange, handleVisibilityChange, false);
-		_media.addEventListener('playing', setFlagPlaying);
-
-		this.init = initVisibility;
-		this.destroy = destroyVisibility;
-		this.on = function (event, fn) {
-			if (event in events) events[event] = fn;
-		};
-		this.enabled = function (v) {
-			if (typeof v === 'boolean') _enabled = v;
-			return _enabled;
-		};
-	};
-};
-
-let _doc$1 = document || {};
+let _doc = document || {};
 let externalControls = function (el) {
 	let _enabled = true;
 	let _seek = true;
@@ -3467,17 +3358,391 @@ let externalControls = function (el) {
 		_enabled = true;
 		_tId = null;
 		_seek = true;
-		_doc$1.body.addEventListener('keydown', keydown.bind(this), false);
-		_doc$1.body.addEventListener('keyup', keyup.bind(this), false);
+		_doc.body.addEventListener('keydown', keydown.bind(this), false);
+		_doc.body.addEventListener('keyup', keyup.bind(this), false);
 	};
 	this.destroy = function () {
 		_enabled = false;
 		_tId = null;
 		_seek = true;
-		_doc$1.body.removeEventListener('keydown', keydown);
-		_doc$1.body.removeEventListener('keyup', keyup);
+		_doc.body.removeEventListener('keydown', keydown);
+		_doc.body.removeEventListener('keyup', keyup);
 	};
 	this.init();
+};
+
+let defaults$7 = {
+    once: null,
+    start: 0,
+    end: -1,
+    on: {
+        start: function () {},
+        end: function () {},
+        click: function () {}
+    },
+    className: 'kmlCuepoint',
+    classActive: null,
+    classInactive: null,
+    label: null,
+    width: null,
+    content: null
+};
+class Cuepoint extends Events {
+    constructor(parentPlayer, options, parentWrapper) {
+        super();
+        this.__settings = deepmerge(defaults$7, options);
+        this.__fired = false;
+        this.__onceStart = false;
+        this.__onceEnd = false;
+
+        this.el = false;
+        this.parentPlayer = parentPlayer;
+        this.parentWrapper = parentWrapper;
+        for (var k in this.__settings['on']) {
+            if (isFunction(this.__settings['on'][k])) {
+                this.on(k, this.__settings['on'][k]);
+            }
+        }
+        this.addVisual(this.__settings['content']);
+        this.activate();
+    }
+    processHandler() {
+        let d = this.parentPlayer.currentTime();
+        //Check if current time is between start and end
+        if (d >= this.__settings['start'] && (this.__settings['end'] < 0 || d < this.__settings['end'])) {
+            if (this.__fired) {
+                //Do nothing if start has already been called
+                return;
+            }
+            if (!this.__onceStart) {
+                this.emit('start'); //Call start function
+                if (this.el) {
+                    if (!dom.hasClass(this.el, this.__settings['classActive'])) {
+                        dom.removeClass(this.el, this.__settings['classInactive']);
+                        dom.addClass(this.el, this.__settings['classActive']);
+                    }
+                }
+                if (this.__settings['once']) {
+                    this.__onceStart = true;
+                }
+            }
+            this.__fired = true;
+        } else {
+            if (!this.__onceEnd) {
+                if (this.el) {
+                    if (!dom.hasClass(this.el, this.__settings['classInactive'])) {
+                        dom.removeClass(this.el, this.__settings['classActive']);
+                        dom.addClass(this.el, this.__settings['classInactive']);
+                    }
+                }
+            }
+            if (!this.__fired) {
+                //Do nothing if end has already been called
+                return;
+            }
+            if (!this.__onceEnd) {
+                this.emit('end');
+                if (this.__settings['once']) {
+                    this.__onceEnd = true;
+                }
+            }
+            this.__fired = false;
+        }
+    }
+    activate() {
+        if (!this.__process) {
+            this.__process = () => {
+                this.processHandler();
+            };
+        }
+        this.parentPlayer.on('timeupdate', this.__process);
+        this.emit('activate');
+    }
+    suspend() {
+        this.parentPlayer.off('timeupdate', this.__process);
+        this.emit('suspend');
+    }
+    destroy() {
+        if (this.el) {
+            this.el.style.display = "none";
+        }
+        this.emit('destroy');
+        this.__fired = false;
+        if (this.el) {
+            if (suspend) this.suspend();
+            this.el.style.display = "none";
+        }
+    }
+    addVisual(visual) {
+        if (!this.el) {
+            if (visual) {
+                if (visual instanceof HTMLElement) {
+                    this.el = visual;
+                } else if (!!visual) {
+                    this.el = document.createElement('div');
+                    //add label only when visual is set to true - default
+                    if (isString(this.__settings['label'])) {
+                        this.label = document.createElement('span');
+                        this.label.innerHTML = this.__settings['label'];
+                        this.el.appendChild(this.label);
+                    }
+                } else {
+                    return;
+                }
+                dom.addClass(this.el, this.__settings['className']);
+                if (this.__settings['start'] > 0) {
+                    dom.addClass(this.el, this.__settings['classInactive']);
+                    this.el.style.left = this.__settings['start'] / this.parentPlayer.duration() * 100 + '%';
+                }
+                if (this.__settings['width'] && this.__settings['end'] > 1) {
+                    this.el.style.right = 100 - this.__settings['end'] / this.parentPlayer.duration() * 100 + '%';
+                }
+
+                this.el.addEventListener('click', function () {
+                    this.emit('click');
+                });
+                if (this.parentWrapper) {
+                    this.parentWrapper.appendChild(this.el);
+                }
+            }
+        }
+    }
+    activateVisual(resume) {
+        if (this.el) {
+            if (resume) this.activate();
+            this.el.style.display = "block";
+        }
+    }
+    disableVisual(suspend) {
+        if (this.el) {
+            if (suspend) this.suspend();
+            this.el.style.display = "none";
+        }
+    }
+    addClass(cls) {
+        if (this.el) {
+            dom.addClass(this.el, cls);
+        }
+    }
+    removeClass(cls) {
+        if (this.el) {
+            dom.removeClass(this.el, cls);
+        }
+    }
+    toggleClass(cls) {
+        if (this.el) {
+            dom.toggleClass(this.el, cls);
+        }
+    }
+}
+
+function userActivity (parentPlayer, settings = { timeout: 2000 }) {
+	return function () {
+		let userActivity = function () {
+			let isMobile = parentPlayer.device.isMobile;
+			let timer = 0;
+			let tid = null;
+			let idle = true;
+			let player = parentPlayer.wrapper;
+			let timeoutDefault = settings.timeout;
+			let check = () => {
+				if (tid) {
+					if (idle) {
+						parentPlayer.emit('user-not-idle');
+					}
+					clearTimeout(tid);
+				}
+				idle = false;
+				tid = setTimeout(() => {
+					idle = true;
+					parentPlayer.emit('user-is-idle');
+				}, settings.timeout);
+			};
+			this.watch = () => {
+				if (isMobile) {
+					player.addEventListener('touchstart', check);
+					player.addEventListener('touchmove', check);
+				} else {
+					player.addEventListener('mousemove', check);
+					window.addEventListener('keyup', check);
+				}
+			};
+			this.unwatch = () => {
+				if (isMobile) {
+					player.removeEventListener('touchstart', check);
+					player.removeEventListener('touchmove', check);
+				} else {
+					player.removeEventListener('mousemove', check);
+					window.removeEventListener('keyup', check);
+				}
+				clearTimeout(tid);
+			};
+			this.watch();
+			this.suspend = v => {
+				if (v != null) {
+					v = !!v;
+					if (v) {
+						parentPlayer.emit('user-is-idle');
+					} else {
+						parentPlayer.emit('user-not-idle');
+					}
+					this.unwatch();
+					idle = v;
+				}
+				return idle;
+			};
+			this.idle = v => {
+				if (v != null) {
+					v = !!v;
+					if (v) {
+						parentPlayer.emit('user-is-idle');
+					} else {
+						parentPlayer.emit('user-not-idle');
+					}
+					idle = v;
+					tid = setTimeout(() => {
+						idle = true;
+						parentPlayer.emit('user-is-idle');
+					}, settings.timeout);
+				}
+				return idle;
+			};
+			this.resume = () => {
+				idle = true;
+				this.watch();
+			};
+			this.timeout = v => {
+				if (isStrictNumeric(v)) {
+					settings.timeout = v;
+				} else {
+					settings.timeout = timeoutDefault;
+				}
+				return settings.timeout;
+			};
+		};
+		return new userActivity();
+	}();
+};
+
+var containerBounds = (function () {
+	let scale = 0;
+	let bounds = function (el, updateScale) {
+		if (updateScale !== undefined) scale = updateScale;
+		var data = {
+			wrapperWidth: el.offsetWidth,
+			wrapperHeight: el.offsetHeight,
+			scale: scale || el.width / el.height,
+			width: 0,
+			height: 0,
+			offsetX: 0,
+			offsetY: 0
+		};
+		data['wrapperScale'] = data.wrapperWidth / data.wrapperHeight;
+		if (data.wrapperScale > data.scale) {
+			data.height = data.wrapperHeight;
+			data.width = data.scale * data.height;
+			data.offsetX = (data.wrapperWidth - data.width) / 2;
+		} else {
+			data.width = data.wrapperWidth;
+			data.height = data.width / data.scale;
+			data.offsetY = (data.wrapperHeight - data.height) / 2;
+		}
+		return data;
+	};
+	return bounds;
+})();
+
+var _doc$1 = document || {};
+// Set the name of the hidden property and the change event for visibility
+var hidden;
+var visibilityChange;
+if (typeof _doc$1.hidden !== "undefined") {
+	// Opera 12.10 and Firefox 18 and later support 
+	hidden = "hidden";
+	visibilityChange = "visibilitychange";
+} else if (typeof _doc$1.mozHidden !== "undefined") {
+	hidden = "mozHidden";
+	visibilityChange = "mozvisibilitychange";
+} else if (typeof _doc$1.msHidden !== "undefined") {
+	hidden = "msHidden";
+	visibilityChange = "msvisibilitychange";
+} else if (typeof _doc$1.webkitHidden !== "undefined") {
+	hidden = "webkitHidden";
+	visibilityChange = "webkitvisibilitychange";
+}
+
+const isAvailable = function () {
+	return !(typeof _doc$1[hidden] === "undefined");
+};
+
+function pageVisibility(_media, settings = {}) {
+	let _available = isAvailable();
+	if (_available) {
+		let _enabled = false;
+		let _playing = false;
+		let paused = false;
+		let setFlagPlaying = function () {
+			_playing = true;
+		};
+		let events = {
+			visible: function () {},
+			hidden: function () {}
+		};
+		let destroyVisibility = function () {
+			events = {
+				visible: function () {},
+				hidden: function () {}
+			};
+			_enabled = false;
+			_playing = false;
+			_doc$1.removeEventListener(visibilityChange, handleVisibilityChange, false);
+			_media.removeEventListener('playing', setFlagPlaying);
+		};
+		let handleVisibilityChange = function () {
+			if (_enabled) {
+				if (_doc$1[hidden]) {
+					if (_playing && !_media.paused) {
+						_media.pause();
+						paused = true;
+					}
+					events.hidden();
+				} else {
+					if (paused && _media.paused) {
+						_media.play();
+						paused = false;
+					}
+					events.visible();
+				}
+			}
+		};
+		let initVisibility = function initVisibility(settings) {
+			if (_available) {
+				_doc$1.removeEventListener(visibilityChange, handleVisibilityChange, false);
+				_media.removeEventListener('playing', setFlagPlaying);
+
+				events.visible = settings.onVisible || events.visible;
+				events.hidden = settings.onHidden || events.hidden;
+				_enabled = true;
+				_doc$1.addEventListener(visibilityChange, handleVisibilityChange, false);
+				_media.addEventListener('playing', setFlagPlaying);
+			}
+		};
+		events.visible = settings.onVisible || events.visible;
+		events.hidden = settings.onHidden || events.hidden;
+		_enabled = true;
+		_doc$1.addEventListener(visibilityChange, handleVisibilityChange, false);
+		_media.addEventListener('playing', setFlagPlaying);
+
+		this.init = initVisibility;
+		this.destroy = destroyVisibility;
+		this.on = function (event, fn) {
+			if (event in events) events[event] = fn;
+		};
+		this.enabled = function (v) {
+			if (typeof v === 'boolean') _enabled = v;
+			return _enabled;
+		};
+	};
 };
 
 //https://github.com/fdaciuk/ajax
@@ -3586,94 +3851,6 @@ var ajax = (function () {
   return ajax;
 })();
 
-function userActivity (parentPlayer, settings = { timeout: 2000 }) {
-	return function () {
-		let userActivity = function () {
-			let isMobile = parentPlayer.device.isMobile;
-			let timer = 0;
-			let tid = null;
-			let idle = true;
-			let player = parentPlayer.wrapper;
-			let timeoutDefault = settings.timeout;
-			let check = () => {
-				if (tid) {
-					if (idle) {
-						parentPlayer.emit('user-not-idle');
-					}
-					clearTimeout(tid);
-				}
-				idle = false;
-				tid = setTimeout(() => {
-					idle = true;
-					parentPlayer.emit('user-is-idle');
-				}, settings.timeout);
-			};
-			this.watch = () => {
-				if (isMobile) {
-					player.addEventListener('touchstart', check);
-					player.addEventListener('touchmove', check);
-				} else {
-					player.addEventListener('mousemove', check);
-					window.addEventListener('keyup', check);
-				}
-			};
-			this.unwatch = () => {
-				if (isMobile) {
-					player.removeEventListener('touchstart', check);
-					player.removeEventListener('touchmove', check);
-				} else {
-					player.removeEventListener('mousemove', check);
-					window.removeEventListener('keyup', check);
-				}
-				clearTimeout(tid);
-			};
-			this.watch();
-			this.suspend = v => {
-				if (v != null) {
-					v = !!v;
-					if (v) {
-						parentPlayer.emit('user-is-idle');
-					} else {
-						parentPlayer.emit('user-not-idle');
-					}
-					this.unwatch();
-					idle = v;
-				}
-				return idle;
-			};
-			this.idle = v => {
-				if (v != null) {
-					v = !!v;
-					if (v) {
-						parentPlayer.emit('user-is-idle');
-					} else {
-						parentPlayer.emit('user-not-idle');
-					}
-					idle = v;
-					tid = setTimeout(() => {
-						idle = true;
-						parentPlayer.emit('user-is-idle');
-					}, settings.timeout);
-				}
-				return idle;
-			};
-			this.resume = () => {
-				idle = true;
-				this.watch();
-			};
-			this.timeout = v => {
-				if (isStrictNumeric(v)) {
-					settings.timeout = v;
-				} else {
-					settings.timeout = timeoutDefault;
-				}
-				return settings.timeout;
-			};
-		};
-		return new userActivity();
-	}();
-};
-
 const fn_contextmenu = function (e) {
 	e.stopPropagation();
 	e.preventDefault();
@@ -3752,6 +3929,10 @@ class Player extends Media {
 				this.requestFullWindow();
 			}
 		}
+
+		this.cuepoint = function (options) {
+			return new Cuepoint(this, options, null);
+		};
 	}
 
 	initTimeline() {
@@ -4025,7 +4206,7 @@ class videoPopup extends Popup {
 	}
 }
 
-let defaults$7 = {
+let defaults$8 = {
 	backgroundColor: '',
 	onHide: null,
 	onShow: null,
@@ -4042,7 +4223,7 @@ class TimelineContainer extends Events {
 		super();
 		this.wrapper = el;
 		this._visible = false;
-		this._settings = deepmerge(defaults$7, opts);
+		this._settings = deepmerge(defaults$8, opts);
 		this._cache = {};
 		this.backgroundColor = backgroundColor(el);
 		this.parent = parent;

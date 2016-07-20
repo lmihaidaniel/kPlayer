@@ -12,11 +12,12 @@ import {
 import dom from '../helpers/dom';
 import device from '../helpers/device';
 import Media from './media/index';
+import externalControls from './media/events/externalControls';
+import Cuepoint from './cuepoints/cuepoint';
+import userActivity from './userActivity';
 import containerBounds from '../helpers/containerBounds';
 import pageVisibility from '../helpers/pageVisibility';
-import externalControls from './media/events/externalControls';
 import ajax from '../helpers/ajax';
-import userActivity from './userActivity';
 
 const fn_contextmenu = function(e) {
 	e.stopPropagation();
@@ -95,6 +96,11 @@ export default class Player extends Media {
 			if (this.__settings['fullWindow']) {
 				this.requestFullWindow();
 			}
+		}
+
+
+		this.cuepoint = function(options){
+			return new Cuepoint(this, options, null);
 		}
 
 	}

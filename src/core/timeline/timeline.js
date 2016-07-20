@@ -27,6 +27,7 @@ export default function(parentPlayer) {
 			let pl = dom.createElement('div', {
 				'class': 'progressline'
 			});
+			//pl.appendChild(dom.createElement('div', {'class': 'progressBubble'}));
 			pw.appendChild(pl);
 			fragment.appendChild(playBtn);
 			fragment.appendChild(pw);

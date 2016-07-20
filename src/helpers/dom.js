@@ -47,8 +47,10 @@ if ('classList' in document.documentElement) {
 }
 
 toggleClass = function(elem, c) {
-	var fn = hasClass(elem, c) ? removeClass : addClass;
-	fn(elem, c);
+	if(c!=null){
+		var fn = hasClass(elem, c) ? removeClass : addClass;
+		fn(elem, c);
+	}
 };
 
 let getPrefixedStylePropName = function getPrefixedStylePropName(propName) {
