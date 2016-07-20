@@ -6,7 +6,7 @@ let defaults = {
 	x: 0,
 	width: '100%',
 	height: '8%',
-	minHeight: 32,
+	minHeight: 48,
 }
 export default function(parentPlayer) {
 	return (function() {

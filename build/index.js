@@ -2786,7 +2786,7 @@ let defaults$7 = {
 	x: 0,
 	width: '100%',
 	height: '8%',
-	minHeight: 32
+	minHeight: 48
 };
 function Timeline (parentPlayer) {
 	return function () {

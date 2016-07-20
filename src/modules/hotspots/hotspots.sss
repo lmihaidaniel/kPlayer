@@ -1,0 +1,24 @@
+.video-js .vjs-overlays{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.video-js .vjs-overlays .vjs-overlay{
+    position: absolute;
+    cursor: pointer;
+    display: block;
+    pointer-events: visible !important;
+    background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7) repeat;
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000;
+        perspective: 1000px;
+    /*transition: all .25s ease-in-out;*/
+}

@@ -5,17 +5,15 @@ visibility - °done
 externalcontrol - °done
 fullScreen/fullWindow - °done
 userActivity  - °done
-
+cuepoints  - °done
 widget => popup => videoPopup - °done
-
-quizPopup, slideShowPopup
-
 timeline Standard - °done
 
+
 timeline -> pluggable -> custom *TODO
+quizPopup, slideShowPopup *TODO
 
 subtitles *TODO
-cuepoints *TODO
 hotspots *TODO
 
 quiz -> quiz MC *TODO
