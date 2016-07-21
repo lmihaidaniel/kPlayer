@@ -142,6 +142,17 @@ export function isObject(v) {
  */
 export function isArray(a) { return Array.isArray(a) || a instanceof Array }
 
+
+/**
+ * Detect if the argument passed is an Dom element, exclude null.
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+export function isDomElement(v) {
+	if(v!=null) return v.nodeName;
+  	return false;
+}
+
 /**
  * Check whether an array contains an item
  * @param   { Array } arr - target array
@@ -225,5 +236,45 @@ export function scaleFont(f, width, el) {
 	}
 	return {fontSize: r, lineHeight: l};
 };
+
+export function setCenterPoint(x, y, w, h, origin) {
+	var pos = {
+		x: x,
+		y: y
+	};
+	switch (origin) {
+		case "center":
+			pos.x = x - w / 2;
+			pos.y = y - h / 2;
+			break;
+		case "top":
+			pos.x = x - w / 2;
+			break;
+		case "left":
+			pos.y = y - h / 2;
+			break;
+		case "right":
+			pos.x = x - w;
+			pos.y = y - h / 2;
+			break;
+		case "topRight":
+			pos.x = x - w;
+			break;
+		case "bottom":
+			pos.x = x - w / 2;
+			pos.y = y - h;
+			break;
+		case "bottomLeft":
+			pos.y = y - h;
+			break;
+		case "bottomRight":
+			pos.x = x - w;
+			pos.y = y - h;
+			break;
+		default:
+			break;
+	}
+	return pos;
+}
 
 export default {};

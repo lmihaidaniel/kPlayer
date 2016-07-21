@@ -1,3 +1,4 @@
+//break each element inside the timeline as a generic component - buttons, progress, etc with their own life cycle and events
 import dom from '../../helpers/dom';
 import {
 	procentFromString
@@ -114,6 +115,28 @@ export default function(parentPlayer) {
 				} catch (e) {}
 				parentPlayer.toggleFullScreen();
 			})
+			let forwardCls = "";
+			let replayCls = "";
+			parentPlayer.on('forward', function(v){
+				if(v){
+					forwardCls = 'forward_'+v;
+					dom.addClass(playBtn, forwardCls);	
+				}else{
+					setTimeout(()=>{
+						dom.removeClass(playBtn, forwardCls);	
+					}, 250);
+				}
+			});
+			parentPlayer.on('replay', function(v){
+				if(v){
+					replayCls = 'replay_'+v;
+					dom.addClass(playBtn, replayCls);
+				}else{
+					setTimeout(()=>{
+						dom.removeClass(playBtn, replayCls);
+					}, 250);
+				}
+			});
 			parentPlayer.on('timeupdate', function() {
 				pl.style.width = this.currentTime() / this.duration() * 100 + "%";
 			});
@@ -210,12 +233,13 @@ export default function(parentPlayer) {
 				return _closed;
 			}
 
-			parentPlayer.on('user-is-idle', () => {
-				if (!parentPlayer.paused())
-					this.closed(true);
-			});
-			parentPlayer.on('user-not-idle', () => {
-				this.closed(false);
+			parentPlayer.on('user-idle', (v) => {
+				if(v){
+					if (!parentPlayer.paused())
+						this.closed(true);
+				}else{
+					this.closed(false);
+				}
 			});
 
 			parentPlayer.on('pause', () => {

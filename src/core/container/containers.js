@@ -1,10 +1,11 @@
 import dom from '../../helpers/dom';
 import deepmerge from '../../helpers/deepmerge';
 import adaptiveSizePos from './adaptiveSizePos';
-import Widget from './widget'
-import Popup from './popup'
-import videoPopup from './video'
-import timelineContainer from './timelineContainer'
+import Widget from './widget';
+import Hotspot from './hotspot';
+import Popup from './popup';
+import videoPopup from './video';
+import timelineContainer from './timelineContainer';
 
 export default class Containers {
 	constructor(parentPlayer) {
@@ -13,9 +14,11 @@ export default class Containers {
 		});
 
 		let popups = dom.createElement('div', {class: 'popups'});
+		let hotspots = dom.createElement('div', {class: 'hotspots'});
 		let widgets = dom.createElement('div', {class: 'widgets'});
 		let timelines = dom.createElement('div', {class: 'timelines'});
 		
+		this.wrapper.appendChild(hotspots);
 		this.wrapper.appendChild(widgets);
 		this.wrapper.appendChild(timelines);
 		this.wrapper.appendChild(popups);
@@ -84,6 +87,10 @@ export default class Containers {
 			
 			let container = null;
 			switch(type){
+				case 'hotspot':
+					container = new Hotspot(parentPlayer, settings);
+					hotspots.appendChild(container.wrapper);
+					break;
 				case 'video':
 					dom.addClass(containerBody, 'kmlPopup isVideo hidden ' + cls);
 					container = new videoPopup(containerBody, settings, this, parentPlayer);

@@ -16,8 +16,10 @@ export default function(parentPlayer) {
 			});
 			wrapper.appendChild(btn);
 			parentPlayer.wrapper.appendChild(wrapper);
-
+			let hasExternalSeekEnabled = true;
 			this.show = ()=>{
+				hasExternalSeekEnabled = parentPlayer.externalControls.seekEnabled();
+				parentPlayer.externalControls.seekEnabled(false);
 				if(parentPlayer.containers){
 					parentPlayer.containers.hide();
 				}
@@ -26,6 +28,7 @@ export default function(parentPlayer) {
 				dom.removeClass(wrapper, 'hidden');
 			}
 			this.hide = ()=>{
+				parentPlayer.externalControls.seekEnabled(hasExternalSeekEnabled);
 				if(parentPlayer.containers){
 					parentPlayer.containers.show();
 				}

@@ -11,14 +11,14 @@ export default function(parentPlayer, settings = {timeout: 2000}) {
 			let check = ()=>{
   				if (tid){
   					if(idle){
-  						parentPlayer.emit('user-not-idle');
+  						parentPlayer.emit('user-idle', false);
   					}
   					clearTimeout(tid);
   				}
   				idle = false;
   				tid = setTimeout(()=>{
 				    idle = true;
-				    parentPlayer.emit('user-is-idle');
+				    parentPlayer.emit('user-idle', true);
 				  }, settings.timeout);
 			}
 			this.watch=()=>{

@@ -12,7 +12,7 @@ import {
 import dom from '../helpers/dom';
 import device from '../helpers/device';
 import Media from './media/index';
-import externalControls from './media/events/externalControls';
+import externalControls from './events/externalControls';
 import Cuepoint from './cuepoints/cuepoint';
 import Cuepoints from './cuepoints/index';
 import userActivity from './userActivity';
@@ -66,7 +66,7 @@ export default class Player extends Media {
 		this.pageVisibility = new pageVisibility(el);
 
 		//initexternalControls
-		this.externalControls = new externalControls(el);
+		this.externalControls = new externalControls(this);
 
 		//initUserActivity
 		this.userActivity = new userActivity(this);

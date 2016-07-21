@@ -1,13 +1,14 @@
 let _doc = document || {};
-let externalControls = function(el) {
+//rewrite as a class that extends the events - for better modularity
+let externalControls = function(parentPlayer) {
 	let _enabled = true;
 	let _seek = true;
 	let _tId = null;
-	let media = el;
+	let media = parentPlayer.media;
 	let keydown = function(e) {
 		if (_enabled) {
 			//bypass default native external controls when media is focused
-			media.parentNode.focus();
+			parentPlayer.wrapper.focus();
 			if (e.keyCode == 32) { //space
 				if (media.paused) {
 					media.play();
@@ -18,10 +19,12 @@ let externalControls = function(el) {
 			if (_seek) {
 				if (e.keyCode == 37) { //left
 					media.currentTime = media.currentTime - 5;
+					parentPlayer.emit('replay', 5);
 					return;
 				}
 				if (e.keyCode == 39) { //right
 					media.currentTime = media.currentTime + 5;
+					parentPlayer.emit('forward', 5);
 					return;
 				}
 			}
@@ -65,6 +68,16 @@ let externalControls = function(el) {
 			// 		}, 500);
 			// 	}
 			// }
+			if (_seek) {
+				if (e.keyCode == 37) { //left
+					parentPlayer.emit('replay', false);
+					return;
+				}
+				if (e.keyCode == 39) { //right
+					parentPlayer.emit('forward', false);
+					return;
+				}
+			}
 		}
 	};
 	this.enabled = function(b) {

@@ -1413,8 +1413,10 @@ function bigPlay (parentPlayer) {
 			});
 			wrapper.appendChild(btn);
 			parentPlayer.wrapper.appendChild(wrapper);
-
+			let hasExternalSeekEnabled = true;
 			this.show = () => {
+				hasExternalSeekEnabled = parentPlayer.externalControls.seekEnabled();
+				parentPlayer.externalControls.seekEnabled(false);
 				if (parentPlayer.containers) {
 					parentPlayer.containers.hide();
 				}
@@ -1423,6 +1425,7 @@ function bigPlay (parentPlayer) {
 				dom.removeClass(wrapper, 'hidden');
 			};
 			this.hide = () => {
+				parentPlayer.externalControls.seekEnabled(hasExternalSeekEnabled);
 				if (parentPlayer.containers) {
 					parentPlayer.containers.show();
 				}
@@ -1515,6 +1518,35 @@ function isStrictNumeric(v) {
  */
 function isFunction(v) {
   return typeof v === 'function' || false; // avoid IE problems
+}
+
+/**
+ * Detect if the argument passed is an object, exclude null.
+ * NOTE: Use isObject(x) && !isArray(x) to excludes arrays.
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+function isObject(v) {
+  return v && typeof v === 'object'; // typeof null is 'object'
+}
+
+/**
+ * Check whether an object is a kind of array
+ * @param   { * } a - anything
+ * @returns {Boolean} is 'a' an array?
+ */
+function isArray(a) {
+  return Array.isArray(a) || a instanceof Array;
+}
+
+/**
+ * Detect if the argument passed is an Dom element, exclude null.
+ * @param   { * } v - whatever you want to pass to this function
+ * @returns { Boolean } -
+ */
+function isDomElement(v) {
+  if (v != null) return v.nodeName;
+  return false;
 }
 
 function scaleFont(f, width, el) {
@@ -2550,6 +2582,229 @@ class Widget extends Events {
 }
 
 let defaults$5 = {
+	x: 0,
+	y: 0,
+	width: 0,
+	height: 0,
+	origin: "topLeft",
+	start: 0,
+	end: -1,
+	className: "kmlHotspot",
+	on: {
+		show: function () {},
+		hide: function () {},
+		mouseEnter: function () {},
+		mouseLeave: function () {},
+		mouseMove: function () {},
+		click: function () {}
+	},
+	content: null,
+	font: 100,
+	path: false,
+	visible: void 0
+};
+
+const forceHide = Symbol('forceHide');
+const pathStart = Symbol('pathStart');
+const pathEnd = Symbol('pathEnd');
+const refreshEnd = Symbol('refreshEnd');
+const refreshStart = Symbol('refreshStart');
+class Hotspot extends Events {
+	constructor(parentPlayer, options) {
+		super();
+		//somewhat private variables
+		this[forceHide] = false;
+		this[pathStart] = void 0;
+		this[pathEnd] = void 0;
+		this[refreshStart] = 0;
+		this[refreshEnd] = 0;
+		//create hotspot wrapper
+		this.wrapper = dom.createElement('div');
+		this.wrapper.backgroundColor = backgroundColor(this.wrapper);
+
+		//convert position and size to absolute values
+		options = deepmerge(options, relativeSizePos(parentPlayer, options));
+
+		this.__settings = deepmerge(defaults$5, options);
+		this.parentPlayer = parentPlayer;
+		this.x = this.__settings.x;
+		this.y = this.__settings.y;
+		this.width = this.__settings.width;
+		this.height = this.__settings.height;
+		this.origin = this.__settings.origin;
+		this.start = this.__settings.start;
+		this.end = this.__settings.end;
+		this.path = this.__settings.path;
+		this.visible = this.__settings.visible;
+		if (isArray(this.path)) {
+			if (this.path[0]['start']) this[pathStart] = this.path[0]['start'];
+			if (this.path[this.path.length - 1]['end']) this[pathEnd] = this.path[this.path.length - 1]['end'];
+		} else {
+			this.path = false;
+		}
+
+		for (var k in this.__settings['on']) {
+			let fn = this.__settings['on'][k];
+			if (isFunction(fn)) {
+				this.on(k, e => {
+					fn(e);
+				});
+			}
+		}
+
+		this.init();
+	}
+	init() {
+		this.addClass(this.__settings['className']);
+		this.wrapper.style.position = "absolute";
+		this.wrapper.style.top = (this.y || 0) + "%";
+		this.wrapper.style.left = (this.x || 0) + "%";
+		this.wrapper.style.width = (this.width || 0) + "%";
+		this.wrapper.style.height = (this.height || 0) + "%";
+		this.wrapper.addEventListener('click', e => {
+			this.emit('click', e);
+		});
+		this.wrapper.addEventListener('mouseenter', e => {
+			this.emit('mouseEnter', e);
+		});
+		this.wrapper.addEventListener('mouseleave', e => {
+			this.emit('mouseLeave', e);
+		});
+		this.wrapper.addEventListener('mousemove', e => {
+			this.emit('mouseMove', e);
+		});
+
+		if (this.start > 0) {
+			this.visible = false;
+			this.wrapper.style.display = "none";
+		} else {
+			this.visible = true;
+			this.wrapper.style.display = "block";
+		}
+	}
+	addClass(cls) {
+		dom.addClass(this.wrapper, cls);
+	}
+	removeClass(cls) {
+		dom.removeClass(this.wrapper, cls);
+	}
+	toggleClass(cls) {
+		dom.toggleClass(this.wrapper, cls);
+	}
+	content(cnt) {
+		if (cnt != null) {
+			if (isFunction(cnt)) {
+				cnt(this.wrapper).bind(this);
+			}
+			if (isDomElement(cnt)) {
+				this.wrapper.appendChild(cnt);
+			}
+			if (isString(cnt)) {
+				this.wrapper.innerHTML = cnt;
+			}
+			if (isObject(cnt)) {
+				for (var k in cnt) {
+					this.content(cnt[k]);
+				}
+			}
+		}
+		return this.wrapper;
+	}
+	font() {
+		this.wrapper.fontSize = this.__settings['font'] + "%";
+	}
+	checkRefresh(t) {
+		if (this[pathStart] != null && this[pathEnd] != null) {
+			if (t >= this[pathStart] && t <= this[pathEnd]) {
+				if (this[refreshStart] !== 0) this[refreshStart] = 0;
+				if (this[refreshEnd] !== 0) this[refreshEnd] = 0;
+			} else {
+				if (t < this[pathStart] && this[refreshStart] !== 1) {
+					this.resize();
+					this[refreshStart] = 1;
+				}
+				if (t > this[pathEnd] && this[refreshEnd] !== 1) {
+					this.resize();
+					this[refreshEnd] = 1;
+				}
+			}
+		}
+	}
+	resize(o, s) {
+		if (this.visible) {
+			// var p = player.bounds();
+			// if (o === undefined) o = {
+			// 	x: this.x,
+			// 	y: this.y
+			// };
+			// if (s === undefined) s = {
+			// 	width: this.width,
+			// 	height: this.height
+			// };
+
+			// var oWidth = s.width * p.width / p.width_org,
+			// 	oHeight = s.height * p.height / p.height_org,
+			// 	posX = p.offset_x + o.x * p.width / p.width_org,
+			// 	posY = p.offset_y + o.y * p.height / p.height_org,
+			// 	c = setCenterPoint(posX, posY, oWidth, oHeight, this.origin),
+			// 	transform = "";
+			// posX = c.x;
+			// posY = c.y;
+			// this.el_.style.width = oWidth + "px";
+			// this.el_.style.height = oHeight + "px";
+			// this._width = oWidth;
+			// this._height = oHeight;
+			// if (stylePrefix.transform) {
+			// 	transform += translate(posX, posY);
+			// 	this.el_.style[stylePrefix.transform] = transform;
+			// 	return
+			// }
+			// this.el_.style.left = posX + "px";
+			// this.el_.style.top = posY + "px";
+		}
+	}
+	destroy() {
+		this.removeEventListeners();
+		dom.removeElement(this.wrapper);
+	}
+	show() {
+		this[forceHide] = false;
+		this.visible = true;
+		this.resize();
+		this.font();
+		this.wrapper.style.display = "block";
+		this.emit('show');
+	}
+	_show() {
+		if (!this.visible && !this[forceHide]) {
+			this.visible = true;
+			this.resize();
+			this.font();
+			this.wrapper.style.display = "block";
+			this.emit('show');
+		}
+	}
+	hide() {
+		this[forceHide] = true;
+		this._hide();
+	}
+	_hide() {
+		if (this.visible) {
+			this.visible = false;
+			this.emit('hide');
+			this.wrapper.style.display = "none";
+		}
+	}
+	originPoint(origin) {
+		if (origin != void 0) {
+			this.origin = origin;
+			this.resize();
+		}
+		return this.origin;
+	}
+}
+
+let defaults$6 = {
 	backgroundColor: '',
 	on: {
 		show: function () {},
@@ -2597,7 +2852,7 @@ class Popup extends Events {
 
 		this._visible = false;
 		this.parentPlayerPaused = false;
-		this._settings = deepmerge(defaults$5, opts);
+		this._settings = deepmerge(defaults$6, opts);
 		this._cache = {};
 		this.backgroundColor = backgroundColor(overlay);
 		this.parent = parent;
@@ -2782,7 +3037,7 @@ class Popup extends Events {
 	}
 }
 
-let defaults$7 = {
+let defaults$8 = {
 	x: 0,
 	width: '100%',
 	height: '8%',
@@ -2820,13 +3075,13 @@ function Timeline (parentPlayer) {
 			this.cuepointsWrapper = pc;
 			let wrapper = null;
 			if (parentPlayer.timelineContainer != null) {
-				this.wrapper = parentPlayer.timelineContainer(defaults$7);
+				this.wrapper = parentPlayer.timelineContainer(defaults$8);
 				this.wrapper.content(fragment);
 				wrapper = this.wrapper.wrapper;
 			} else {
 				this.wrapper = dom.createElement('div', {
 					class: "kmlTimeline",
-					style: "position: absolute; left: 0; width: " + defaults$7.width + "; height: " + defaults$7.height + "; top: auto; bottom: 0;"
+					style: "position: absolute; left: 0; width: " + defaults$8.width + "; height: " + defaults$8.height + "; top: auto; bottom: 0;"
 				});
 				parentPlayer.wrapper.appendChild(this.wrapper);
 				wrapper = this.wrapper;
@@ -2894,6 +3149,28 @@ function Timeline (parentPlayer) {
 				} catch (e) {}
 				parentPlayer.toggleFullScreen();
 			});
+			let forwardCls = "";
+			let replayCls = "";
+			parentPlayer.on('forward', function (v) {
+				if (v) {
+					forwardCls = 'forward_' + v;
+					dom.addClass(playBtn, forwardCls);
+				} else {
+					setTimeout(() => {
+						dom.removeClass(playBtn, forwardCls);
+					}, 250);
+				}
+			});
+			parentPlayer.on('replay', function (v) {
+				if (v) {
+					replayCls = 'replay_' + v;
+					dom.addClass(playBtn, replayCls);
+				} else {
+					setTimeout(() => {
+						dom.removeClass(playBtn, replayCls);
+					}, 250);
+				}
+			});
 			parentPlayer.on('timeupdate', function () {
 				pl.style.width = this.currentTime() / this.duration() * 100 + "%";
 			});
@@ -2935,17 +3212,17 @@ function Timeline (parentPlayer) {
 			let w = 0;
 			let cache_sc = 0;
 			this.resize = () => {
-				let sc = procentFromString(defaults$7.height) * parentPlayer.height() / 100;
+				let sc = procentFromString(defaults$8.height) * parentPlayer.height() / 100;
 				if (cache_sc != sc) {
 					cache_sc = sc;
-					if (sc < defaults$7.minHeight) {
-						w = sc = defaults$7.minHeight;
+					if (sc < defaults$8.minHeight) {
+						w = sc = defaults$8.minHeight;
 						if (this.wrapper.settings) {
 							this.wrapper.settings({
-								height: defaults$7.minHeight + "px"
+								height: defaults$8.minHeight + "px"
 							});
 						} else {
-							wrapper.style.height = defaults$7.minHeight + "px";
+							wrapper.style.height = defaults$8.minHeight + "px";
 						}
 						playBtn.style.width = w + "px";
 						pc.style.left = pw.style.left = w + "px";
@@ -2959,10 +3236,10 @@ function Timeline (parentPlayer) {
 					} else {
 						if (this.wrapper.settings) {
 							this.wrapper.settings({
-								height: defaults$7.height
+								height: defaults$8.height
 							});
 						} else {
-							wrapper.style.height = defaults$7.height;
+							wrapper.style.height = defaults$8.height;
 						}
 						w = sc / parentPlayer.width() * 100;
 						playBtn.style.width = w + "%";
@@ -2990,11 +3267,12 @@ function Timeline (parentPlayer) {
 				return _closed;
 			};
 
-			parentPlayer.on('user-is-idle', () => {
-				if (!parentPlayer.paused()) this.closed(true);
-			});
-			parentPlayer.on('user-not-idle', () => {
-				this.closed(false);
+			parentPlayer.on('user-idle', v => {
+				if (v) {
+					if (!parentPlayer.paused()) this.closed(true);
+				} else {
+					this.closed(false);
+				}
 			});
 
 			parentPlayer.on('pause', () => {
@@ -3506,15 +3784,16 @@ class Media extends Fullscreen {
 }
 
 let _doc = document || {};
-let externalControls = function (el) {
+//rewrite as a class that extends the events - for better modularity
+let externalControls = function (parentPlayer) {
 	let _enabled = true;
 	let _seek = true;
 	let _tId = null;
-	let media = el;
+	let media = parentPlayer.media;
 	let keydown = function (e) {
 		if (_enabled) {
 			//bypass default native external controls when media is focused
-			media.parentNode.focus();
+			parentPlayer.wrapper.focus();
 			if (e.keyCode == 32) {
 				//space
 				if (media.paused) {
@@ -3527,11 +3806,13 @@ let externalControls = function (el) {
 				if (e.keyCode == 37) {
 					//left
 					media.currentTime = media.currentTime - 5;
+					parentPlayer.emit('replay', 5);
 					return;
 				}
 				if (e.keyCode == 39) {
 					//right
 					media.currentTime = media.currentTime + 5;
+					parentPlayer.emit('forward', 5);
 					return;
 				}
 			}
@@ -3576,6 +3857,18 @@ let externalControls = function (el) {
 			// 		}, 500);
 			// 	}
 			// }
+			if (_seek) {
+				if (e.keyCode == 37) {
+					//left
+					parentPlayer.emit('replay', false);
+					return;
+				}
+				if (e.keyCode == 39) {
+					//right
+					parentPlayer.emit('forward', false);
+					return;
+				}
+			}
 		}
 	};
 	this.enabled = function (b) {
@@ -3603,7 +3896,7 @@ let externalControls = function (el) {
 	this.init();
 };
 
-let defaults$8 = {
+let defaults$9 = {
 	wrapper: null,
 	on: {
 		show: function () {},
@@ -3614,7 +3907,7 @@ class Cuepoints extends Events {
 	constructor(parentPlayer, options) {
 		super();
 		this.parentPlayer = parentPlayer;
-		this.settings = deepmerge(defaults$8, options);
+		this.settings = deepmerge(defaults$9, options);
 		this.instances = [];
 		this.wrapper = null;
 		for (var k in this.settings['on']) {
@@ -3714,14 +4007,14 @@ function userActivity (parentPlayer, settings = { timeout: 2000 }) {
 			let check = () => {
 				if (tid) {
 					if (idle) {
-						parentPlayer.emit('user-not-idle');
+						parentPlayer.emit('user-idle', false);
 					}
 					clearTimeout(tid);
 				}
 				idle = false;
 				tid = setTimeout(() => {
 					idle = true;
-					parentPlayer.emit('user-is-idle');
+					parentPlayer.emit('user-idle', true);
 				}, settings.timeout);
 			};
 			this.watch = () => {
@@ -4023,7 +4316,7 @@ const fn_contextmenu = function (e) {
 	return false;
 };
 
-const defaults$6 = {
+const defaults$7 = {
 	videoWidth: 960,
 	videoHeight: 540,
 	autoplay: false,
@@ -4063,7 +4356,7 @@ class Player extends Media {
 		this.pageVisibility = new pageVisibility(el);
 
 		//initexternalControls
-		this.externalControls = new externalControls(el);
+		this.externalControls = new externalControls(this);
 
 		//initUserActivity
 		this.userActivity = new userActivity(this);
@@ -4073,7 +4366,7 @@ class Player extends Media {
 			app.bind(this)();
 		}
 
-		this.settings(deepmerge(defaults$6, settings));
+		this.settings(deepmerge(defaults$7, settings));
 
 		this.on('loadedmetadata', () => {
 			if (this.media.width != this.media.videoWidth || this.media.height != this.media.videoHeight) {
@@ -4377,7 +4670,7 @@ class videoPopup extends Popup {
 	}
 }
 
-let defaults$9 = {
+let defaults$10 = {
 	backgroundColor: '',
 	onHide: null,
 	onShow: null,
@@ -4394,7 +4687,7 @@ class TimelineContainer extends Events {
 		super();
 		this.wrapper = el;
 		this._visible = false;
-		this._settings = deepmerge(defaults$9, opts);
+		this._settings = deepmerge(defaults$10, opts);
 		this._cache = {};
 		this.backgroundColor = backgroundColor(el);
 		this.parent = parent;
@@ -4490,9 +4783,11 @@ class Containers {
 		});
 
 		let popups = dom.createElement('div', { class: 'popups' });
+		let hotspots = dom.createElement('div', { class: 'hotspots' });
 		let widgets = dom.createElement('div', { class: 'widgets' });
 		let timelines = dom.createElement('div', { class: 'timelines' });
 
+		this.wrapper.appendChild(hotspots);
 		this.wrapper.appendChild(widgets);
 		this.wrapper.appendChild(timelines);
 		this.wrapper.appendChild(popups);
@@ -4560,6 +4855,10 @@ class Containers {
 
 			let container = null;
 			switch (type) {
+				case 'hotspot':
+					container = new Hotspot(parentPlayer, settings);
+					hotspots.appendChild(container.wrapper);
+					break;
 				case 'video':
 					dom.addClass(containerBody, 'kmlPopup isVideo hidden ' + cls);
 					container = new videoPopup(containerBody, settings, this, parentPlayer);

@@ -1,43 +1,10 @@
 import Events from 'eventemitter3';
-let setCenterPoint = function(x, y, w, h, origin) {
-	var pos = {
-		x: x,
-		y: y
-	};
-	switch (origin) {
-		case "center":
-			pos.x = x - w / 2;
-			pos.y = y - h / 2;
-			break;
-		case "top":
-			pos.x = x - w / 2;
-			break;
-		case "left":
-			pos.y = y - h / 2;
-			break;
-		case "right":
-			pos.x = x - w;
-			pos.y = y - h / 2;
-			break;
-		case "topRight":
-			pos.x = x - w;
-			break;
-		case "bottom":
-			pos.x = x - w / 2;
-			pos.y = y - h;
-			break;
-		case "bottomLeft":
-			pos.y = y - h;
-			break;
-		case "bottomRight":
-			pos.x = x - w;
-			pos.y = y - h;
-			break;
-		default:
-			break;
-	}
-	return pos;
-};
+import dom from '../../helpers/dom';
+import deepmerge from '../../helpers/deepmerge';
+import backgroundColorFN from '../../helpers/backgroundColor';
+import relativeSizePos from './relativeSizePos';
+import {isArray, isObject, isFunction, isDomElement, isString, setCenterPoint} from '../../helpers/utils';
+
 let defaults = {
 	x: 0,
 	y: 0,
@@ -46,7 +13,7 @@ let defaults = {
 	origin: "topLeft",
 	start: 0,
 	end: -1,
-	className: null,
+	className: "kmlHotspot",
 	on: {
 		show: function() {},
 		hide: function() {},
@@ -54,291 +21,199 @@ let defaults = {
 		mouseLeave: function() {},
 		mouseMove: function() {},
 		click: function() {}
-	}
-	content: null,
-	font: {
-		size: 100,
-		lineHeight: "auto",
-		units: "em"
 	},
+	content: null,
+	font: 100,
 	path: false,
 	visible: void 0
 }
+
+const forceHide = Symbol('forceHide');
+const pathStart = Symbol('pathStart');
+const pathEnd = Symbol('pathEnd');
+const refreshEnd = Symbol('refreshEnd');
+const refreshStart = Symbol('refreshStart');
 export default class Hotspot extends Events {
-	constructor() {
-		super()
-	}
-}
+	constructor(parentPlayer, options) {
+		super();
+		//somewhat private variables
+		this[forceHide] = false;
+		this[pathStart] = void 0;
+		this[pathEnd] = void 0;
+		this[refreshStart] = 0;
+		this[refreshEnd] = 0;
+		//create hotspot wrapper
+		this.wrapper = dom.createElement('div');
+		this.wrapper.backgroundColor = backgroundColorFN(this.wrapper);
 
-var _overlay = function(options, player) {
-	var o = videojs.mergeOptions(overlay, options),
-		bind = function(fn, context) {
-			return function() {
-				return fn.apply(context, arguments);
-			};
-		};
+		//convert position and size to absolute values
+		options = deepmerge(options,relativeSizePos(parentPlayer, options));
 
+		this.__settings = deepmerge(defaults, options);
+		this.parentPlayer = parentPlayer;
+		this.x = this.__settings.x;
+		this.y = this.__settings.y;
+		this.width = this.__settings.width;
+		this.height = this.__settings.height;
+		this.origin = this.__settings.origin;
+		this.start = this.__settings.start;
+		this.end = this.__settings.end;
+		this.path = this.__settings.path;
+		this.visible = this.__settings.visible;
+		if(isArray(this.path)){
+			if (this.path[0]['start']) this[pathStart] = this.path[0]['start'];
+			if (this.path[this.path.length - 1]['end']) this[pathEnd] = this.path[this.path.length - 1]['end'];
+		}else{
+			this.path = false;
+		}
 
-
-	this.x = o.x;
-	this.y = o.y;
-	this.width = o.width;
-	this._width = o.width;
-	this.height = o.height;
-	this._height = o.height;
-	this.start = o.start;
-	this.end = o.end;
-	this.path = o.path;
-	this.origin = o.origin;
-	this._pathStart = void 0;
-	this._pathEnd = void 0;
-	this._refreshStart = 0;
-	this._refreshEnd = 0;
-
-
-	if (o.width === "100%" || o.width === "full") {
-		this.width = player.videoWidth();
-	}
-	if (o.height === "100%" || o.height === "full") {
-		this.height = player.videoHeight();
-	}
-
-	if (Object.prototype.toString.call(this.path) === "[object Array]") {
-		if (this.path[0]['start']) this._pathStart = this.path[0]['start'];
-		if (this.path[this.path.length - 1]['end']) this._pathEnd = this.path[this.path.length - 1]['end'];
-	} else {
-		this.path = false;
-	}
-
-	this.checkRefresh = function(t) {
-		if (this._pathStart !== undefined && this._pathEnd !== undefined) {
-			if (t >= this._pathStart && t <= this._pathEnd) {
-				if (this._refreshStart !== 0) this._refreshStart = 0;
-				if (this._refreshEnd !== 0) this._refreshEnd = 0;
-			} else {
-				if (t < this._pathStart && this._refreshStart !== 1) {
-					this.resize();
-					this._refreshStart = 1;
-				}
-				if (t > this._pathEnd && this._refreshEnd !== 1) {
-					this.resize();
-					this._refreshEnd = 1;
-				}
+		for(var k in this.__settings['on']){
+			let fn = this.__settings['on'][k];
+			if(isFunction(fn)){
+				this.on(k, (e)=>{fn(e);});
 			}
 		}
-	};
 
-	if (o["className"] === Array) {
-		o["className"] = "vjs-overlay " + o["className"].join(" ");
-	} else if (o["className"] != undefined) {
-		o["className"] = "vjs-overlay " + o["className"];
-	} else {
-		o["className"] = "vjs-overlay";
+		this.init();
 	}
+	init(){
+		this.addClass(this.__settings['className']);
+		this.wrapper.style.position = "absolute";
+		this.wrapper.style.top = (this.y || 0) + "%";
+		this.wrapper.style.left = (this.x || 0) + "%";
+		this.wrapper.style.width = (this.width || 0) + "%";
+		this.wrapper.style.height = (this.height || 0) + "%";
+		this.wrapper.addEventListener('click', (e)=>{ this.emit('click', e); });
+		this.wrapper.addEventListener('mouseenter', (e)=>{ this.emit('mouseEnter', e); });
+		this.wrapper.addEventListener('mouseleave', (e)=>{ this.emit('mouseLeave', e); });
+		this.wrapper.addEventListener('mousemove', (e)=>{ this.emit('mouseMove', e); });
 
-
-
-	if ('classList' in document.documentElement) {
-		this.hasClass = function(c) {
-			return this.el_.classList.contains(c);
-		};
-		this.addClass = function(c) {
-			c = c.split(' ');
-			for (var k in c)
-				this.el_.classList.add(c[k]);
-		};
-		this.removeClass = function(c) {
-			this.el_.classList.remove(c);
-		};
-	} else {
-		this.hasClass = function(c) {
-			return classReg(c).test(this.el_.className);
-		};
-		this.addClass = function(c) {
-			if (!this.hasClass(c)) {
-				this.el_.className = this.el_.className + ' ' + c;
-			}
-		};
-		this.removeClass = function(c) {
-			this.el_.className = this.el_.className.replace(classReg(c), ' ');
-		};
-	}
-
-	this.toggleClass = function(c) {
-		if (this.hasClass(c)) {
-			this.removeClass(c);
+		if (this.start > 0) {
+			this.visible = false;
+			this.wrapper.style.display = "none";
 		} else {
-			this.addClass(c);
+			this.visible = true;
+			this.wrapper.style.display = "block";
 		}
 	}
-
-	this.el = function() {
-		if (!this.el_) {
-			this.el_ = document.createElement("div");
-			this.el_.className = o["className"];
-			this.el_.style.position = "absolute";
-			this.el_.style.top = this.y || 0;
-			this.el_.style.left = this.x || 0;
-			this.el_.style.width = (this.width || 0) + "px";
-			this.el_.style.height = (this.height || 0) + "px";
-			if (typeof o["onClick"] == "function") {
-				this.el_.addEventListener("click", bind(o["onClick"], this));
+	addClass(cls){
+		dom.addClass(this.wrapper, cls);
+	}
+	removeClass(cls){
+		dom.removeClass(this.wrapper, cls);
+	}
+	toggleClass(cls){
+		dom.toggleClass(this.wrapper, cls);
+	}
+	content(cnt){
+		if (cnt != null) {
+			if (isFunction(cnt)) {
+				cnt(this.wrapper).bind(this);
 			}
-		}
-		var self = this;
-		if (typeof o["onMouseEnter"] === "function") this.el_.addEventListener('mouseenter', function(e) {
-			bind(o["onMouseEnter"], self)(e)
-		});
-		if (typeof o["onMouseLeave"] === "function") this.el_.addEventListener('mouseleave', function(e) {
-			bind(o["onMouseLeave"], self)(e)
-		});
-		if (typeof o["onMouseMove"] === "function") this.el_.addEventListener('mousemove', function(e) {
-			bind(o["onMouseMove"], self)(e)
-		});
-		return this.el_;
-	};
-	this.el();
-	this.content = o["content"];
-	if (this.content) {
-		if (typeof this.content == "function") {
-			var fn = bind(this.content, this);
-			this.content = this.content();
-			this.el_.appendChild(this.content);
-		}
-		if (this.content.nodeName) {
-			this.el_.appendChild(this.content);
-		}
-		if (typeof this.content == "string") {
-			this.el_.innerHTML = this.content;
-		}
-		if (Object.prototype.toString.call(this.content) === "[object Array]") {
-			for (var k in this.content) {
-				if (this.content[k].nodeName) {
-					this.el_.appendChild(this.content[k]);
+			if (isDomElement(cnt)) {
+				this.wrapper.appendChild(cnt);
+			}
+			if (isString(cnt)) {
+				this.wrapper.innerHTML = cnt;
+			}
+			if (isObject(cnt)) {
+				for (var k in cnt) {
+					this.content(cnt[k]);
 				}
 			}
 		}
+		return this.wrapper;
 	}
-
-	this.font = function(font) {
-		o.font = font || o.font;
-		if (o.font && this.visible && player) {
-			var p = player.bounds();
-			o.font.ratio = o.font.ratio || 1;
-			o.font.min = o.font.min || 1;
-			var f = o.font.ratio * p.width / 1000;
-			if (f < o.font.min) f = o.font.min;
-			this.el_.style.fontSize = f + o.font.units;
-			if (o.font.lineHeight == null || o.font.lineHeight == undefined || o.font.lineHeight == "auto") {
-				this.el_.style.lineHeight = this._height + "px";
+	font(){
+		this.wrapper.fontSize = this.__settings['font'] + "%";
+	}
+	checkRefresh(t) {
+		if (this[pathStart] != null && this[pathEnd] != null) {
+			if (t >= this[pathStart] && t <= this[pathEnd]) {
+				if (this[refreshStart] !== 0) this[refreshStart] = 0;
+				if (this[refreshEnd] !== 0) this[refreshEnd] = 0;
 			} else {
-				if (o.font.lineHeight !== false && !isNaN(o.font.lineHeight)) {
-					var l = f * o.font.lineHeight;
-					if (l < 1) l = 1;
-					this.el_.style.lineHeight = l + o.font.units;
+				if (t < this[pathStart] && this[refreshStart] !== 1) {
+					this.resize();
+					this[refreshStart] = 1;
+				}
+				if (t > this[pathEnd] && this[refreshEnd] !== 1) {
+					this.resize();
+					this[refreshEnd] = 1;
 				}
 			}
 		}
-	};
-
-	this.resize = function(o, s) {
+	}
+	resize(o, s) {
 		if (this.visible) {
-			var p = player.bounds();
-			if (o === undefined) o = {
-				x: this.x,
-				y: this.y
-			};
-			if (s === undefined) s = {
-				width: this.width,
-				height: this.height
-			};
+			// var p = player.bounds();
+			// if (o === undefined) o = {
+			// 	x: this.x,
+			// 	y: this.y
+			// };
+			// if (s === undefined) s = {
+			// 	width: this.width,
+			// 	height: this.height
+			// };
 
-			var oWidth = s.width * p.width / p.width_org,
-				oHeight = s.height * p.height / p.height_org,
-				posX = p.offset_x + o.x * p.width / p.width_org,
-				posY = p.offset_y + o.y * p.height / p.height_org,
-				c = setCenterPoint(posX, posY, oWidth, oHeight, this.origin),
-				transform = "";
-			posX = c.x;
-			posY = c.y;
-			this.el_.style.width = oWidth + "px";
-			this.el_.style.height = oHeight + "px";
-			this._width = oWidth;
-			this._height = oHeight;
-			if (stylePrefix.transform) {
-				transform += translate(posX, posY);
-				this.el_.style[stylePrefix.transform] = transform;
-				return
-			}
-			this.el_.style.left = posX + "px";
-			this.el_.style.top = posY + "px";
+			// var oWidth = s.width * p.width / p.width_org,
+			// 	oHeight = s.height * p.height / p.height_org,
+			// 	posX = p.offset_x + o.x * p.width / p.width_org,
+			// 	posY = p.offset_y + o.y * p.height / p.height_org,
+			// 	c = setCenterPoint(posX, posY, oWidth, oHeight, this.origin),
+			// 	transform = "";
+			// posX = c.x;
+			// posY = c.y;
+			// this.el_.style.width = oWidth + "px";
+			// this.el_.style.height = oHeight + "px";
+			// this._width = oWidth;
+			// this._height = oHeight;
+			// if (stylePrefix.transform) {
+			// 	transform += translate(posX, posY);
+			// 	this.el_.style[stylePrefix.transform] = transform;
+			// 	return
+			// }
+			// this.el_.style.left = posX + "px";
+			// this.el_.style.top = posY + "px";
 		}
-	};
-
-	this.originPoint = function(origin) {
+	}
+	destroy() {
+		this.removeEventListeners();
+		dom.removeElement(this.wrapper);
+	}
+	show() {
+		this[forceHide] = false;
+		this.visible = true;
+		this.resize();
+		this.font();
+		this.wrapper.style.display = "block";
+		this.emit('show');
+	}
+	_show () {
+		if (!this.visible && !this[forceHide]) {
+			this.visible = true;
+			this.resize();
+			this.font();
+			this.wrapper.style.display = "block";
+			this.emit('show');
+		}
+	}
+	hide() {
+		this[forceHide] = true;
+		this._hide();
+	}
+	_hide() {
+		if (this.visible) {
+			this.visible = false;
+			this.emit('hide');
+			this.wrapper.style.display = "none";
+		}
+	}
+	originPoint(origin) {
 		if (origin != void 0) {
 			this.origin = origin;
 			this.resize();
 		}
 		return this.origin;
-	};
-
-	var forceHide = false;
-	this.hide = function() {
-		forceHide = true;
-		this._hide();
-	};
-	this._hide = function() {
-		if (this.visible) {
-			this.visible = false;
-			this.trigger('hide');
-			this.el_.style.display = "none";
-		}
-	};
-	this.show = function() {
-		forceHide = false;
-		this.visible = true;
-		this.resize();
-		this.font();
-		this.el_.style.display = "block";
-		this.trigger('show');
-	};
-	this._show = function() {
-		if (!this.visible && !forceHide) {
-			this.visible = true;
-			this.resize();
-			this.font();
-			this.el_.style.display = "block";
-			this.trigger('show');
-		}
 	}
-	this.trigger = function(a) {
-		switch (a) {
-			case 'show':
-				if (typeof o["onShow"] == "function") bind(o["onShow"], this)();
-				break;
-			case 'hide':
-				if (typeof o["onHide"] == "function") bind(o["onHide"], this)();
-				break;
-			case 'click':
-				if (typeof o["onClick"] == "function") bind(o["onClick"], this)();
-				break;
-			default:
-				return;
-		}
-	}
-	this.destroy = function() {
-		this.el_.parentNode.removeChild(this.el_);
-		//remove from parent ?
-	};
-	if (o.start > 0) {
-		this.visible = false;
-		this.el_.style.display = "none";
-	} else {
-		this.visible = true;
-		this.el_.style.display = "block";
-	}
-	if (o['visible'] !== void 0) this.visible = o['visible'];
-	this.resize();
-	this.font();
 }
