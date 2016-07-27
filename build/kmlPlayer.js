@@ -1,4 +1,4 @@
-/*! kmlplayer.js - v0.3.1 */
+/*! kmlplayer.js - v0.4.1 */
 var kmlPlayer = (function () {
   'use strict';
 
