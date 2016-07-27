@@ -148,7 +148,7 @@ gulp.task('css', function() {
     .pipe(concat('kmlPlayer.css'))
     .pipe(gulp.dest('./dist'))
     .pipe(sourcemaps.write())
-    .pipe(gulp.dest('./test'))
+    .pipe(gulp.dest('./build'))
     .on('end', function() {
       console.log(config.build.moduleName + ' css created');
     });
