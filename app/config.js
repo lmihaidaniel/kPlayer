@@ -2,7 +2,7 @@ let __section_width_in_time = 113.8 / 6;
 export default {
 	player: {
 		video: document.querySelector('video'),
-		autoplay: false,
+		autoplay: true,
 		loop: false,
 		externalControls: false,
 		fullWindow: true,
