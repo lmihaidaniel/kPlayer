@@ -9,11 +9,12 @@ cuepoints  - °done
 widget => popup => videoPopup - °done
 timeline Standard - °done
 
-
+LONG TERM DEVELOPMENT
 timeline -> pluggable -> custom *TODO
-quizPopup, slideShowPopup *TODO
+quizPopup *TODO
+slideShowPopup *TODO
 
+IMEDIAT DEVELOPMENT
 subtitles *TODO
 hotspots *TODO
-
-quiz -> quiz MC *TODO
+timeline chapterized standard *TODO

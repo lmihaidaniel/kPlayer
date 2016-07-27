@@ -1,20 +1,17 @@
 {
   "name": "kmlplayer.js",
   "description": "An HTML5 video player build for user interactivity.",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "copyright": "Copyright Kumullus, Inc. <https://www.kumullus.com/>",
   "license": "GPL-3.0",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node index.js"
+    "build": "node rollup.js"
   },
-  "modules": [
-    "timelines/kumullusone"
-  ],
   "devDependencies": {
     "autoprefixer": "latest",
     "babel-plugin-transform-es2015-classes": "latest",
-    "babel-plugin-transform-react-jsx": "latest",
     "babel-preset-es2015-rollup": "latest",
     "csswring": "latest",
     "gulp": "latest",
@@ -35,7 +32,8 @@
   },
   "dependencies": {
     "eventemitter3": "latest",
-    "tinycolor2": "latest",
-    "mixwith": "latest"
+    "interact.js": "latest",
+    "mixwith": "latest",
+    "tinycolor2": "latest"
   }
 }
