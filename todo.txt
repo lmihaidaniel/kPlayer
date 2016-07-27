@@ -15,6 +15,7 @@ quizPopup *TODO
 slideShowPopup *TODO
 
 IMEDIAT DEVELOPMENT
+improve build speed *TODO IMPORTANT
 subtitles *TODO
 hotspots *TODO
 timeline chapterized standard *TODO
