@@ -10,197 +10,21 @@
    <link rel="icon" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-32x32.png" sizes="32x32">
    <link rel="icon" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-192x192.png" sizes="192x192">
    <link rel="apple-touch-icon-precomposed" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-180x180.png">
-   <title>Biocodex</title>
+   <title>Demo</title>
    <link rel="stylesheet" type="text/css" href="kmlPlayer.css">
-   <link rel="stylesheet" type="text/css" href="assets/font/TwCenMT.css">
+   <link rel="stylesheet" type="text/css" href="assets/font/font.css">
 </head>
 <body>
    <video>
-       <source type="video/mp4" src="http://client.kumullus.com/biocodex/video.mp4"></source>
+       <source type="video/mp4" src="http://client.kumullus.com/creafirst/videos/main.mp4"></source>
        <p>
            Pour voir cette vidéo, merci d'activer JavaScript et d'envisager la mise à niveau vers un navigateur Web qui <a href='' target='_blank'>supporte la vidéo HTML5</a>
        </p>
    </video>
-
+   <div id="log" style="position: absolute; z-index: 1; color: white;"></div>
    <div style="display:none;">
         <!-- LOGO -->
-        <img id="logo" src="assets/img/logo.svg">;
-        <!-- fullscreenBtn -->
-        <button id="fullScreenBtn"></button>
-        <!-- TITLE -->
-        <div id="hero">
-            <h1>medical environment</h1>
-            <h2>Gastrointestinal anatomy and physiology</h2>
-            <a id="openQuiz" class="btn"><span>(</span> <span>?</span> <span>QUIZ</span> <span>)</span></a>
-        </div>
-        <!-- QUIZ 1 -->
-        <div id="quizz">
-          <div class="head">
-            <img class="orange_bullet" src="assets/img/circle_orange.svg"/>
-            <h1 id="quizTitle"></h1>
-            <h2 id="quizSubTitle"></h2>
-          </div>
-          <div class="no">
-            <img src="assets/img/quiz_circle_no.svg"/>
-            <span id="no_quiz">1</span>
-          </div>
-          <div class="quiz_holder">
-            <ul class="quiz select" rel="0">
-              <li><span>A</span><span>Appears shortly after birth</span></li>
-              <li><span>B</span><span>Is mainly composed of bacteria</span></li>
-              <li><span>C</span><span>Plays a role in digestion</span></li>
-              <li><span>D</span><span>When disbalanced, leads to disease</span></li>
-              <li><span>E</span><span>Varies from one individual to another</span></li>
-              <li><span>F</span><span>Plays a role in defense</span></li>
-            </ul>
-            <ul id="dragWrapper" class="quiz match" rel="1">
-              <li><div class="span drag draggable" rel="0"><span>Ingestion</span></div><div class="span target drop-target" rel="0"></div><p>Passage of digested nutrients from gastrointestinal tract into the bloodstream for transportation to cells throughout the body</p></li>
-              <li><div class="span drag draggable" rel="1"><span>Propulsion</span></div><div class="span target drop-target" rel="1"></div><p>Intake of food, medicine, etc., through the mouth into the gastrointestinal tract</p></li>
-              <li><div class="span drag draggable" rel="2"><span>Mechanical digestion</span></div><div class="span target drop-target" rel="2"></div><p>Enzymatic processes that digest food so as to be absorbed through the walls of gastrointestinal tract</p></li>
-              <li><div class="span drag draggable" rel="3"><span>Chemical digestion</span></div><div class="span target drop-target" rel="3"></div><p>Elimination of indigestible substances out of the body through the anus</p></li>
-              <li><div class="span drag draggable" rel="4"><span>Absorption</span></div><div class="span target drop-target" rel="4"></div><p>Physical break down of food by chewing, mixing, and churning<br>&nbsp;</p></li>
-              <li><div class="span drag draggable" rel="5"><span>Defecation</span></div><div class="span target drop-target" rel="5"></div><p>Movement of food through gastrointestinal tract involving processes such as peristalsis</p></li>
-              </ul>
-              <ul class="quiz select" rel="2">
-                <li><span>A</span><span>Highest density of the gut microflora is found in small intestine</span></li>
-                <li><span>B</span><span>Gastrointestinal tract is sterile at birth</span></li>
-                <li><span>C</span><span>Route of delivery, diet, and antibiotics influence the composition of gut microflora</span></li>
-                <li><span>D</span><span>Majority of the gut microflora is composed of yeast</span></li>
-              </ul>
-              <ul class="quiz select" rel="3">
-                <li><span>A</span><span>Vibrio cholera</span></li>
-                <li><span>B</span><span>Enterohemorrhagic Escherichia coli</span></li>
-                <li><span>C</span><span>Salmonella</span></li>
-                <li><span>D</span><span>Yersinia</span></li>
-              </ul>
-              <ul class="quiz select" rel="4">
-                <li><span>A</span><span>Infection by invasive microorganism</span></li>
-                <li><span>B</span><span>Infection by noninvasive microorganism</span></li>
-                <li><span>C</span><span>Noninfectious diarrhea</span></li>
-                <li><span>D</span><span>Antibiotic-associated diarrhea</span></li>
-              </ul>
-              <ul class="quiz select" rel="5">
-                <li><span>A</span><span>Producing enterotoxins that activates the cAMP leading to increased secretion of water and electrolyte</span></li>
-                <li><span>B</span><span>Increasing phosphorylation of myosin light chain, thus increasing permeability, disrupting the physical barrier leading to diarrhea</span></li>
-                <li><span>C</span><span>Causing transient immaturity of the enterocytes causing altered disaccharidases activity leading to hyperosmotic diarrhea</span></li>
-                <li><span>D</span><span>Invading the colonic epithelium causing inflammation and bleeding resulting in dysenteric illness</span></li>
-              </ul>
-              <ul class="quiz select" rel="6">
-                <li><span>A</span><span>True</span></li>
-                <li><span>B</span><span>False</span></li>
-              </ul>
-              <ul class="quiz select" rel="7">
-                <li><span>A</span><span>Enterococcus faecium</span></li>
-                <li><span>B</span><span>Bifidobacterium</span></li>
-                <li><span>C</span><span>Saccharomyces boulardii</span></li>
-                <li><span>D</span><span>Streptococcus thermophilus</span></li>
-              </ul>
-              <ul class="quiz select" rel="8">
-                <li><span>A</span><span>Producing lactic acid that exert bacteriostatic action</span></li>
-                <li><span>B</span><span>Protecting endogenous enkephalins from being acted upon by enkephalinase</span></li>
-                <li><span>C</span><span>Stimulating IgA production and increasing disaccharidases activity</span></li>
-                <li><span>D</span><span>Disrupting DNA replication in bacteria</span></li>
-              </ul>
-              <ul class="quiz select" rel="9">
-                <li><span>A</span><span>Virus</span></li>
-                <li><span>B</span><span>Bacterium</span></li>
-                <li><span>C</span><span>Fungus</span></li>
-                <li><span>D</span><span>Parasite</span></li>
-              </ul>
-              <ul class="quiz select" rel="10">
-                <li><span>A</span><span>Sensitivity to gastric and bile acids</span></li>
-                <li><span>B</span><span>Adherence to mucus or human epithelial cell</span></li>
-                <li><span>C</span><span>Resistance to spermicides if they are indicated for vaginal use</span></li>
-                <li><span>D</span><span>Antimicrobial activity</span></li>
-              </ul>
-              <ul class="quiz select" rel="11">
-                <li><span>A</span><span>True</span></li>
-                <li><span>B</span><span>False</span></li>
-              </ul>
-              <ul class="quiz select text80" rel="12">
-                <li><span>A</span><span>Saccharomyces boulardii CNCM I-745 releases a protease which inactivates C difficile toxins A and B</span></li>
-                <li><span>B</span><span>Destroys C. difficile</span></li>
-                <li><span>C</span><span>Saccharomyces boulardii CNCM I-745 inhibits the binding of Clostridium difficile toxins A &amp; B to their receptor</span></li>
-                <li><span>D</span><span>Saccharomyces boulardii CNCM I-745 releases a protein or protein phosphatase which increases the cell water secretion</span></li>
-                <li><span>E</span><span>Saccharomyces boulardii CNCM I-745 adapts itself secreting a different molecule according to pathogen</span></li>
-              </ul>
-              <ul class="quiz select" rel="13">
-                <li><span>A</span><span>True</span></li>
-                <li><span>B</span><span>False</span></li>
-              </ul>
-              <ul class="quiz select" rel="14">
-                <li><span>A</span><span>Saccharomyces boulardii CNCM I-745 increases disaccharidases which plays an important role in lactose digestion</span></li>
-                <li><span>B</span><span>Saccharomyces boulardii CNCM I-745 decreases IgA-s levels that cause a water secretion</span></li>
-                <li><span>C</span><span>Polyamines are spermine, spermidine and putrescine which are responsible for the cell maturation (enterocytes)</span></li>
-              </ul>
-              <ul class="quiz select" rel="15">
-                <li><span>A</span><span>Saccharomyces boulardii CNCM I-745 destroys tight junctions</span></li>
-                <li><span>B</span><span>Pathogens stick to Saccharomyces boulardii CNCM I-745</span></li>
-                <li><span>C</span><span>Saccharomyces boulardii CNCM I-745 decreases invasiveness</span></li>
-                <li><span>D</span><span>Saccharomyces boulardii CNCM I-745 protects the mucosa</span></li>
-              </ul>
-              <ul class="quiz select" rel="16">
-                <li><span>A</span><span>A meta-analysis increases the power of the study results</span></li>
-                <li><span>B</span><span>Saccharomyces boulardii is recommended by the authorities</span></li>
-                <li><span>C</span><span>Saccharomyces boulardii efficacy is only proven in children</span></li>
-                <li><span>D</span><span>Saccharomyces boulardii can be use alone in the treatment of acute diarrhea in children</span></li>
-              </ul>
-              <ul class="quiz select" rel="17">
-                <li><span>A</span><span>Treatment is mainly symptomatic</span></li>
-                <li><span>B</span><span>Treatment is complex and requires specialized physicians to treat</span></li>
-                <li><span>C</span><span>Treatment is associated with severe side effects</span></li>
-                <li><span>D</span><span>Treatment is contradicted in pregnant women and people over the age of 65</span></li>
-              </ul>
-              <ul class="quiz select" rel="18">
-                <li><span>A</span><span>Patients may discontinue the antibiotics, increasing the duration of disease</span></li>
-                <li><span>B</span><span>Patients may develop antibiotic resistance</span></li>
-                <li><span>C</span><span>Patients may have an increased risk of viral diarrhea</span></li>
-                <li><span>D</span><span>Patients may develop Clostridium difficile disease</span></li>
-              </ul>
-              <ul class="quiz select" rel="19">
-                <li><span>A</span><span>Saccharomyces boulardii significantly reduces the duration of diarrhea as compared with controls</span></li>
-                <li><span>B</span><span>The addition of Saccharomyces boulardii + oral rehydration therapy prevents relapses</span></li>
-                <li><span>C</span><span>The addition of Saccharomyces boulardii + oral rehydration therapy consolidates the recovery</span></li>
-              </ul>
-              <ul class="quiz select" rel="20">
-                <li><span>A</span><span>The main objective is the study of the correlation between Saccharomyces boulardii efficacy and health economic benefit</span></li>
-                <li><span>B</span><span>This review shows strong evidence that Saccharomyces boulardii has a clinically significant benefit in the treatment of acute infectious diarrhea in infants and children</span></li>
-                <li><span>C</span><span>Saccharomyces boulardii’s benefit has been only shown in developed countries</span></li>
-                <li><span>D</span><span>Saccharomyces boulardii’s benefit has been only shown in developing countries</span></li>
-                <li><span>E</span><span>This meta-analysis included 11 studies involving more than 1300 patients</span></li>
-              </ul>
-              <ul class="quiz select text80" rel="21">
-                <li><span>A</span><span>Results show that Saccharomyces boulardii is more efficient in the treatment of acute diarrhea than in the treatment of parasitic diarrhea</span></li>
-                <li><span>B</span><span>Results show that Saccharomyces boulardii reduces the duration of diarrhea about 2 days</span></li>
-                <li><span>C</span><span>Results show that Saccharomyces boulardii reduces the risk of developing AAD by 53%</span></li>
-                <li><span>D</span><span>For the first time, a correlation is made between the effectiveness of Saccharomyces boulardii and economic benefits of reducing the duration of diarrhea</span></li>
-                <li><span>E</span><span>Results show that Saccharomyces boulardii is efficient in all types of infectious diarrhea</span></li>
-                <li><span>F</span><span>Results show that Saccharomyces boulardii is efficient in the prevention of AAD</span></li>
-              </ul>
-              <ul class="quiz select" rel="22">
-                <li><span>A</span><span>This paper summarizes all existing clinical and non clinical data on the influence of Saccharomyces boulardii on the Gut Microbiota</span></li>
-                <li><span>B</span><span>It is proved that the efficacy of Saccharomyces boulardii is independent on its vitality</span></li>
-                <li><span>C</span><span>This review shows that Saccharomyces boulardii is capable of protecting the intestinal microbial community</span></li>
-                <li><span>D</span><span>Results show that in healthy patients receiving Saccharomyces boulardii, fecal microbiota was stable and unmodified</span></li>
-              </ul>
-              <ul class="quiz select" rel="23">
-                <li><span>A</span><span>This meta-analysis included 10 trials representing over 1800 patients</span></li>
-                <li><span>B</span><span>This meta-analysis mixed trial in children and trials in adults</span></li>
-                <li><span>C</span><span>This meta-analysis included only positive clinical trials</span></li>
-                <li><span>D</span><span>Results show that Saccharomyces boulardii reduces the risk of developing AAD by 53%</span></li>
-                <li><span>E</span><span>This meta-analysis was published in 2010</span></li>
-              </ul>
-              <ul class="quiz select text80" rel="24">
-                <li><span>A</span><span>This meta-analysis included 21 trials representing over 4700 patients</span></li>
-                <li><span>B</span><span>This meta-analysis mixed trial in children and trials in adults</span></li>
-                <li><span>C</span><span>This meta-analysis included only positive clinical trials</span></li>
-                <li><span>D</span><span>Results show that Saccharomyces boulardii reduces the risk of developing AAD by 53%</span></li>
-                <li><span>E</span><span>Results show that Saccharomyces boulardii reduces the risk of developing AAD by 46% in children</span></li>
-                <li><span>F</span><span>Results show that Saccharomyces boulardii reduces the risk of developing AAD by 84% in adults</span></li>
-              </ul>
-          </div>
-          <a id="btn_quiz_next" class="btn"><span>OK</span></a>
-        </div>
+        <img id="logo" src="assets/img/logo.svg">
    </div>   
 <script src="kmlPlayer.js"></script>
 </body>
