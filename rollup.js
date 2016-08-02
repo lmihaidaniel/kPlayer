@@ -14,6 +14,7 @@ var filesize = require( 'rollup-plugin-filesize' );
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
 var postcss = require('gulp-postcss');
+var gls = require('gulp-live-server');
 var csswring = require('csswring');
 var atImport = require('postcss-import');
 var postcssFont = require('postcss-font-magician');
@@ -85,22 +86,6 @@ var config = {
   build: {
     moduleName: 'kmlPlayer',
     entry: './temp/index.js', // Entry file
-    plugins: [
-      babel({
-        exclude: 'node_modules/**',
-        compact: true,
-        presets: ['es2015-rollup'],
-        plugins: [
-            ['transform-es2015-classes', {
-              loose: true
-            }]
-          ] // needed to add support to classes in <=ie10
-      })
-    ]
-  },
-  app: {
-    moduleName: 'app',
-    entry: './app/index.js', // Entry file
     plugins: [
       babel({
         exclude: 'node_modules/**',
@@ -205,8 +190,6 @@ gulp.task('build', function() {
     }).then(function() {
       copyFileSync('lib/core/svgSprite/kmlPlayer.svg', 'dist/');
       copyFileSync('lib/core/svgSprite/kmlPlayer.svg', 'build/');
-      copyFolderRecursiveSync('app/assets', 'dist/');
-      copyFolderRecursiveSync('app/assets', 'build/');
       copyFileSync('app/index.html','dist/index.html');
       console.log(config.build.moduleName + ' builded');
     }).catch(function(error) {
@@ -214,30 +197,15 @@ gulp.task('build', function() {
     });
 });
 
-gulp.task('app', function() {
-  rollup.rollup(config.app)
-    .then(function(bundle) {
-      // Generate bundle + sourcemap
-      let result = bundle.generate({
-        // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
-        format: 'iife',
-        moduleName: config.build.moduleName,
-      });
-      bundle.write({
-        format: 'iife',
-        moduleName: config.build.moduleName,
-        banner: config.banner,
-        sourceMap: 'inline',
-        sourceMap: true,
-        dest: 'app/' + config.build.moduleName + '.js', // Exit file
-      });
-      fs.writeFileSync('dist/kmlPlayer.js', config.banner + '\n' + js_minify(result.code));
-    }).then(function() {
-      // fs.createReadStream('app/index.html').pipe(fs.createWriteStream('dist/index.html'));
-      console.log(config.build.moduleName + ' builded');
-    }).catch(function(error) {
-      console.log(error);
-    });
+gulp.task('serve', function() {
+  //1. serve multi folders 
+  var server = gls.static(['assets', 'build']);
+  server.start();
+ 
+  //2. use gulp.watch to trigger server actions(notify, start or stop) 
+  gulp.watch(['assets/**/*.*', 'build/**/*.*'], function (file) {
+    server.notify.apply(server, [file]);
+  });
 });
 
 gulp.task('watch', function() {
@@ -246,12 +214,14 @@ gulp.task('watch', function() {
 
   gulp.watch('lib/**/*.js', ['compile']);
   gulp.watch('app/**/*.js', ['compile']);
+
 });
 
 gulp.task('default', function() {
   gulp.start('compile');
   gulp.start('css');
   gulp.start('watch');
+  gulp.start('serve');
 });
 
 gulp.start('default');

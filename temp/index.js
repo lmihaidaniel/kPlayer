@@ -286,7 +286,6 @@ let wrap = function (elements, wrapper) {
 		return child;
 	}
 };
-var dom = {};
 
 function interopDefault(ex) {
 	return ex && typeof ex === 'object' && 'default' in ex ? ex['default'] : ex;
@@ -2861,6 +2860,149 @@ class Hotspot extends Events {
 	}
 }
 
+//https://github.com/fdaciuk/ajax
+var ajax = (function () {
+
+  function ajax(options) {
+    var methods = ['get', 'post', 'put', 'delete'];
+    options = options || {};
+    options.baseUrl = options.baseUrl || '';
+    if (options.method && options.url) {
+      return xhrConnection(options.method, options.baseUrl + options.url, maybeData(options.data), options);
+    }
+    return methods.reduce(function (acc, method) {
+      acc[method] = function (url, data) {
+        return xhrConnection(method, options.baseUrl + url, maybeData(data), options);
+      };
+      return acc;
+    }, {});
+  }
+
+  function maybeData(data) {
+    return data || null;
+  }
+
+  function xhrConnection(type, url, data, options) {
+    var returnMethods = ['then', 'catch', 'always'];
+    var promiseMethods = returnMethods.reduce(function (promise, method) {
+      promise[method] = function (callback) {
+        promise[method] = callback;
+        return promise;
+      };
+      return promise;
+    }, {});
+    var xhr = new XMLHttpRequest();
+    xhr.open(type, url, true);
+    xhr.withCredentials = options.hasOwnProperty('withCredentials');
+    setHeaders(xhr, options.headers);
+    xhr.addEventListener('readystatechange', ready(promiseMethods, xhr), false);
+    xhr.send(objectToQueryString(data));
+    promiseMethods.abort = function () {
+      return xhr.abort();
+    };
+    return promiseMethods;
+  }
+
+  function setHeaders(xhr, headers) {
+    headers = headers || {};
+    if (!hasContentType(headers)) {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    }
+    Object.keys(headers).forEach(function (name) {
+      headers[name] && xhr.setRequestHeader(name, headers[name]);
+    });
+  }
+
+  function hasContentType(headers) {
+    return Object.keys(headers).some(function (name) {
+      return name.toLowerCase() === 'content-type';
+    });
+  }
+
+  function ready(promiseMethods, xhr) {
+    return function handleReady() {
+      if (xhr.readyState === xhr.DONE) {
+        xhr.removeEventListener('readystatechange', handleReady, false);
+        promiseMethods.always.apply(promiseMethods, parseResponse(xhr));
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          promiseMethods.then.apply(promiseMethods, parseResponse(xhr));
+        } else {
+          promiseMethods.catch.apply(promiseMethods, parseResponse(xhr));
+        }
+      }
+    };
+  }
+
+  function parseResponse(xhr) {
+    var result;
+    try {
+      result = JSON.parse(xhr.responseText);
+    } catch (e) {
+      result = xhr.responseText;
+    }
+    return [result, xhr];
+  }
+
+  function objectToQueryString(data) {
+    return isObject(data) ? getQueryString(data) : data;
+  }
+
+  function isObject(data) {
+    return Object.prototype.toString.call(data) === '[object Object]';
+  }
+
+  function getQueryString(object) {
+    return Object.keys(object).reduce(function (acc, item) {
+      var prefix = !acc ? '' : acc + '&';
+      return prefix + encode(item) + '=' + encode(object[item]);
+    }, '');
+  }
+
+  function encode(value) {
+    return encodeURIComponent(value);
+  }
+
+  return ajax;
+})();
+
+const svgns = "http://www.w3.org/2000/svg";
+const xlinkns = "http://www.w3.org/1999/xlink";
+class svgSprite {
+	constructor() {
+		this.check();
+	}
+	create(namespace, parent) {
+		// Create a <svg> wrapper element
+		var ws = document.createElementNS(svgns, "svg");
+		// Create a <use> element
+		let use = document.createElementNS(svgns, "use");
+		// Add an 'href' attribute (using the "xlink" namespace)
+		use.setAttributeNS(xlinkns, "href", "#" + namespace);
+		ws.appendChild(use);
+		if (isEl(parent)) {
+			addClass(parent, 'kml-icon ' + namespace);
+			parent.appendChild(ws);
+		}
+		return use;
+	}
+	check() {
+		//check if "#svg-icons" exists. If not use ajax to inject it into the body
+		if (document.getElementById('svg-icons') != null) {
+			return;
+		} else {
+			ajax().get('kmlPlayer.svg').then(function (r) {
+				if (document.getElementById('svg-icons') != null) return;
+				var c = document.createElement('div');
+				c.setAttribute('hidden', '');
+				c.setAttribute('style', 'display: none;');
+				c.innerHTML = r;
+				document.body.insertBefore(c, document.body.childNodes[0]);
+			});
+		}
+	}
+}
+
 let defaults$6 = {
 	backgroundColor: '',
 	on: {
@@ -2884,6 +3026,7 @@ let defaults$6 = {
 class Popup extends Events {
 	constructor(el, opts, parent, parentPlayer) {
 		super();
+		let svg = new svgSprite();
 		this.wrapper = el;
 		let body = createElement('div', { 'class': 'body' });
 		let overlay = createElement('div');
@@ -2905,7 +3048,8 @@ class Popup extends Events {
 			this._title = document.createElement('span');
 			header.appendChild(this._title);
 			this._closeBtn = document.createElement('a');
-			this._closeBtn.innerHTML = "<img src='svg/ic_close.svg'/>";
+			// this._closeBtn.innerHTML = "<img src='svg/ic_close.svg'/>";
+			svg.create('x', this._closeBtn);
 			addClass(this._closeBtn, 'closeBtn triggerClose');
 			header.appendChild(this._closeBtn);
 			this.body.appendChild(header);
@@ -3111,148 +3255,6 @@ class Popup extends Events {
 		this.removeAllListeners();
 		this.parent.remove(this.wrapper);
 		removeElement(this.wrapper);
-	}
-}
-
-//https://github.com/fdaciuk/ajax
-var ajax = (function () {
-
-  function ajax(options) {
-    var methods = ['get', 'post', 'put', 'delete'];
-    options = options || {};
-    options.baseUrl = options.baseUrl || '';
-    if (options.method && options.url) {
-      return xhrConnection(options.method, options.baseUrl + options.url, maybeData(options.data), options);
-    }
-    return methods.reduce(function (acc, method) {
-      acc[method] = function (url, data) {
-        return xhrConnection(method, options.baseUrl + url, maybeData(data), options);
-      };
-      return acc;
-    }, {});
-  }
-
-  function maybeData(data) {
-    return data || null;
-  }
-
-  function xhrConnection(type, url, data, options) {
-    var returnMethods = ['then', 'catch', 'always'];
-    var promiseMethods = returnMethods.reduce(function (promise, method) {
-      promise[method] = function (callback) {
-        promise[method] = callback;
-        return promise;
-      };
-      return promise;
-    }, {});
-    var xhr = new XMLHttpRequest();
-    xhr.open(type, url, true);
-    xhr.withCredentials = options.hasOwnProperty('withCredentials');
-    setHeaders(xhr, options.headers);
-    xhr.addEventListener('readystatechange', ready(promiseMethods, xhr), false);
-    xhr.send(objectToQueryString(data));
-    promiseMethods.abort = function () {
-      return xhr.abort();
-    };
-    return promiseMethods;
-  }
-
-  function setHeaders(xhr, headers) {
-    headers = headers || {};
-    if (!hasContentType(headers)) {
-      headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    }
-    Object.keys(headers).forEach(function (name) {
-      headers[name] && xhr.setRequestHeader(name, headers[name]);
-    });
-  }
-
-  function hasContentType(headers) {
-    return Object.keys(headers).some(function (name) {
-      return name.toLowerCase() === 'content-type';
-    });
-  }
-
-  function ready(promiseMethods, xhr) {
-    return function handleReady() {
-      if (xhr.readyState === xhr.DONE) {
-        xhr.removeEventListener('readystatechange', handleReady, false);
-        promiseMethods.always.apply(promiseMethods, parseResponse(xhr));
-
-        if (xhr.status >= 200 && xhr.status < 300) {
-          promiseMethods.then.apply(promiseMethods, parseResponse(xhr));
-        } else {
-          promiseMethods.catch.apply(promiseMethods, parseResponse(xhr));
-        }
-      }
-    };
-  }
-
-  function parseResponse(xhr) {
-    var result;
-    try {
-      result = JSON.parse(xhr.responseText);
-    } catch (e) {
-      result = xhr.responseText;
-    }
-    return [result, xhr];
-  }
-
-  function objectToQueryString(data) {
-    return isObject(data) ? getQueryString(data) : data;
-  }
-
-  function isObject(data) {
-    return Object.prototype.toString.call(data) === '[object Object]';
-  }
-
-  function getQueryString(object) {
-    return Object.keys(object).reduce(function (acc, item) {
-      var prefix = !acc ? '' : acc + '&';
-      return prefix + encode(item) + '=' + encode(object[item]);
-    }, '');
-  }
-
-  function encode(value) {
-    return encodeURIComponent(value);
-  }
-
-  return ajax;
-})();
-
-const svgns = "http://www.w3.org/2000/svg";
-const xlinkns = "http://www.w3.org/1999/xlink";
-
-class svgSprite {
-	constructor() {
-		this.check();
-	}
-	create(namespace, parent) {
-		// Create a <svg> wrapper element
-		var ws = document.createElementNS(svgns, "svg");
-		// Create a <use> element
-		let use = document.createElementNS(svgns, "use");
-		// Add an 'href' attribute (using the "xlink" namespace)
-		use.setAttributeNS(xlinkns, "href", "#" + namespace);
-		ws.appendChild(use);
-		if (isEl(parent)) {
-			addClass(parent, 'kml-icon ' + namespace);
-			parent.appendChild(ws);
-		}
-		return use;
-	}
-	check() {
-		//check if "#svg-icons" exists. If not use ajax to inject it into the body
-		if (document.getElementById('svg-icons') != null) {
-			return;
-		}
-		ajax().get('kmlPlayer.svg').then(function (r) {
-			var c = document.createElement('div');
-			c.setAttribute('hidden', '');
-			c.setAttribute('style', 'display: none;');
-			c.innerHTML = r;
-			document.body.insertBefore(c, document.body.childNodes[0]);
-		});
 	}
 }
 
@@ -3758,7 +3760,7 @@ class Fullscreen extends Events {
 
 function _cancelRequests (media) {
 	// Remove child sources
-	var sources = dom.selectAll('source', media);
+	var sources = selectAll('source', media);
 	for (var i = 0; i < sources.length; i++) {
 		dom.removeElement(sources[i]);
 	}

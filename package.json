@@ -18,6 +18,7 @@
     "gulp-concat": "latest",
     "gulp-postcss": "latest",
     "gulp-sourcemaps": "latest",
+    "gulp-live-server": "latest",
     "postcss-cssnext": "latest",
     "postcss-font-magician": "latest",
     "postcss-import": "latest",
