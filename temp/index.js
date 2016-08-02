@@ -3260,11 +3260,15 @@ let defaults$7 = {
 	x: 0,
 	width: '100%',
 	height: '8%',
-	minHeight: 36
+	minHeight: 36,
+	popup: false
 };
-function Timeline (parentPlayer) {
+function Timeline (parentPlayer, options) {
 	return function () {
 		let Timeline = function () {
+			let settings = deepmerge(defaults$7, options);
+			//check if player is FUll WINDOW BEFORE disabling non supporting fullscreen native api
+			let supportsFullScreen = settings.popup || parentPlayer.supportsFullScreen;
 			let fragment = document.createDocumentFragment();
 			let svg = new svgSprite();
 			let playBtn = createElement('button');
@@ -3288,17 +3292,19 @@ function Timeline (parentPlayer) {
 			fragment.appendChild(pw);
 			fragment.appendChild(pc);
 			fragment.appendChild(volumeBtn);
-			fragment.appendChild(fullScreenBtn);
+			if (supportsFullScreen) {
+				fragment.appendChild(fullScreenBtn);
+			}
 			this.cuepointsWrapper = pc;
 			let wrapper = null;
 			if (parentPlayer.timelineContainer != null) {
-				this.wrapper = parentPlayer.timelineContainer(defaults$7);
+				this.wrapper = parentPlayer.timelineContainer(settings);
 				this.wrapper.content(fragment);
 				wrapper = this.wrapper.wrapper;
 			} else {
 				this.wrapper = createElement('div', {
 					class: "kmlTimeline",
-					style: "position: absolute; left: 0; width: " + defaults$7.width + "; height: " + defaults$7.height + "; top: auto; bottom: 0;"
+					style: "position: absolute; left: 0; width: " + settings.width + "; height: " + settings.height + "; top: auto; bottom: 0;"
 				});
 				parentPlayer.wrapper.appendChild(this.wrapper);
 				wrapper = this.wrapper;
@@ -3361,12 +3367,14 @@ function Timeline (parentPlayer) {
 					volumeBtn.blur();
 				} catch (e) {}
 			});
-			fullScreenBtn.addEventListener('click', () => {
-				parentPlayer.toggleFullScreen();
-				try {
-					fullScreenBtn.blur();
-				} catch (e) {}
-			});
+			if (supportsFullScreen) {
+				fullScreenBtn.addEventListener('click', () => {
+					parentPlayer.toggleFullScreen();
+					try {
+						fullScreenBtn.blur();
+					} catch (e) {}
+				});
+			}
 			let forwardCls = "";
 			let replayCls = "";
 			parentPlayer.on('forward', function (v) {
@@ -3409,12 +3417,14 @@ function Timeline (parentPlayer) {
 					volumeBtnSVG.setAttribute('href', '#volume-off');
 				}
 			});
-			parentPlayer.on('enterFullScreen', function () {
-				addClass(fullScreenBtn, 'exit');
-			});
-			parentPlayer.on('exitFullScreen', function () {
-				removeClass(fullScreenBtn, 'exit');
-			});
+			if (supportsFullScreen) {
+				parentPlayer.on('enterFullScreen', function () {
+					fullScreenBtnSVG.setAttribute('href', '#fullscreen-exit');
+				});
+				parentPlayer.on('exitFullScreen', function () {
+					fullScreenBtnSVG.setAttribute('href', '#fullscreen');
+				});
+			}
 			parentPlayer.on('play', () => {
 				playBtnSVG.setAttribute('href', '#play');
 			});
@@ -3427,45 +3437,55 @@ function Timeline (parentPlayer) {
 			let w = 0;
 			let cache_sc = 0;
 			this.resize = () => {
-				let sc = procentFromString(defaults$7.height) * parentPlayer.height() / 100;
+				let sc = procentFromString(settings.height) * parentPlayer.height() / 100;
 				if (cache_sc != sc) {
 					cache_sc = sc;
-					if (sc < defaults$7.minHeight) {
-						w = sc = defaults$7.minHeight;
+					if (sc < settings.minHeight) {
+						w = sc = settings.minHeight;
 						if (this.wrapper.settings) {
 							this.wrapper.settings({
-								height: defaults$7.minHeight + "px"
+								height: settings.minHeight + "px"
 							});
 						} else {
-							wrapper.style.height = defaults$7.minHeight + "px";
+							wrapper.style.height = settings.minHeight + "px";
 						}
 						playBtn.style.width = w + "px";
-						pc.style.left = pw.style.left = w + "px";
-						pc.style.right = pw.style.right = 2 * w + "px";
-
-						volumeBtn.style.width = w + "px";
-						volumeBtn.style.right = w + "px";
-
-						fullScreenBtn.style.width = w + "px";
-						fullScreenBtn.style.right = 0;
+						if (supportsFullScreen) {
+							pc.style.left = pw.style.left = w + "px";
+							pc.style.right = pw.style.right = 2 * w + "px";
+							volumeBtn.style.width = w + "px";
+							volumeBtn.style.right = w + "px";
+							fullScreenBtn.style.width = w + "px";
+							fullScreenBtn.style.right = 0;
+						} else {
+							pc.style.right = pw.style.right = pc.style.left = pw.style.left = w + "px";
+							volumeBtn.style.width = w + "px";
+							volumeBtn.style.right = 0;
+						}
 					} else {
 						if (this.wrapper.settings) {
 							this.wrapper.settings({
-								height: defaults$7.height
+								height: settings.height
 							});
 						} else {
-							wrapper.style.height = defaults$7.height;
+							wrapper.style.height = settings.height;
 						}
 						w = sc / parentPlayer.width() * 100;
 						playBtn.style.width = w + "%";
-						pc.style.left = pw.style.left = w + "%";
-						pc.style.right = pw.style.right = 2 * w + "%";
 
-						volumeBtn.style.width = w + "%";
-						volumeBtn.style.right = w + "%";
-
-						fullScreenBtn.style.width = w + "%";
-						fullScreenBtn.style.right = 0;
+						playBtn.style.width = w + "%";
+						if (supportsFullScreen) {
+							pc.style.left = pw.style.left = w + "%";
+							pc.style.right = pw.style.right = 2 * w + "%";
+							volumeBtn.style.width = w + "%";
+							volumeBtn.style.right = w + "%";
+							fullScreenBtn.style.width = w + "%";
+							fullScreenBtn.style.right = 0;
+						} else {
+							pc.style.right = pw.style.right = pc.style.left = pw.style.left = w + "%";
+							volumeBtn.style.width = w + "%";
+							volumeBtn.style.right = 0;
+						}
 					}
 				}
 			};
@@ -4501,9 +4521,9 @@ class Player extends Media {
 		this.cuepoints = new Cuepoints(this);
 	}
 
-	initTimeline(Timeline) {
+	initTimeline(Timeline, options = {}) {
 		if (Timeline != null) {
-			this.timeline = new Timeline(this);
+			this.timeline = new Timeline(this, options);
 			if (!this.cuepoints.wrapper) {
 				this.cuepoints.changeWrapper(this.timeline.cuepointsWrapper);
 			}
@@ -4658,7 +4678,7 @@ class videoPopup extends Popup {
 		//this.body.appendChild(domVideo);
 		this.player = new Player({ video: domVideo }, null);
 		this.player.supportsFullScreen = false;
-		this.player.initTimeline(Timeline);
+		this.player.initTimeline(Timeline, { popup: true });
 		this.player.media.addEventListener('click', () => {
 			if (!this.player.userActivity.idle()) {
 				this.player.togglePlay();

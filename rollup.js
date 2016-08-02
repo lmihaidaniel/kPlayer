@@ -8,6 +8,8 @@ var babel = require('rollup-plugin-babel');
 var uglify = require('uglify-js');
 var nodeResolve = require('rollup-plugin-node-resolve');
 var commonjs = require('rollup-plugin-commonjs');
+var replace = require( 'rollup-plugin-replace' );
+var filesize = require( 'rollup-plugin-filesize' );
 //css related
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
@@ -66,6 +68,9 @@ var config = {
     moduleName: 'kmlPlayer',
     entry: 'index.js', // Entry file
     plugins: [
+      replace({
+        VERSION: JSON.stringify( pkg.version )
+      }),
       nodeResolve({
         jsnext: true,
         main: true
@@ -73,7 +78,8 @@ var config = {
       commonjs(),
       babel({
         exclude: 'node_modules/**'
-      })
+      }),
+      filesize()
     ]
   },
   build: {

@@ -28,6 +28,8 @@
     "rollup-plugin-babel": "latest",
     "rollup-plugin-commonjs": "latest",
     "rollup-plugin-node-resolve": "latest",
+    "rollup-plugin-replace": "latest",
+    "rollup-plugin-filesize": "latest",
     "uglify-js": "latest"
   },
   "dependencies": {
