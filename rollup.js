@@ -197,8 +197,8 @@ gulp.task('build', function() {
       copyFileSync('app/index.html','build/index.html');
       fs.writeFileSync('dist/kmlPlayer.js', config.banner + '\n' + js_minify(result.code));
     }).then(function() {
-      copyFolderRecursiveSync('lib/svg', 'dist/');
-      copyFolderRecursiveSync('lib/svg', 'build/');
+      copyFileSync('lib/core/svgSprite/kmlPlayer.svg', 'dist/');
+      copyFileSync('lib/core/svgSprite/kmlPlayer.svg', 'build/');
       copyFolderRecursiveSync('app/assets', 'dist/');
       copyFolderRecursiveSync('app/assets', 'build/');
       copyFileSync('app/index.html','dist/index.html');

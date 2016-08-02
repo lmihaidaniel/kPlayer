@@ -7,6 +7,7 @@
   height: 100%;
   pointer-events: all;
   opacity: 1;
+  color: #23DB90;
   transition: opacity .25s ease;
   transition: opacity 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
@@ -38,77 +39,19 @@
 	outline: none;
 	cursor: pointer;
 	background: none;
-	/* background-color: #2B303B; */
+	color: inherit;
 	padding: 0;
 	border: none;
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: 60%;
-
+	background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7);
 	transition: top .15s ease;
     transition: top 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
-.kmlTimeline button.play{
-	background-image: url('svg/ic_play.svg');
-}
-.kmlTimeline button.play:hover,.kmlTimeline button.pause:hover{
-	background-size: 80%;
-}
-.kmlTimeline button.pause{
-	background-image: url('svg/ic_pause.svg');
-}
 
-.kmlTimeline button.replay{
-	background-image: url('svg/ic_replay.svg');
-}
-
-.kmlTimeline button.replay_5{
-	background-image: url('svg/ic_replay_5.svg');
-}
-
-.kmlTimeline button.replay_10{
-	background-image: url('svg/ic_replay_10.svg');
-}
-
-.kmlTimeline button.replay_30{
-	background-image: url('svg/ic_replay_30.svg');
-}
-
-.kmlTimeline button.forward_5{
-	background-image: url('svg/ic_forward_5.svg');
-}
-
-.kmlTimeline button.forward_10{
-	background-image: url('svg/ic_forward_10.svg');
-}
-
-.kmlTimeline button.forward_30{
-	background-image: url('svg/ic_forward_30.svg');
-}
-
-.kmlTimeline button.volume{
-	background-image: url('svg/ic_volume_up.svg');
-}
-.kmlTimeline button.volume.up{
-	background-image: url('svg/ic_volume_up.svg');
-}
-.kmlTimeline button.volume.down{
-	background-image: url('svg/ic_volume_down.svg');
-}
-.kmlTimeline button.volume.off{
-	background-image: url('svg/ic_volume_mute.svg');
-}
-.kmlTimeline button.volume.mute{
-	background-image: url('svg/ic_volume_off.svg');
-}
-
-
-.kmlTimeline button.fullscreen{
-	background-image: url('svg/ic_fullscreen.svg');
-}
-
-.kmlTimeline button.fullscreen.exit{
-	background-image: url('svg/ic_fullscreen_exit.svg');
+.kmlTimeline button svg{
+	width: 60%;
+    height: 60%;
+    top: 20%;
+    left: 20%;
 }
 
 .kmlProgress{

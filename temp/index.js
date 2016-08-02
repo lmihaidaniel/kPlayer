@@ -133,16 +133,16 @@ let classReg = function (c) {
 	return new RegExp("(^|\\s+)" + c + "(\\s+|$)");
 };
 
-let hasClass;
-let addClass;
-let removeClass;
-let toggleClass;
+let _hasClass;
+let _addClass;
+let _removeClass;
+let _toggleClass;
 
 if ('classList' in document.documentElement) {
-	hasClass = function (elem, c) {
+	_hasClass = function (elem, c) {
 		return elem.classList.contains(c);
 	};
-	addClass = function (elem, c) {
+	_addClass = function (elem, c) {
 		if (c != null) {
 			c = c.split(' ');
 			for (var k in c) {
@@ -150,7 +150,7 @@ if ('classList' in document.documentElement) {
 			}
 		}
 	};
-	removeClass = function (elem, c) {
+	_removeClass = function (elem, c) {
 		if (c != null) {
 			c = c.split(' ');
 			for (var k in c) {
@@ -159,22 +159,22 @@ if ('classList' in document.documentElement) {
 		}
 	};
 } else {
-	hasClass = function (elem, c) {
+	_hasClass = function (elem, c) {
 		return classReg(c).test(elem.className);
 	};
-	addClass = function (elem, c) {
-		if (!hasClass(elem, c)) {
+	_addClass = function (elem, c) {
+		if (!_hasClass(elem, c)) {
 			elem.className = elem.className + ' ' + c;
 		}
 	};
-	removeClass = function (elem, c) {
+	_removeClass = function (elem, c) {
 		elem.className = elem.className.replace(classReg(c), ' ');
 	};
 }
 
-toggleClass = function (elem, c) {
+_toggleClass = function (elem, c) {
 	if (c != null) {
-		var fn = hasClass(elem, c) ? removeClass : addClass;
+		var fn = _hasClass(elem, c) ? _removeClass : _addClass;
 		fn(elem, c);
 	}
 };
@@ -191,264 +191,102 @@ let getPrefixedStylePropName = function getPrefixedStylePropName(propName) {
 	}
 };
 
+let _stylePrefix = {
+	transform: getPrefixedStylePropName('transform'),
+	perspective: getPrefixedStylePropName('perspective'),
+	backfaceVisibility: getPrefixedStylePropName('backfaceVisibility')
+};
+let triggerWebkitHardwareAcceleration = function (element) {
+	if (_stylePrefix.backfaceVisibility && _stylePrefix.perspective) {
+		element.style[_stylePrefix.perspective] = '1000px';
+		element.style[_stylePrefix.backfaceVisibility] = 'hidden';
+	}
+};
+let transform = function (element, value) {
+	element.style[_stylePrefix.transform] = value;
+};
 /**
- * Offset Left
- * getBoundingClientRect technique from
- * John Resig http://ejohn.org/blog/getboundingclientrect-is-awesome/
- *
- * @function findElPosition
- * @param {Element} el Element from which to get offset
- * @return {Object}
+ * Shorter and fast way to select multiple nodes in the DOM
+ * @param   { String } selector - DOM selector
+ * @param   { Object } ctx - DOM node where the targets of our search will is located
+ * @returns { Object } dom nodes found
  */
-
-let findElPosition = function (el) {
-	let box;
-
-	if (el.getBoundingClientRect && el.parentNode) {
-		box = el.getBoundingClientRect();
-	}
-
-	if (!box) {
-		return {
-			left: 0,
-			top: 0
-		};
-	}
-
-	const docEl = document.documentElement;
-	const body = document.body;
-
-	const clientLeft = docEl.clientLeft || body.clientLeft || 0;
-	const scrollLeft = window.pageXOffset || body.scrollLeft;
-	const left = box.left + scrollLeft - clientLeft;
-
-	const clientTop = docEl.clientTop || body.clientTop || 0;
-	const scrollTop = window.pageYOffset || body.scrollTop;
-	const top = box.top + scrollTop - clientTop;
-
-	// Android sometimes returns slightly off decimal values, so need to round
-	return {
-		left: Math.round(left),
-		top: Math.round(top)
+let selectAll = function (selector, ctx) {
+	return (ctx || document).querySelectorAll(selector);
+};
+/**
+ * Shorter and fast way to select a single node in the DOM
+ * @param   { String } selector - unique dom selector
+ * @param   { Object } ctx - DOM node where the target of our search will is located
+ * @returns { Object } dom node found
+ */
+let select = function (selector, ctx) {
+	return (ctx || document).querySelector(selector);
+};
+let hasClass = _hasClass;
+let addClass = _addClass;
+let removeClass = _removeClass;
+let toggleClass = _toggleClass;
+let autoLineHeight = function (el) {
+	let l = el.offsetHeight + "px";
+	el.style.lineHeight = l;
+	return l;
+};
+/**
+ * Determines, via duck typing, whether or not a value is a DOM element.
+ *
+ * @function isEl
+ * @param    {Mixed} value
+ * @return   {Boolean}
+ */
+let isEl = function (value) {
+	return !!value && typeof value === 'object' && value.nodeType === 1;
+};
+let createElement = function (elm, props) {
+	let el = document.createElement(elm);
+	for (var k in props) {
+		el.setAttribute(k, props[k]);
 	};
+	return el;
 };
+let replaceElement = function (target, elm) {
+	target.parentNode.replaceChild(elm, target);
+};
+let removeElement = function (element) {
+	element.parentNode.removeChild(element);
+};
+let wrap = function (elements, wrapper) {
+	// Convert `elements` to an array, if necessary.
+	if (!elements.length) {
+		elements = [elements];
+	}
 
-var dom = {
-	stylePrefix: {
-		transform: getPrefixedStylePropName('transform'),
-		perspective: getPrefixedStylePropName('perspective'),
-		backfaceVisibility: getPrefixedStylePropName('backfaceVisibility')
-	},
-	triggerWebkitHardwareAcceleration: function (element) {
-		if (this.stylePrefix.backfaceVisibility && this.stylePrefix.perspective) {
-			element.style[this.stylePrefix.perspective] = '1000px';
-			element.style[this.stylePrefix.backfaceVisibility] = 'hidden';
-		}
-	},
-	transform: function (element, value) {
-		element.style[this.stylePrefix.transform] = value;
-	},
-	/**
-  * Shorter and fast way to select multiple nodes in the DOM
-  * @param   { String } selector - DOM selector
-  * @param   { Object } ctx - DOM node where the targets of our search will is located
-  * @returns { Object } dom nodes found
-  */
-	selectAll: function (selector, ctx) {
-		return (ctx || document).querySelectorAll(selector);
-	},
-	/**
-  * Shorter and fast way to select a single node in the DOM
-  * @param   { String } selector - unique dom selector
-  * @param   { Object } ctx - DOM node where the target of our search will is located
-  * @returns { Object } dom node found
-  */
-	select: function (selector, ctx) {
-		return (ctx || document).querySelector(selector);
-	},
-	hasClass: hasClass,
-	addClass: addClass,
-	removeClass: removeClass,
-	toggleClass: toggleClass,
-	autoLineHeight: function (el) {
-		let l = el.offsetHeight + "px";
-		el.style.lineHeight = l;
-		return l;
-	},
-	/**
-  * Determines, via duck typing, whether or not a value is a DOM element.
-  *
-  * @function isEl
-  * @param    {Mixed} value
-  * @return   {Boolean}
-  */
-	isEl: function (value) {
-		return !!value && typeof value === 'object' && value.nodeType === 1;
-	},
-	/**
-  * Determines, via duck typing, whether or not a value is a text node.
-  *
-  * @param  {Mixed} value
-  * @return {Boolean}
-  */
-	isTextNode: function (value) {
-		return !!value && typeof value === 'object' && value.nodeType === 3;
-	},
-	setElAttributes: function (el, attributes) {
-		Object.getOwnPropertyNames(attributes).forEach(function (attrName) {
-			let attrValue = attributes[attrName];
+	// Loops backwards to prevent having to clone the wrapper on the
+	// first element (see `child` below).
+	for (var i = elements.length - 1; i >= 0; i--) {
+		var child = i > 0 ? wrapper.cloneNode(true) : wrapper;
+		var element = elements[i];
 
-			if (attrValue === null || typeof attrValue === 'undefined' || attrValue === false) {
-				el.removeAttribute(attrName);
-			} else {
-				el.setAttribute(attrName, attrValue === true ? '' : attrValue);
-			}
-		});
-	},
-	getElAttributes: function (tag) {
-		var obj, knownBooleans, attrs, attrName, attrVal;
+		// Cache the current parent and sibling.
+		var parent = element.parentNode;
+		var sibling = element.nextSibling;
 
-		obj = {};
+		// Wrap the element (is automatically removed from its current
+		// parent).
+		child.appendChild(element);
 
-		// known boolean attributes
-		// we can check for matching boolean properties, but older browsers
-		// won't know about HTML5 boolean attributes that we still read from
-		knownBooleans = ',' + 'autoplay,controls,loop,muted,default' + ',';
-
-		if (tag && tag.attributes && tag.attributes.length > 0) {
-			attrs = tag.attributes;
-
-			for (var i = attrs.length - 1; i >= 0; i--) {
-				attrName = attrs[i].name;
-				attrVal = attrs[i].value;
-
-				// check for known booleans
-				// the matching element property will return a value for typeof
-				if (typeof tag[attrName] === 'boolean' || knownBooleans.indexOf(',' + attrName + ',') !== -1) {
-					// the value of an included boolean attribute is typically an empty
-					// string ('') which would equal false if we just check for a false value.
-					// we also don't want support bad code like autoplay='false'
-					attrVal = attrVal !== null ? true : false;
-				}
-
-				obj[attrName] = attrVal;
-			}
-		}
-
-		return obj;
-	},
-	createElement: function (elm, props) {
-		let el = document.createElement(elm);
-		for (var k in props) {
-			el.setAttribute(k, props[k]);
-		};
-		return el;
-	},
-	emptyElement: function (elm) {
-		while (elm.firstChild) {
-			elm.removeChild(elm.firstChild);
-		}
-		return elm;
-	},
-	replaceElement: function (target, elm) {
-		target.parentNode.replaceChild(elm, target);
-	},
-	addElement: function (target, elm) {
-		target.appendChild(elm);
-	},
-	removeElement: function (element) {
-		element.parentNode.removeChild(element);
-	},
-	insertElAfter: function (el, referenceNode) {
-		referenceNode.parentNode.insertBefore(el, referenceNode.nextSibling);
-	},
-	insertElBefore: function (el, referenceNode) {
-		referenceNode.parentNode.insertBefore(el, referenceNode);
-	},
-	insertElFirst: function (el, referenceNode) {
-		if (referenceNode.firstChild) {
-			parent.insertBefore(el, referenceNode.firstChild);
+		// If the element had a sibling, insert the wrapper before
+		// the sibling to maintain the HTML structure; otherwise, just
+		// append it to the parent.
+		if (sibling) {
+			parent.insertBefore(child, sibling);
 		} else {
-			referenceNode.appendChild(el);
+			parent.appendChild(child);
 		}
-	},
-	getTextContent: function (el) {
-		return el.textContent || el.innerText;
-	},
-	/**
-  * Offset Left
-  * getBoundingClientRect technique from
-  * John Resig http://ejohn.org/blog/getboundingclientrect-is-awesome/
-  *
-  * @function findElPosition
-  * @param {Element} el Element from which to get offset
-  * @return {Object}
-  */
-	findElPosition: findElPosition,
-	/**
-  * Get pointer position in element
-  * Returns an object with x and y coordinates.
-  * The base on the coordinates are the bottom left of the element.
-  *
-  * @function getPointerPosition
-  * @param {Element} el Element on which to get the pointer position on
-  * @param {Event} event Event object
-  * @return {Object} This object will have x and y coordinates corresponding to the mouse position
-  */
-	getPointerPosition: function (el, event) {
-		let position = {};
-		let box = findElPosition(el);
-		let boxW = el.offsetWidth;
-		let boxH = el.offsetHeight;
-
-		let boxY = box.top;
-		let boxX = box.left;
-		let pageY = event.pageY;
-		let pageX = event.pageX;
-
-		if (event.changedTouches) {
-			pageX = event.changedTouches[0].pageX;
-			pageY = event.changedTouches[0].pageY;
-		}
-
-		position.y = Math.max(0, Math.min(1, (boxY - pageY + boxH) / boxH));
-		position.x = Math.max(0, Math.min(1, (pageX - boxX) / boxW));
-
-		return position;
-	},
-	wrap: function (elements, wrapper) {
-		// Convert `elements` to an array, if necessary.
-		if (!elements.length) {
-			elements = [elements];
-		}
-
-		// Loops backwards to prevent having to clone the wrapper on the
-		// first element (see `child` below).
-		for (var i = elements.length - 1; i >= 0; i--) {
-			var child = i > 0 ? wrapper.cloneNode(true) : wrapper;
-			var element = elements[i];
-
-			// Cache the current parent and sibling.
-			var parent = element.parentNode;
-			var sibling = element.nextSibling;
-
-			// Wrap the element (is automatically removed from its current
-			// parent).
-			child.appendChild(element);
-
-			// If the element had a sibling, insert the wrapper before
-			// the sibling to maintain the HTML structure; otherwise, just
-			// append it to the parent.
-			if (sibling) {
-				parent.insertBefore(child, sibling);
-			} else {
-				parent.appendChild(child);
-			}
-
-			return child;
-		}
+		return child;
 	}
 };
+var dom = {};
 
 function interopDefault(ex) {
 	return ex && typeof ex === 'object' && 'default' in ex ? ex['default'] : ex;
@@ -1686,11 +1524,11 @@ function bigPlay (parentPlayer) {
 		let bigPlayButton = function () {
 			let isMobile = parentPlayer.device.isMobile;
 			let autoplay = parentPlayer.__settings['autoplay'];
-			let wrapper = dom.createElement('div', { class: "kmlBigPlay hidden" });
-			let btn = dom.createElement('div', { class: 'kmlBigPlayButton' });
+			let wrapper = createElement('div', { class: "kmlBigPlay hidden" });
+			let btn = createElement('div', { class: 'kmlBigPlayButton' });
 			btn.innerHTML = bigButton;
-			let circle = dom.select('.triangle', btn);
-			let triangle = dom.select('.circle', btn);
+			let circle = select('.triangle', btn);
+			let triangle = select('.circle', btn);
 			wrapper.addEventListener('click', () => {
 				parentPlayer.play();
 			});
@@ -1705,11 +1543,11 @@ function bigPlay (parentPlayer) {
 				}
 				parentPlayer.pause();
 				wrapper.style.display = "block";
-				dom.removeClass(wrapper, 'hidden');
+				removeClass(wrapper, 'hidden');
 			};
 			this.hide = () => {
 				parentPlayer.externalControls.seekEnabled(hasExternalSeekEnabled);
-				dom.addClass(wrapper, 'hidden');
+				addClass(wrapper, 'hidden');
 				setTimeout(() => {
 					wrapper.style.display = "none";
 					if (parentPlayer.containers) {
@@ -2002,9 +1840,9 @@ let adaptiveSizePos = function (setttings, parent) {
 
 			// if (dom.stylePrefix.transform && settings.translate) {
 			if (settings.translate) {
-				let transform = '';
+				let _transform = '';
 				if (vault.x != null && vault.y != null) {
-					transform = 'translate(' + vault.x + 'px,' + vault.y + 'px)';
+					_transform = 'translate(' + vault.x + 'px,' + vault.y + 'px)';
 					domElement.style.left = "auto";
 					domElement.style.right = "auto";
 					domElement.style.bottom = "auto";
@@ -2013,15 +1851,15 @@ let adaptiveSizePos = function (setttings, parent) {
 					if (vault.x != null) {
 						domElement.style.left = "auto";
 						domElement.style.right = "auto";
-						transform = 'translateX(' + vault.x + 'px)';
+						_transform = 'translateX(' + vault.x + 'px)';
 					}
 					if (vault.y != null) {
 						domElement.style.bottom = "auto";
 						domElement.style.top = "auto";
-						transform = 'translateY(' + vault.y + 'px)';
+						_transform = 'translateY(' + vault.y + 'px)';
 					}
 				}
-				dom.transform(domElement, transform);
+				transform(domElement, _transform);
 			} else {
 				if (vault.x != null && vault.y != null) {
 					domElement.style.left = vault.x + "px";
@@ -2511,9 +2349,9 @@ class Cuepoint extends Events {
             if (!this.__onceStart) {
                 this.emit('start'); //Call start function
                 if (this.el) {
-                    if (!dom.hasClass(this.el, this.__settings['classActive'])) {
-                        dom.removeClass(this.el, this.__settings['classInactive']);
-                        dom.addClass(this.el, this.__settings['classActive']);
+                    if (!hasClass(this.el, this.__settings['classActive'])) {
+                        removeClass(this.el, this.__settings['classInactive']);
+                        addClass(this.el, this.__settings['classActive']);
                     }
                 }
                 if (this.__settings['once']) {
@@ -2524,9 +2362,9 @@ class Cuepoint extends Events {
         } else {
             if (!this.__onceEnd) {
                 if (this.el) {
-                    if (!dom.hasClass(this.el, this.__settings['classInactive'])) {
-                        dom.removeClass(this.el, this.__settings['classActive']);
-                        dom.addClass(this.el, this.__settings['classInactive']);
+                    if (!hasClass(this.el, this.__settings['classInactive'])) {
+                        removeClass(this.el, this.__settings['classActive']);
+                        addClass(this.el, this.__settings['classInactive']);
                     }
                 }
             }
@@ -2583,9 +2421,9 @@ class Cuepoint extends Events {
                 } else {
                     return;
                 }
-                dom.addClass(this.el, this.__settings['className']);
+                addClass(this.el, this.__settings['className']);
                 if (this.__settings['start'] > 0) {
-                    dom.addClass(this.el, this.__settings['classInactive']);
+                    addClass(this.el, this.__settings['classInactive']);
                     this.el.style.left = Math.round(this.__settings['start'] / this.parentPlayer.duration() * 100) + '%';
                 }
                 if (this.__settings['width'] && this.__settings['end'] > 1) {
@@ -2615,17 +2453,17 @@ class Cuepoint extends Events {
     }
     addClass(cls) {
         if (this.el) {
-            dom.addClass(this.el, cls);
+            addClass(this.el, cls);
         }
     }
     removeClass(cls) {
         if (this.el) {
-            dom.removeClass(this.el, cls);
+            removeClass(this.el, cls);
         }
     }
     toggleClass(cls) {
         if (this.el) {
-            dom.toggleClass(this.el, cls);
+            toggleClass(this.el, cls);
         }
     }
 }
@@ -2715,7 +2553,7 @@ class Widget extends Events {
 		if (this.visible()) {
 			this.visible(false);
 			this.emit('beforeHide');
-			dom.addClass(this.wrapper, 'hidden');
+			addClass(this.wrapper, 'hidden');
 			if (this._settings.pauseVideo) {
 				if (!this.parentPlayerPaused) {
 					this.parentPlayer.play();
@@ -2735,7 +2573,7 @@ class Widget extends Events {
 			this.parent.enabled(true);
 			this.wrapper.style.display = "block";
 			setTimeout(() => {
-				dom.removeClass(this.wrapper, 'hidden');
+				removeClass(this.wrapper, 'hidden');
 				this.emit('show');
 			}, 50);
 			if (this._settings.pauseVideo) {
@@ -2753,7 +2591,7 @@ class Widget extends Events {
 			let d = new relativeSizePos(this.parentPlayer, this._settings);
 			this.wrapper.style.width = d.width + "%";
 			this.wrapper.style.height = d.height + "%";
-			//dom.transform(this.wrapper, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			//transform(this.wrapper, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
 			this.wrapper.style.left = d.x + '%';
 			this.wrapper.style.top = d.y + '%';
 			this._cache.width = this._settings.width;
@@ -2763,14 +2601,17 @@ class Widget extends Events {
 		}
 		this.emit('resize');
 	}
+	hasClass(cls) {
+		return addClass(this.wrapper, cls);
+	}
 	addClass(cls) {
-		if (cls != 'kmlWidget') dom.addClass(this.wrapper, cls);
+		if (cls != 'kmlWidget') addClass(this.wrapper, cls);
 	}
 	removeClass(cls) {
-		if (cls != 'kmlWidget') dom.removeClass(this.wrapper, cls);
+		if (cls != 'kmlWidget') removeClass(this.wrapper, cls);
 	}
 	toggleClass(cls) {
-		if (cls != 'kmlWidget') dom.toggleClass(this.wrapper, cls);
+		if (cls != 'kmlWidget') toggleClass(this.wrapper, cls);
 	}
 	content(el) {
 		if (el != null) {
@@ -2787,7 +2628,7 @@ class Widget extends Events {
 	destroy() {
 		this.removeAllListeners();
 		this.parent.remove(this.wrapper);
-		dom.removeElement(this.wrapper);
+		removeElement(this.wrapper);
 	}
 }
 
@@ -2832,7 +2673,7 @@ class Hotspot extends Events {
 		this.__refreshStart = 0;
 		this.__refreshEnd = 0;
 		//create hotspot wrapper
-		this.wrapper = dom.createElement('div');
+		this.wrapper = createElement('div');
 		this.wrapper.backgroundColor = backgroundColor(this.wrapper);
 
 		//convert position and size to absolute values
@@ -2895,14 +2736,17 @@ class Hotspot extends Events {
 			this.wrapper.style.display = "block";
 		}
 	}
+	hasClass(cls) {
+		return hasClass(this.wrapper, cls);
+	}
 	addClass(cls) {
-		dom.addClass(this.wrapper, cls);
+		addClass(this.wrapper, cls);
 	}
 	removeClass(cls) {
-		dom.removeClass(this.wrapper, cls);
+		removeClass(this.wrapper, cls);
 	}
 	toggleClass(cls) {
-		dom.toggleClass(this.wrapper, cls);
+		toggleClass(this.wrapper, cls);
 	}
 	content(cnt) {
 		if (cnt != null) {
@@ -2978,7 +2822,7 @@ class Hotspot extends Events {
 	}
 	destroy() {
 		this.removeEventListeners();
-		dom.removeElement(this.wrapper);
+		removeElement(this.wrapper);
 	}
 	show() {
 		this.__forceHide = false;
@@ -3041,15 +2885,15 @@ class Popup extends Events {
 	constructor(el, opts, parent, parentPlayer) {
 		super();
 		this.wrapper = el;
-		let body = dom.createElement('div', { 'class': 'body' });
-		let overlay = dom.createElement('div');
-		dom.addClass(overlay, 'overlay triggerClose');
+		let body = createElement('div', { 'class': 'body' });
+		let overlay = createElement('div');
+		addClass(overlay, 'overlay triggerClose');
 		this.wrapper.appendChild(overlay);
 		this.wrapper.appendChild(body);
 		this.body = body;
 		this.overlay = overlay;
 
-		this._content = dom.createElement('div', { 'class': 'content' });
+		this._content = createElement('div', { 'class': 'content' });
 		this.body.appendChild(this._content);
 
 		this._settings = deepmerge(defaults$6, opts);
@@ -3057,18 +2901,18 @@ class Popup extends Events {
 		//header
 		if (this._settings['header']) {
 			let header = document.createElement('h1');
-			dom.addClass(header, 'header');
+			addClass(header, 'header');
 			this._title = document.createElement('span');
 			header.appendChild(this._title);
 			this._closeBtn = document.createElement('a');
 			this._closeBtn.innerHTML = "<img src='svg/ic_close.svg'/>";
-			dom.addClass(this._closeBtn, 'closeBtn triggerClose');
+			addClass(this._closeBtn, 'closeBtn triggerClose');
 			header.appendChild(this._closeBtn);
 			this.body.appendChild(header);
 			this.header = header;
 			this.header.backgroundColor = backgroundColor(this.header);
 		} else {
-			dom.removeClass(overlay, 'triggerClose');
+			removeClass(overlay, 'triggerClose');
 		}
 		this.body.backgroundColor = backgroundColor(this.body);
 		this.overlay.backgroundColor = backgroundColor(this.overlay);
@@ -3125,7 +2969,7 @@ class Popup extends Events {
 			return cuepoints;
 		};
 
-		let clsElements = dom.selectAll('.triggerClose', el);
+		let clsElements = selectAll('.triggerClose', el);
 		for (var i = 0, n = clsElements.length; i < n; i += 1) {
 			clsElements[i].addEventListener('click', () => {
 				this.hide();
@@ -3175,7 +3019,7 @@ class Popup extends Events {
 		if (this._visible) {
 			this._visible = false;
 			this.emit('beforeHide');
-			dom.addClass(this.wrapper, 'hidden');
+			addClass(this.wrapper, 'hidden');
 			if (this._settings.pauseVideo) {
 				if (!this.parentPlayerPaused) {
 					this.parentPlayer.play();
@@ -3195,7 +3039,7 @@ class Popup extends Events {
 			this.parent.enabled(true);
 			this.wrapper.style.display = "block";
 			setTimeout(() => {
-				dom.removeClass(this.wrapper, 'hidden');
+				removeClass(this.wrapper, 'hidden');
 				this.emit('show');
 			}, 50);
 			if (this._settings.pauseVideo) {
@@ -3213,7 +3057,7 @@ class Popup extends Events {
 			let d = new relativeSizePos(this.parentPlayer, this._settings);
 			this.body.style.width = d.width + "%";
 			this.body.style.height = d.height + "%";
-			//dom.transform(this.body, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
+			//transform(this.body, 'translate(' + 100 / d.width * d.x + '%,' + 100 / d.height * d.y + '%)');
 			this.body.style.left = (100 - d.width) / 2 + '%';
 			this.body.style.top = (100 - d.height) / 2 + '%';
 			this._cache.width = this._settings.width;
@@ -3222,14 +3066,17 @@ class Popup extends Events {
 			this._cache.y = this._settings.y;
 		}
 	}
+	hasClass(cls) {
+		return hasClass(this.body, cls);
+	}
 	addClass(cls) {
-		if (cls != 'kmlPopup') dom.addClass(this.body, cls);
+		if (cls != 'kmlPopup') addClass(this.body, cls);
 	}
 	removeClass(cls) {
-		if (cls != 'kmlPopup') dom.removeClass(this.body, cls);
+		if (cls != 'kmlPopup') removeClass(this.body, cls);
 	}
 	toggleClass(cls) {
-		if (cls != 'kmlPopup') dom.toggleClass(this.body, cls);
+		if (cls != 'kmlPopup') toggleClass(this.body, cls);
 	}
 	content(el) {
 		if (el != null) {
@@ -3246,9 +3093,9 @@ class Popup extends Events {
 	autoLineHeight(el) {
 		if (this.visible()) {
 			if (el) {
-				dom.autoLineHeight(el);
+				autoLineHeight(el);
 			} else {
-				if (this._title) dom.autoLineHeight(this._title.parentNode);
+				if (this._title) autoLineHeight(this._title.parentNode);
 			}
 		}
 	}
@@ -3263,7 +3110,149 @@ class Popup extends Events {
 	destroy() {
 		this.removeAllListeners();
 		this.parent.remove(this.wrapper);
-		dom.removeElement(this.wrapper);
+		removeElement(this.wrapper);
+	}
+}
+
+//https://github.com/fdaciuk/ajax
+var ajax = (function () {
+
+  function ajax(options) {
+    var methods = ['get', 'post', 'put', 'delete'];
+    options = options || {};
+    options.baseUrl = options.baseUrl || '';
+    if (options.method && options.url) {
+      return xhrConnection(options.method, options.baseUrl + options.url, maybeData(options.data), options);
+    }
+    return methods.reduce(function (acc, method) {
+      acc[method] = function (url, data) {
+        return xhrConnection(method, options.baseUrl + url, maybeData(data), options);
+      };
+      return acc;
+    }, {});
+  }
+
+  function maybeData(data) {
+    return data || null;
+  }
+
+  function xhrConnection(type, url, data, options) {
+    var returnMethods = ['then', 'catch', 'always'];
+    var promiseMethods = returnMethods.reduce(function (promise, method) {
+      promise[method] = function (callback) {
+        promise[method] = callback;
+        return promise;
+      };
+      return promise;
+    }, {});
+    var xhr = new XMLHttpRequest();
+    xhr.open(type, url, true);
+    xhr.withCredentials = options.hasOwnProperty('withCredentials');
+    setHeaders(xhr, options.headers);
+    xhr.addEventListener('readystatechange', ready(promiseMethods, xhr), false);
+    xhr.send(objectToQueryString(data));
+    promiseMethods.abort = function () {
+      return xhr.abort();
+    };
+    return promiseMethods;
+  }
+
+  function setHeaders(xhr, headers) {
+    headers = headers || {};
+    if (!hasContentType(headers)) {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    }
+    Object.keys(headers).forEach(function (name) {
+      headers[name] && xhr.setRequestHeader(name, headers[name]);
+    });
+  }
+
+  function hasContentType(headers) {
+    return Object.keys(headers).some(function (name) {
+      return name.toLowerCase() === 'content-type';
+    });
+  }
+
+  function ready(promiseMethods, xhr) {
+    return function handleReady() {
+      if (xhr.readyState === xhr.DONE) {
+        xhr.removeEventListener('readystatechange', handleReady, false);
+        promiseMethods.always.apply(promiseMethods, parseResponse(xhr));
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          promiseMethods.then.apply(promiseMethods, parseResponse(xhr));
+        } else {
+          promiseMethods.catch.apply(promiseMethods, parseResponse(xhr));
+        }
+      }
+    };
+  }
+
+  function parseResponse(xhr) {
+    var result;
+    try {
+      result = JSON.parse(xhr.responseText);
+    } catch (e) {
+      result = xhr.responseText;
+    }
+    return [result, xhr];
+  }
+
+  function objectToQueryString(data) {
+    return isObject(data) ? getQueryString(data) : data;
+  }
+
+  function isObject(data) {
+    return Object.prototype.toString.call(data) === '[object Object]';
+  }
+
+  function getQueryString(object) {
+    return Object.keys(object).reduce(function (acc, item) {
+      var prefix = !acc ? '' : acc + '&';
+      return prefix + encode(item) + '=' + encode(object[item]);
+    }, '');
+  }
+
+  function encode(value) {
+    return encodeURIComponent(value);
+  }
+
+  return ajax;
+})();
+
+const svgns = "http://www.w3.org/2000/svg";
+const xlinkns = "http://www.w3.org/1999/xlink";
+
+class svgSprite {
+	constructor() {
+		this.check();
+	}
+	create(namespace, parent) {
+		// Create a <svg> wrapper element
+		var ws = document.createElementNS(svgns, "svg");
+		// Create a <use> element
+		let use = document.createElementNS(svgns, "use");
+		// Add an 'href' attribute (using the "xlink" namespace)
+		use.setAttributeNS(xlinkns, "href", "#" + namespace);
+		ws.appendChild(use);
+		if (isEl(parent)) {
+			addClass(parent, 'kml-icon ' + namespace);
+			parent.appendChild(ws);
+		}
+		return use;
+	}
+	check() {
+		//check if "#svg-icons" exists. If not use ajax to inject it into the body
+		if (document.getElementById('svg-icons') != null) {
+			return;
+		}
+		ajax().get('kmlPlayer.svg').then(function (r) {
+			var c = document.createElement('div');
+			c.setAttribute('hidden', '');
+			c.setAttribute('style', 'display: none;');
+			c.innerHTML = r;
+			document.body.insertBefore(c, document.body.childNodes[0]);
+		});
 	}
 }
 
@@ -3277,25 +3266,23 @@ function Timeline (parentPlayer) {
 	return function () {
 		let Timeline = function () {
 			let fragment = document.createDocumentFragment();
-			let playBtn = dom.createElement('button', {
-				'class': 'play'
-			});
-			let volumeBtn = dom.createElement('button', {
-				'class': 'volume'
-			});
-			let fullScreenBtn = dom.createElement('button', {
-				'class': 'fullscreen'
-			});
-			let pw = dom.createElement('div', {
+			let svg = new svgSprite();
+			let playBtn = createElement('button');
+			let playBtnSVG = svg.create('play', playBtn);
+			let volumeBtn = createElement('button');
+			let volumeBtnSVG = svg.create('volume-on', volumeBtn);
+			let fullScreenBtn = createElement('button');
+			let fullScreenBtnSVG = svg.create('fullscreen', fullScreenBtn);
+			let pw = createElement('div', {
 				'class': 'kmlProgress'
 			});
-			let pc = dom.createElement('div', {
+			let pc = createElement('div', {
 				'class': 'kmlCuepoints'
 			});
-			let pl = dom.createElement('div', {
+			let pl = createElement('div', {
 				'class': 'progressline'
 			});
-			//pl.appendChild(dom.createElement('div', {'class': 'progressBubble'}));
+			//pl.appendChild(createElement('div', {'class': 'progressBubble'}));
 			pw.appendChild(pl);
 			fragment.appendChild(playBtn);
 			fragment.appendChild(pw);
@@ -3309,7 +3296,7 @@ function Timeline (parentPlayer) {
 				this.wrapper.content(fragment);
 				wrapper = this.wrapper.wrapper;
 			} else {
-				this.wrapper = dom.createElement('div', {
+				this.wrapper = createElement('div', {
 					class: "kmlTimeline",
 					style: "position: absolute; left: 0; width: " + defaults$7.width + "; height: " + defaults$7.height + "; top: auto; bottom: 0;"
 				});
@@ -3321,6 +3308,7 @@ function Timeline (parentPlayer) {
 			let pwVFlag = 0;
 			let caclPw = function (el, e) {
 				let dim = el.getBoundingClientRect();
+				console.log(dim);
 				let x = e.clientX - dim.left;
 				let t = x / dim.width * 100;
 				let d = t * parentPlayer.duration() / 100;
@@ -3362,42 +3350,42 @@ function Timeline (parentPlayer) {
 				}
 			});
 			playBtn.addEventListener('click', () => {
+				parentPlayer.togglePlay();
 				try {
 					playBtn.blur();
 				} catch (e) {}
-				parentPlayer.togglePlay();
 			});
 			volumeBtn.addEventListener('click', () => {
+				parentPlayer.toggleMute();
 				try {
 					volumeBtn.blur();
 				} catch (e) {}
-				parentPlayer.toggleMute();
 			});
 			fullScreenBtn.addEventListener('click', () => {
+				parentPlayer.toggleFullScreen();
 				try {
 					fullScreenBtn.blur();
 				} catch (e) {}
-				parentPlayer.toggleFullScreen();
 			});
 			let forwardCls = "";
 			let replayCls = "";
 			parentPlayer.on('forward', function (v) {
 				if (v) {
 					forwardCls = 'forward_' + v;
-					dom.addClass(playBtn, forwardCls);
+					playBtnSVG.setAttribute('href', '#forward5');
 				} else {
 					setTimeout(() => {
-						dom.removeClass(playBtn, forwardCls);
+						parentPlayer.paused() ? playBtnSVG.setAttribute('href', '#pause') : playBtnSVG.setAttribute('href', '#play');
 					}, 250);
 				}
 			});
 			parentPlayer.on('replay', function (v) {
 				if (v) {
 					replayCls = 'replay_' + v;
-					dom.addClass(playBtn, replayCls);
+					playBtnSVG.setAttribute('href', '#replay5');
 				} else {
 					setTimeout(() => {
-						dom.removeClass(playBtn, replayCls);
+						parentPlayer.paused() ? playBtnSVG.setAttribute('href', '#pause') : playBtnSVG.setAttribute('href', '#play');
 					}, 250);
 				}
 			});
@@ -3407,34 +3395,31 @@ function Timeline (parentPlayer) {
 			parentPlayer.on('volumechange', function () {
 				let v = this.volume();
 				if (this.muted()) {
-					dom.addClass(volumeBtn, 'mute');
+					volumeBtnSVG.setAttribute('href', '#volume-mute');
 					return;
 				} else {
-					dom.removeClass(volumeBtn, 'mute');
+					volumeBtnSVG.setAttribute('href', '#volume-on');
 				}
-				dom.removeClass(volumeBtn, 'down up off mute');
 				if (v < .5) {
-					dom.addClass(volumeBtn, 'down');
+					volumeBtnSVG.setAttribute('href', '#volume-middle');
 				} else {
-					dom.addClass(volumeBtn, 'up');
+					volumeBtnSVG.setAttribute('href', '#volume-on');
 				}
 				if (v == 0) {
-					dom.addClass(volumeBtn, 'off');
+					volumeBtnSVG.setAttribute('href', '#volume-off');
 				}
 			});
 			parentPlayer.on('enterFullScreen', function () {
-				dom.addClass(fullScreenBtn, 'exit');
+				addClass(fullScreenBtn, 'exit');
 			});
 			parentPlayer.on('exitFullScreen', function () {
-				dom.removeClass(fullScreenBtn, 'exit');
+				removeClass(fullScreenBtn, 'exit');
 			});
 			parentPlayer.on('play', () => {
-				dom.removeClass(playBtn, 'play');
-				dom.addClass(playBtn, 'pause');
+				playBtnSVG.setAttribute('href', '#play');
 			});
 			parentPlayer.on('pause', () => {
-				dom.removeClass(playBtn, 'pause');
-				dom.addClass(playBtn, 'play');
+				playBtnSVG.setAttribute('href', '#pause');
 			});
 			parentPlayer.on('resize', () => {
 				this.resize();
@@ -3488,9 +3473,9 @@ function Timeline (parentPlayer) {
 			this.closed = v => {
 				if (typeof v === 'boolean') {
 					if (v) {
-						dom.addClass(wrapper, 'closed');
+						addClass(wrapper, 'closed');
 					} else {
-						dom.removeClass(wrapper, 'closed');
+						removeClass(wrapper, 'closed');
 					}
 					_closed = v;
 				}
@@ -3510,15 +3495,17 @@ function Timeline (parentPlayer) {
 					this.closed(false);
 				}
 			});
-
+			this.hasClass = cls => {
+				return hasClass(wrapper, cls);
+			};
 			this.addClass = cls => {
-				if (cls != 'kmlTimeline') dom.addClass(wrapper, cls);
+				if (cls != 'kmlTimeline') addClass(wrapper, cls);
 			};
 			this.removeClass = cls => {
-				if (cls != 'kmlTimeline') dom.removeClass(wrapper, cls);
+				if (cls != 'kmlTimeline') removeClass(wrapper, cls);
 			};
 			this.toggleClass = cls => {
-				if (cls != 'kmlTimeline') dom.toggleClass(wrapper, cls);
+				if (cls != 'kmlTimeline') toggleClass(wrapper, cls);
 			};
 		};
 		return new Timeline();
@@ -4432,112 +4419,6 @@ function pageVisibility(_media, settings = {}) {
 	};
 };
 
-//https://github.com/fdaciuk/ajax
-var ajax = (function () {
-
-  function ajax(options) {
-    var methods = ['get', 'post', 'put', 'delete'];
-    options = options || {};
-    options.baseUrl = options.baseUrl || '';
-    if (options.method && options.url) {
-      return xhrConnection(options.method, options.baseUrl + options.url, maybeData(options.data), options);
-    }
-    return methods.reduce(function (acc, method) {
-      acc[method] = function (url, data) {
-        return xhrConnection(method, options.baseUrl + url, maybeData(data), options);
-      };
-      return acc;
-    }, {});
-  }
-
-  function maybeData(data) {
-    return data || null;
-  }
-
-  function xhrConnection(type, url, data, options) {
-    var returnMethods = ['then', 'catch', 'always'];
-    var promiseMethods = returnMethods.reduce(function (promise, method) {
-      promise[method] = function (callback) {
-        promise[method] = callback;
-        return promise;
-      };
-      return promise;
-    }, {});
-    var xhr = new XMLHttpRequest();
-    xhr.open(type, url, true);
-    xhr.withCredentials = options.hasOwnProperty('withCredentials');
-    setHeaders(xhr, options.headers);
-    xhr.addEventListener('readystatechange', ready(promiseMethods, xhr), false);
-    xhr.send(objectToQueryString(data));
-    promiseMethods.abort = function () {
-      return xhr.abort();
-    };
-    return promiseMethods;
-  }
-
-  function setHeaders(xhr, headers) {
-    headers = headers || {};
-    if (!hasContentType(headers)) {
-      headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    }
-    Object.keys(headers).forEach(function (name) {
-      headers[name] && xhr.setRequestHeader(name, headers[name]);
-    });
-  }
-
-  function hasContentType(headers) {
-    return Object.keys(headers).some(function (name) {
-      return name.toLowerCase() === 'content-type';
-    });
-  }
-
-  function ready(promiseMethods, xhr) {
-    return function handleReady() {
-      if (xhr.readyState === xhr.DONE) {
-        xhr.removeEventListener('readystatechange', handleReady, false);
-        promiseMethods.always.apply(promiseMethods, parseResponse(xhr));
-
-        if (xhr.status >= 200 && xhr.status < 300) {
-          promiseMethods.then.apply(promiseMethods, parseResponse(xhr));
-        } else {
-          promiseMethods.catch.apply(promiseMethods, parseResponse(xhr));
-        }
-      }
-    };
-  }
-
-  function parseResponse(xhr) {
-    var result;
-    try {
-      result = JSON.parse(xhr.responseText);
-    } catch (e) {
-      result = xhr.responseText;
-    }
-    return [result, xhr];
-  }
-
-  function objectToQueryString(data) {
-    return isObject(data) ? getQueryString(data) : data;
-  }
-
-  function isObject(data) {
-    return Object.prototype.toString.call(data) === '[object Object]';
-  }
-
-  function getQueryString(object) {
-    return Object.keys(object).reduce(function (acc, item) {
-      var prefix = !acc ? '' : acc + '&';
-      return prefix + encode(item) + '=' + encode(object[item]);
-    }, '');
-  }
-
-  function encode(value) {
-    return encodeURIComponent(value);
-  }
-
-  return ajax;
-})();
-
 const fn_contextmenu = function (e) {
 	e.stopPropagation();
 	e.preventDefault();
@@ -4571,13 +4452,13 @@ class Player extends Media {
 		//setup Player
 		this.device = device;
 		this.iframe = inIframe();
-		dom.addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
-		this.wrapper = dom.wrap(this.media, dom.createElement('div', {
+		addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
+		this.wrapper = wrap(this.media, createElement('div', {
 			class: 'kmlPlayer'
 		}));
-		dom.triggerWebkitHardwareAcceleration(this.wrapper);
+		triggerWebkitHardwareAcceleration(this.wrapper);
 		if (this.inIframe) {
-			dom.addClass(this.wrapper, "inFrame");
+			addClass(this.wrapper, "inFrame");
 		}
 
 		//initPageVisibility
@@ -4734,29 +4615,37 @@ class Player extends Media {
 		return this.media.offsetWidth / this.media.offsetHeight;
 	}
 
-	addClass(v, el) {
+	hasClass(v, el) {
 		if (el != null) {
-			dom.addClass(v, el);
+			return hasClass(v, el);
 			return;
 		}
-		dom.addClass(this.wrapper, v);
+		return hasClass(this.wrapper, v);
+	}
+
+	addClass(v, el) {
+		if (el != null) {
+			addClass(v, el);
+			return;
+		}
+		addClass(this.wrapper, v);
 	}
 	removeClass(v, el) {
 		if (el != null) {
-			dom.removeClass(v, el);
+			removeClass(v, el);
 			return;
 		}
 		if (v !== 'kmlPlayer') {
-			dom.removeClass(this.wrapper, v);
+			removeClass(this.wrapper, v);
 		}
 	}
 	toggleClass(v, el) {
 		if (el != null) {
-			dom.toggleClass(v, el);
+			toggleClass(v, el);
 			return;
 		}
 		if (v !== 'kmlPlayer') {
-			dom.toggleClass(this.wrapper, v);
+			toggleClass(this.wrapper, v);
 		}
 	}
 };
@@ -4765,7 +4654,7 @@ class videoPopup extends Popup {
 	constructor(el, opts, parent, parentPlayer) {
 		super(el, opts, parent, parentPlayer);
 		let domVideo = document.createElement('video');
-		dom.replaceElement(this._content, domVideo);
+		replaceElement(this._content, domVideo);
 		//this.body.appendChild(domVideo);
 		this.player = new Player({ video: domVideo }, null);
 		this.player.supportsFullScreen = false;
@@ -4943,7 +4832,7 @@ class TimelineContainer extends Events {
 		if (this.visible()) {
 			this.visible(false);
 			this.emit('beforeHide');
-			dom.addClass(this.wrapper, 'hidden');
+			addClass(this.wrapper, 'hidden');
 			setTimeout(() => {
 				this.wrapper.style.display = "none";
 				if (isFunction(this._settings.onHide)) this._settings.onHide();
@@ -4959,7 +4848,7 @@ class TimelineContainer extends Events {
 			this.parent.enabled(true);
 			this.wrapper.style.display = "block";
 			setTimeout(() => {
-				dom.removeClass(this.wrapper, 'hidden');
+				removeClass(this.wrapper, 'hidden');
 				if (isFunction(this._settings.onHide)) this._settings.onShow();
 				this.emit('show');
 			}, 50);
@@ -4973,14 +4862,17 @@ class TimelineContainer extends Events {
 			if (this._settings.y != null) this._cache.y = this.wrapper.style.top = this._settings.y;
 		}
 	}
+	hasClass(cls) {
+		hasClass(this.wrapper, cls);
+	}
 	addClass(cls) {
-		if (cls != 'kmlTimeline') dom.addClass(this.wrapper, cls);
+		if (cls != 'kmlTimeline') addClass(this.wrapper, cls);
 	}
 	removeClass(cls) {
-		if (cls != 'kmlTimeline') dom.removeClass(this.wrapper, cls);
+		if (cls != 'kmlTimeline') removeClass(this.wrapper, cls);
 	}
 	toggleClass(cls) {
-		if (cls != 'kmlTimeline') dom.toggleClass(this.wrapper, cls);
+		if (cls != 'kmlTimeline') toggleClass(this.wrapper, cls);
 	}
 	content(el) {
 		if (el != null) {
@@ -4997,20 +4889,20 @@ class TimelineContainer extends Events {
 	destroy() {
 		this.removeAllListeners();
 		this.parent.remove(this.wrapper);
-		dom.removeElement(this.wrapper);
+		removeElement(this.wrapper);
 	}
 }
 
 class Containers {
 	constructor(parentPlayer) {
-		this.wrapper = dom.createElement('div', {
+		this.wrapper = createElement('div', {
 			class: 'kmlContainers'
 		});
 
-		let popups = dom.createElement('div', { class: 'popups' });
-		let hotspots = dom.createElement('div', { class: 'hotspots' });
-		let widgets = dom.createElement('div', { class: 'widgets' });
-		let timelines = dom.createElement('div', { class: 'timelines' });
+		let popups = createElement('div', { class: 'popups' });
+		let hotspots = createElement('div', { class: 'hotspots' });
+		let widgets = createElement('div', { class: 'widgets' });
+		let timelines = createElement('div', { class: 'timelines' });
 
 		this.wrapper.appendChild(hotspots);
 		this.wrapper.appendChild(widgets);
@@ -5069,7 +4961,7 @@ class Containers {
 
 		this.add = function (settings, el = {}, type) {
 			let cls = settings.className || '';
-			let containerBody = dom.createElement('div');
+			let containerBody = createElement('div');
 			if (el) {
 				if (!el.nodeType) {
 					el = containerBody;
@@ -5085,23 +4977,23 @@ class Containers {
 					hotspots.appendChild(container.wrapper);
 					break;
 				case 'video':
-					dom.addClass(containerBody, 'kmlPopup isVideo hidden ' + cls);
+					addClass(containerBody, 'kmlPopup isVideo hidden ' + cls);
 					container = new videoPopup(containerBody, settings, this, parentPlayer);
 					popups.appendChild(container.wrapper);
 					break;
 				case 'popup':
-					dom.addClass(containerBody, 'kmlPopup hidden ' + cls);
+					addClass(containerBody, 'kmlPopup hidden ' + cls);
 					container = new Popup(containerBody, settings, this, parentPlayer);
 					popups.appendChild(container.wrapper);
 					break;
 				case 'timeline':
 					cls = settings.className || 'kmlTimeline';
-					dom.addClass(containerBody, cls);
+					addClass(containerBody, cls);
 					container = new TimelineContainer(containerBody, settings, this, parentPlayer);
 					timelines.appendChild(container.wrapper);
 					break;
 				default:
-					dom.addClass(containerBody, 'kmlWidget ' + cls);
+					addClass(containerBody, 'kmlWidget ' + cls);
 					container = new Widget(containerBody, settings, this, parentPlayer);
 					widgets.appendChild(container.wrapper);
 					break;
@@ -5122,14 +5014,17 @@ class Containers {
 			}
 		};
 	}
+	hasClass(cls) {
+		return hasClass(this.wrapper, cls);
+	}
 	addClass(cls) {
-		if (cls != 'kmlContainers') dom.addClass(this.wrapper, cls);
+		if (cls != 'kmlContainers') addClass(this.wrapper, cls);
 	}
 	removeClass(cls) {
-		if (cls != 'kmlContainers') dom.removeClass(this.wrapper, cls);
+		if (cls != 'kmlContainers') removeClass(this.wrapper, cls);
 	}
 	toggleClass(cls) {
-		if (cls != 'kmlContainers') dom.toggleClass(this.wrapper, cls);
+		if (cls != 'kmlContainers') toggleClass(this.wrapper, cls);
 	}
 	els(id) {
 		return this._els[id] || this._els;

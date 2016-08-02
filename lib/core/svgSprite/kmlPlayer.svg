@@ -1,0 +1,255 @@
+<svg id="svg-icons" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<symbol viewBox="0 0 24 24" fill="currentColor" id="play">
+	<path d="M6.5,5v14l11-7L6.5,5z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="pause">
+	<path d="M6,19h4V5H6V19z M14,5v14h4V5H14z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="volume-on">
+	<path d="M3,9v6h4l5,5V4L7,9H3z M16.5,12c0-1.7-1-3.3-2.5-4v8C15.5,15.3,16.5,13.8,16.5,12z M14,3.2v2.1
+	c2.9,0.9,5,3.5,5,6.7s-2.1,5.8-5,6.7v2.1c4-0.9,7-4.5,7-8.8S18,4.1,14,3.2z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="volume-middle">
+	<path d="M16.5,12c0-1.7-1-3.3-2.5-4v8C15.5,15.3,16.5,13.8,16.5,12z M3,9v6h4l5,5V4L7,9H3z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="volume-off">
+	<path d="M3,9v6h4l5,5V4L7,9H3z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="volume-mute">
+	<path d="M16.5,12c0-1.7-1-3.3-2.5-4v2.2l2.5,2.5C16.5,12.4,16.5,12.2,16.5,12z M19,12c0,0.9-0.2,1.8-0.5,2.6
+	l1.5,1.5c0.7-1.3,1-2.7,1-4.1c0-4.3-3-7.9-7-8.8v2.1C16.9,6.2,19,8.8,19,12z M4.3,3L3,4.3L7.7,9H3v6h4l5,5v-6.7l4.2,4.2
+	c-0.7,0.5-1.4,0.9-2.2,1.2v2.1c1.4-0.3,2.6-0.9,3.7-1.8l2,2.1l1.3-1.3l-9-9L4.3,3z M12,4L9.9,6.1L12,8.2V4z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="fast-forward">
+	<path d="M3.2,18l8.5-6L3.2,6L3.2,18z M12.2,6v12l8.5-6L12.2,6z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="fast-backward">
+	<path d="M11.8,18V6l-8.5,6L11.8,18z M12.2,12l8.5,6V6L12.2,12z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="next">
+	<path d="M6,18l8.5-6L6,6V18z M16,6v12h2V6H16z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="previous">
+	<path d="M6,6h2v12H6V6z M9.5,12l8.5,6V6L9.5,12z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="replay">
+	<path d="M12,6V2L7,7l5,5V8c3.3,0,6,2.7,6,6c0,3.3-2.7,6-6,6s-6-2.7-6-6H4c0,4.4,3.6,8,8,8s8-3.6,8-8
+	S16.4,6,12,6z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="replay5">
+	<path d="M12,6V2L7,7l5,5V8c3.3,0,6,2.7,6,6s-2.7,6-6,6s-6-2.7-6-6H4c0,4.4,3.6,8,8,8s8-3.6,8-8
+	S16.4,6,12,6z M10.7,14.9l0.2-2.2h2.4v0.7h-1.7l-0.1,0.9c0,0,0.1,0,0.1-0.1s0.1,0,0.1-0.1s0.1,0,0.2,0h0.2c0.2,0,0.4,0,0.5,0.1
+	s0.3,0.2,0.4,0.3s0.2,0.3,0.3,0.5s0.1,0.4,0.1,0.6s0,0.4-0.1,0.5s-0.1,0.3-0.3,0.5s-0.3,0.2-0.4,0.3S12.2,17,12,17s-0.4,0-0.5-0.1
+	s-0.3-0.1-0.5-0.2s-0.2-0.2-0.3-0.4c-0.1-0.2-0.1-0.3-0.1-0.5h0.8c0,0.2,0.1,0.3,0.2,0.4c0.1,0.1,0.2,0.1,0.4,0.1
+	c0.1,0,0.2,0,0.3-0.1l0.2-0.2c0,0,0.1-0.2,0.1-0.3v-0.6l-0.1-0.2l-0.2-0.2c0,0-0.2-0.1-0.3-0.1h-0.2c0,0-0.1,0-0.2,0.1
+	c-0.1,0.1-0.1,0-0.1,0.1s-0.1,0.1-0.1,0.1L10.7,14.9z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="forward">
+	<path d="M17.6,6.4C16.1,4.9,14.1,4,12,4c-4.4,0-8,3.6-8,8s3.6,8,8,8c3.7,0,6.8-2.5,7.7-6h-2.1
+	c-0.8,2.4-3.1,4-5.7,4c-3.3,0-6-2.7-6-6s2.7-6,6-6c1.7,0,3.1,0.7,4.2,1.8L13,11h7V4L17.6,6.4z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="forward5">
+	<path d="M4,14c0,4.4,3.6,8,8,8s8-3.6,8-8h-2c0,3.3-2.7,6-6,6s-6-2.7-6-6s2.7-6,6-6v4l5-5l-5-5v4
+	C7.6,6,4,9.6,4,14z M10.7,14.9l0.2-2.2h2.4v0.7h-1.7l-0.1,0.9c0,0,0.1,0,0.1-0.1s0.1,0,0.1-0.1s0.1,0,0.2,0h0.2c0.2,0,0.4,0,0.5,0.1
+	s0.3,0.2,0.4,0.3s0.2,0.3,0.3,0.5s0.1,0.4,0.1,0.6s0,0.4-0.1,0.5s-0.1,0.3-0.3,0.5s-0.3,0.2-0.5,0.3S12.1,17,11.9,17
+	c-0.2,0-0.4,0-0.5-0.1s-0.3-0.1-0.5-0.2s-0.2-0.2-0.3-0.4c-0.1-0.2-0.1-0.3-0.1-0.5h0.8c0,0.2,0.1,0.3,0.2,0.4
+	c0.1,0.1,0.2,0.1,0.4,0.1c0.1,0,0.2,0,0.3-0.1l0.2-0.2c0,0,0.1-0.2,0.1-0.3v-0.6l-0.1-0.2l-0.2-0.2c0,0-0.2-0.1-0.3-0.1h-0.2
+	c0,0-0.1,0-0.2,0.1c-0.1,0.1-0.1,0-0.1,0.1s-0.1,0.1-0.1,0.1L10.7,14.9z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="loop">
+	<path d="M12,4V1L8,5l4,4V6c3.3,0,6,2.7,6,6c0,1-0.2,2-0.7,2.8l1.5,1.5C19.6,15,20,13.5,20,12
+	C20,7.6,16.4,4,12,4z M12,18c-3.3,0-6-2.7-6-6c0-1,0.2-2,0.7-2.8L5.2,7.7C4.4,9,4,10.5,4,12c0,4.4,3.6,8,8,8v3l4-4l-4-4V18z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="subtitles">
+	<path d="M20,4H4C2.9,4,2,4.9,2,6v12c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V6C22,4.9,21.1,4,20,4z M4,12h4
+	v2H4V12z M14,18H4v-2h10V18z M20,18h-4v-2h4V18z M20,14H10v-2h10V14z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="captions">
+	<path d="M19,4H5C3.9,4,3,4.9,3,6v12c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V6C21,4.9,20.1,4,19,4z M11,11
+	H9.5v-0.5h-2v3h2V13H11v1c0,0.5-0.4,1-1,1H7c-0.6,0-1-0.5-1-1v-4c0-0.5,0.4-1,1-1h3c0.6,0,1,0.5,1,1V11z M18,11h-1.5v-0.5h-2v3h2V13
+	H18v1c0,0.5-0.5,1-1,1h-3c-0.6,0-1-0.5-1-1v-4c0-0.5,0.4-1,1-1h3c0.5,0,1,0.5,1,1V11z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="hd">
+	<path d="M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M11,15H9.5v-2
+	h-2v2H6V9h1.5v2.5h2V9H11V15z M13,9h4c0.5,0,1,0.5,1,1v4c0,0.5-0.5,1-1,1h-4V9z M14.5,13.5h2v-3h-2V13.5z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="hq">
+	<path d="M19,4H5C3.9,4,3,4.9,3,6v12c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V6C21,4.9,20.1,4,19,4z M11,15H9.5v-2
+	h-2v2H6V9h1.5v2.5h2V9H11V15z M18,14c0,0.5-0.5,1-1,1h-0.8v1.5h-1.5V15H14c-0.6,0-1-0.5-1-1v-4c0-0.5,0.4-1,1-1h3c0.5,0,1,0.5,1,1
+	V14z M14.5,13.5h2v-3h-2V13.5z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="record">
+	<circle cx="12" cy="12" r="8"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="stop">
+	<path d="M6,6h12v12H6V6z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="delay-play">
+	<path d="M13,9.7L9.9,7.4v9l3.1-2.3l3-2.2L13,9.7z M13,9.7L9.9,7.4v9l3.1-2.3l3-2.2L13,9.7z M13,9.7
+	L9.9,7.4v9l3.1-2.3l3-2.2L13,9.7z M11,4.1v-2c-2,0.2-3.8,1-5.3,2.2l1.4,1.4C8.2,4.7,9.6,4.2,11,4.1z M5.7,7.1L4.3,5.7
+	C3,7.2,2.2,8.9,2,10.9h2C4.2,9.5,4.8,8.2,5.7,7.1z M4,12.9H2c0.2,2,1,3.8,2.2,5.3l1.4-1.4C4.8,15.7,4.2,14.4,4,12.9z M5.7,19.7
+	c1.5,1.2,3.4,2,5.3,2.2v-2c-1.4-0.2-2.8-0.7-3.9-1.6L5.7,19.7z M22,11.9c0,5.2-3.9,9.4-8.9,10v-2C17,19.4,20,16,20,12
+	s-3-7.4-6.9-7.9v-2C18.1,2.6,22,6.7,22,11.9z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="fullscreen">
+	<path d="M7,14H5v5h5v-2H7V14z M5,10h2V7h3V5H5V10z M17,17h-3v2h5v-5h-2V17z M14,5v2h3v3h2V5H14z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="fullscreen-exit">
+	<path d="M5,16h3v3h2v-5H5V16z M8,8H5v2h5V5H8V8z M14,19h2v-3h3v-2h-5V19z M16,8V5h-2v5h5V8H16z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="ok">
+	<path d="M8.8,15.9l-4.2-4.2l-1.4,1.4l5.6,5.6l12-12l-1.4-1.4L8.8,15.9z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="ok-circle">
+	<polygon fill="currentColor" points="10.3,16.3 6.2,12.2 7.4,11 10.3,14 16.6,7.7 17.8,8.8"/>
+	<circle fill="none" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" cx="12" cy="12" r="8.9"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="ok-circle-fill">
+	<path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M10,17l-5-5l1.4-1.4
+	l3.6,3.6l7.6-7.6L19,8L10,17z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="ok-all">
+	<path d="M18,6.7l-1.4-1.4l-6.3,6.3l1.4,1.4L18,6.7z M22.2,5.3L11.6,15.9l-4.2-4.2L6,13.1l5.6,5.6l12-12
+	L22.2,5.3z M0.4,13.1L6,18.7l1.4-1.4l-5.6-5.6L0.4,13.1z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="x">
+	<path d="M19,6.4L17.6,5L12,10.6L6.4,5L5,6.4l5.6,5.6L5,17.6L6.4,19l5.6-5.6l5.6,5.6l1.4-1.4L13.4,12L19,6.4z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="x-circle">
+	<path d="M14.6,8L12,10.6L9.4,8L8,9.4l2.6,2.6L8,14.6L9.4,16l2.6-2.6l2.6,2.6l1.4-1.4L13.4,12L16,9.4
+	L14.6,8z M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8
+	S16.4,20,12,20z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="x-circle-fill">
+	<path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M17,15.6L15.6,17L12,13.4
+	L8.4,17L7,15.6l3.6-3.6L7,8.4L8.4,7l3.6,3.6L15.6,7L17,8.4L13.4,12L17,15.6z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="plus">
+	<path d="M19,13h-6v6h-2v-6H5v-2h6V5h2v6h6V13z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="plus-circle">
+	<path d="M13,7h-2v4H7v2h4v4h2v-4h4v-2h-4V7z M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10
+	S17.5,2,12,2z M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="plus-circle-fill">
+	<path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M17,13h-4v4h-2v-4H7v-2
+	h4V7h2v4h4V13z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="star">
+	<path d="M22,9.7l-7.2-0.6L12,2.6L9.2,9.1L2,9.7l5.5,4.7l-1.6,7l6.2-3.7l6.2,3.7l-1.6-7L22,9.7z M12,15.9
+	l-3.8,2.3l1-4.3L5.9,11l4.4-0.4l1.7-4l1.7,4l4.4,0.4l-3.3,2.9l1,4.3L12,15.9z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="star-semi">
+	<path d="M22,9.7l-7.2-0.6L12,2.6L9.2,9.1L2,9.7l5.5,4.7l-1.6,7l6.2-3.7l6.2,3.7l-1.6-7L22,9.7z M12,15.9
+	V6.6l1.7,4l4.4,0.4L14.8,14l1,4.3L12,15.9z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="star-fill">
+	<path d="M11.9,17.7l6.2,3.7l-1.6-7L22,9.7l-7.2-0.6l-2.8-6.6L9.2,9.1L1.9,9.6l5.5,4.7l-1.6,7L11.9,17.7z
+	"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="circle">
+	<path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8
+	s8,3.6,8,8S16.4,20,12,20z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="circle-select">
+	<path d="M12,7c-2.8,0-5,2.2-5,5s2.2,5,5,5s5-2.2,5-5S14.8,7,12,7z M12,2C6.5,2,2,6.5,2,12
+	s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="circle-unselect">
+	<path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M17,13H7v-2h10V13z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="box">
+	<path d="M19,5v14H5V5H19 M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3
+	z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="box-select">
+	<path d="M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="box-select-2">
+	<path d="M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z
+	 M10,17l-5-5l1.4-1.4l3.6,3.6l7.6-7.6L19,8L10,17z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="box-unselect">
+	<path d="M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z
+	 M17,13H7v-2h10V13z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-up">
+	<path d="M12,8.3l-6,6l1.4,1.4l4.6-4.6l4.6,4.6l1.4-1.4L12,8.3z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-down">
+	<path d="M16.6,8.3L12,12.9L7.4,8.3L6,9.7l6,6l6-6L16.6,8.3z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-up-triangle">
+	<path d="M7,14.5l5-5l5,5H7z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-down-triangle">
+	<path d="M7,9.5l5,5l5-5H7z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-left">
+	<path d="M15.7,7.4L14.3,6l-6,6l6,6l1.4-1.4L11.1,12L15.7,7.4z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-right">
+	<path d="M9.7,6L8.3,7.4l4.6,4.6l-4.6,4.6L9.7,18l6-6L9.7,6z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-up-line">
+	<path d="M4,12l1.4,1.4L11,7.8V20h2V7.8l5.6,5.6L20,12l-8-8L4,12z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-down-line">
+	<path d="M20,12l-1.4-1.4L13,16.2V4h-2v12.2l-5.6-5.6L4,12l8,8L20,12z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-left-line">
+	<path d="M20,11H7.8l5.6-5.6L12,4l-8,8l8,8l1.4-1.4L7.8,13H20V11z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-right-line">
+	<path d="M12,4l-1.4,1.4l5.6,5.6H4v2h12.2l-5.6,5.6L12,20l8-8L12,4z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-next">
+	<path d="M5.8,7.4l4.6,4.6l-4.6,4.6L7.2,18l6-6l-6-6L5.8,7.4z M16.2,6h2v12h-2V6z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="arrow-prev">
+	<path d="M18.2,16.6L13.6,12l4.6-4.6L16.8,6l-6,6l6,6L18.2,16.6z M5.8,6h2v12h-2V6z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="expand">
+	<path d="M12,5.8L15.2,9l1.4-1.4L12,3L7.4,7.6L8.8,9L12,5.8z M12,18.2L8.8,15l-1.4,1.4L12,21l4.6-4.6
+	L15.2,15L12,18.2z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="hinder">
+	<path d="M7.4,18.6L8.8,20l3.2-3.2l3.2,3.2l1.4-1.4L12,14L7.4,18.6z M16.6,5.4L15.2,4L12,7.2L8.8,4L7.4,5.4
+	L12,10L16.6,5.4z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="download">
+	<path d="M19,9.5h-4v-6H9v6H5l7,7L19,9.5z M5,18.5v2h14v-2H5z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="upload">
+	<path d="M9,16.5h6v-6h4l-7-7l-7,7h4V16.5z M5,18.5h14v2H5V18.5z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="question">
+	<path d="M11,18h2v-2h-2V18z M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M12,20
+	c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20z M12,6c-2.2,0-4,1.8-4,4h2c0-1.1,0.9-2,2-2s2,0.9,2,2c0,2-3,1.8-3,5h2
+	c0-2.2,3-2.5,3-5C16,7.8,14.2,6,12,6z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="info-circle">
+	<path d="M11,17h2v-6h-2V17z M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M12,20
+	c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20z M11,9h2V7h-2V9z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="info-circle-fill">
+	<path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M13,17h-2v-6h2V17z
+	 M13,9h-2V7h2V9z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="alert-circle">
+	<path d="M11,15h2v2h-2V15z M11,7h2v6h-2V7z M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10
+	S17.5,2,12,2z M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="alert-circle-fill">
+	<path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M13,17h-2v-2h2V17z
+	 M13,13h-2V7h2V13z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="alert-triangle">
+	<path d="M1,21.5h22l-11-19L1,21.5z M13,18.5h-2v-2h2V18.5z M13,14.5h-2v-4h2V14.5z"/>
+</symbol>
+<symbol viewBox="0 0 24 24" fill="currentColor" id="block">
+	<path d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M4,12c0-4.4,3.6-8,8-8
+	c1.9,0,3.6,0.6,4.9,1.7L5.7,16.9C4.6,15.5,4,13.8,4,12z M12,20c-1.9,0-3.6-0.6-4.9-1.7L18.3,7.1C19.4,8.5,20,10.2,20,12
+	C20,16.4,16.4,20,12,20z"/>
+</symbol>
+</svg>
