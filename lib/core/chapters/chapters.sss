@@ -1,0 +1,51 @@
+.kmlTimeline .kmlProgress{
+    display: none;
+}
+
+.kmlCuepoints{
+    background: transparent;
+    transition: none;
+    pointer-events: all !important;
+}
+
+.kmlTimeline.closed .kmlCuepoints{
+    top: 90%;
+}
+
+.kmlCuepoint {
+	position: absolute;
+	margin-right: 1px;
+    background: #000;
+    background: rgba(255, 255, 255, 0.5);
+    color: white;
+    height: 100%;
+    left: 0;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.kmlCuepoints .kmlCuepoint:first-child {
+    margin-left: 1px;
+}
+
+.kmlCuepoint .progress {
+    position: absolute;
+    width: 0;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #000;
+    background: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+.kmlCuepoint span {
+    font-size: 50%;
+    display: inline-block;
+    transform: translateY(-50%);
+    top: 50%;
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    text-transform: uppercase;
+}

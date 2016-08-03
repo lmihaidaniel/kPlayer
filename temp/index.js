@@ -1700,11 +1700,15 @@ let textSelection = {
 		document.onselectstart = function () {
 			return false;
 		};
+		document.ontouchmove = function (e) {
+			e.preventDefault();
+		};
 	},
 	unlock: function () {
 		document.onselectstart = function () {
 			return true;
 		};
+		document.ontouchmove = function (e) {};
 	}
 };
 
@@ -2308,7 +2312,11 @@ let defaults$4 = {
         start: function () {},
         end: function () {},
         click: function () {},
-        process: function () {}
+        process: function () {},
+        touchstart: false,
+        touchend: false,
+        touchmove: false,
+        touchleave: false
     },
     className: 'kmlCuepoint',
     classActive: null,
@@ -2336,9 +2344,7 @@ class Cuepoint extends Events {
         this.addVisual(this.__settings['content']);
         this.activate();
     }
-    processHandler() {
-        let d = this.parentPlayer.currentTime();
-        this.__settings['on']['process'](d);
+    processHandler(d) {
         //Check if current time is between start and end
         if (d >= this.__settings['start'] && (this.__settings['end'] < 0 || d < this.__settings['end'])) {
             if (this.__fired) {
@@ -2382,8 +2388,9 @@ class Cuepoint extends Events {
     }
     activate() {
         if (!this.__process) {
-            this.__process = () => {
-                this.processHandler();
+            this.__process = t => {
+                this.__settings['on']['process'](t);
+                this.processHandler(t);
             };
         }
         this.parentPlayer.on('timeupdate', this.__process);
@@ -2394,15 +2401,13 @@ class Cuepoint extends Events {
         this.emit('suspend');
     }
     destroy() {
+        this.suspend();
         if (this.el) {
-            this.el.style.display = "none";
+            this.el.parentNode.removeChild(this.el);
+            this.el = null;
         }
         this.emit('destroy');
         this.__fired = false;
-        if (this.el) {
-            if (suspend) this.suspend();
-            this.el.style.display = "none";
-        }
     }
     addVisual(visual) {
         if (!this.el) {
@@ -2420,18 +2425,82 @@ class Cuepoint extends Events {
                 } else {
                     return;
                 }
+                let parentPlayer = this.parentPlayer;
+                let duration = parentPlayer.duration();
                 addClass(this.el, this.__settings['className']);
-                if (this.__settings['start'] > 0) {
+                if (this.__settings['start'] >= 0) {
                     addClass(this.el, this.__settings['classInactive']);
-                    this.el.style.left = Math.round(this.__settings['start'] / this.parentPlayer.duration() * 100) + '%';
+                    this.el.style.left = Math.round(this.__settings['start'] / duration * 100) + '%';
                 }
-                if (this.__settings['width'] && this.__settings['end'] > 1) {
-                    this.el.style.right = Math.round(100 - this.__settings['end'] / this.parentPlayer.duration() * 100) + '%';
+                if (this.__settings['width']) {
+                    if (this.__settings['end'] > -1) {
+                        this.el.style.right = Math.round(100 - this.__settings['end'] / duration * 100) + '%';
+                    } else {
+                        this.el.style.right = 0;
+                    }
                 }
-
-                this.el.addEventListener('click', () => {
-                    this.emit('click');
+                let insideFlag = 0;
+                this.el.addEventListener('click', e => {
+                    insideFlag = 0;
+                    this.emit('click', e);
                 });
+
+                //REFACTOR AS A GENERIC MODULE TO CONTROL AND UNIFY TOUCH/MOUSE EVENTS
+                this.el.addEventListener('mousedown', e => {
+                    insideFlag = 1;
+                    textSelection.lock();
+                    this.emit('touchstart', e);
+                });
+                this.el.addEventListener('mouseup', e => {
+                    if (insideFlag) {
+                        insideFlag = 0;
+                        textSelection.unlock();
+                        this.emit('touchend', e);
+                    }
+                });
+                this.el.addEventListener('mousemove', e => {
+                    if (insideFlag) {
+                        this.emit('touchmove', e);
+                    } else {
+                        return;
+                    }
+                });
+                this.el.addEventListener('mouseout', e => {
+                    if (insideFlag) {
+                        insideFlag = 0;
+                        textSelection.unlock();
+                        this.emit('touchleave', e);
+                    }
+                });
+                //touch events
+                this.el.addEventListener('touchstart', e => {
+                    insideFlag = 1;
+                    textSelection.lock();
+                    this.emit('touchstart', e);
+                });
+                this.el.addEventListener('touchmove', e => {
+                    if (insideFlag) {
+                        this.emit('touchmove', e);
+                    } else {
+                        insideFlag = 0;
+                        return;
+                    }
+                });
+                this.el.addEventListener('touchleave', e => {
+                    if (insideFlag) {
+                        insideFlag = 0;
+                        textSelection.unlock();
+                        this.emit('touchleave', e);
+                    }
+                });
+                this.el.addEventListener('touchend', e => {
+                    if (insideFlag) {
+                        insideFlag = 0;
+                        textSelection.unlock();
+                        this.emit('touchend', e);
+                    }
+                });
+
                 if (this.parentWrapper) {
                     this.parentWrapper.appendChild(this.el);
                 }
@@ -2506,6 +2575,7 @@ class Widget extends Events {
 				this.on(k, this._settings['on'][k]);
 			}
 		}
+		this.backgroundColor(this._settings['backgroundColor'], 1);
 		let cuepoints = [];
 		this.cuepoint = options => {
 			let cbs = options.on;
@@ -3316,8 +3386,7 @@ function Timeline (parentPlayer, options) {
 			let pwVFlag = 0;
 			let caclPw = function (el, e) {
 				let dim = el.getBoundingClientRect();
-				console.log(dim);
-				let x = e.clientX - dim.left;
+				let x = e.pageX - dim.left;
 				let t = x / dim.width * 100;
 				let d = t * parentPlayer.duration() / 100;
 				pl.style.width = t + "%";
@@ -3385,7 +3454,7 @@ function Timeline (parentPlayer, options) {
 					playBtnSVG.setAttribute('href', '#forward5');
 				} else {
 					setTimeout(() => {
-						parentPlayer.paused() ? playBtnSVG.setAttribute('href', '#pause') : playBtnSVG.setAttribute('href', '#play');
+						parentPlayer.paused() ? playBtnSVG.setAttribute('href', '#play') : playBtnSVG.setAttribute('href', '#pause');
 					}, 250);
 				}
 			});
@@ -3395,7 +3464,7 @@ function Timeline (parentPlayer, options) {
 					playBtnSVG.setAttribute('href', '#replay5');
 				} else {
 					setTimeout(() => {
-						parentPlayer.paused() ? playBtnSVG.setAttribute('href', '#pause') : playBtnSVG.setAttribute('href', '#play');
+						parentPlayer.paused() ? playBtnSVG.setAttribute('href', '#play') : playBtnSVG.setAttribute('href', '#pause');
 					}, 250);
 				}
 			});
@@ -3428,10 +3497,10 @@ function Timeline (parentPlayer, options) {
 				});
 			}
 			parentPlayer.on('play', () => {
-				playBtnSVG.setAttribute('href', '#play');
+				playBtnSVG.setAttribute('href', '#pause');
 			});
 			parentPlayer.on('pause', () => {
-				playBtnSVG.setAttribute('href', '#pause');
+				playBtnSVG.setAttribute('href', '#play');
 			});
 			parentPlayer.on('resize', () => {
 				this.resize();
@@ -3762,7 +3831,7 @@ function _cancelRequests (media) {
 	// Remove child sources
 	var sources = selectAll('source', media);
 	for (var i = 0; i < sources.length; i++) {
-		dom.removeElement(sources[i]);
+		removeElement(sources[i]);
 	}
 
 	// Set blank video src attribute
@@ -4213,11 +4282,18 @@ class Cuepoints extends Events {
 	destroy(keep) {
 		for (var i = this.instances.length - 1; i >= 0; i--) {
 			let cp = this.instances[i];
-			if (cp.el) {
-				cp.parentWrapper.removeChild(cp.el);
+			if (keep != null) {
+				for (var j = keep.length - 1; j >= 0; j--) {
+					//to do - check if the comparison has the good logic
+					if (keep[j] != cp) {
+						cp.destroy();
+						this.instances[i] = null;
+					}
+				}
+			} else {
+				cp.destroy();
+				this.instances[i] = null;
 			}
-			cp.destroy();
-			if (keep == undefined) this.instances[i] = null;
 		}
 		if (keep == undefined) this.instances = [];
 	}
@@ -5141,6 +5217,143 @@ class Kumullus {
 	}
 }
 
+let _instances = [];
+class Chapters {
+	constructor(player, settings, equalVisuals = true, _d) {
+		this.destroy();
+		let duration = _d || player.duration();
+		settings = settings || [{
+			start: 0
+		}];
+		let progressDivs = [];
+		let _no = settings.length;
+		for (var k in settings) {
+			settings[k].on = deepmerge({
+				start: function () {},
+				end: function () {},
+				click: function () {},
+				process: function () {},
+				touchstart: false,
+				touchend: false,
+				touchmove: false,
+				touchleave: false
+			}, settings[k].on || {});
+			settings[k].end = settings[k].end || duration;
+			let visual = {
+				start: settings[k].start,
+				end: settings[k].end,
+				on: {
+					click: settings[k].on['click']
+				},
+				label: settings[k].label,
+				width: true
+			};
+			let meta = {
+				start: settings[k].start,
+				end: settings[k].end,
+				label: settings[k].label,
+				on: {},
+				content: null
+			};
+			var progress = document.createElement('div');
+			visual.content = document.createElement('div');
+			progress.className = 'progress';
+			visual.content.appendChild(progress);
+			k = parseInt(k);
+			let offsetStart = 0;
+			if (k > 0) offsetStart = settings[k - 1].end;
+			if (equalVisuals) {
+				visual.start = k * duration / _no;
+				visual.end = (k + 1) * duration / _no;
+			}
+			visual.width = true;
+
+			if (visual.label != null) {
+				var label = document.createElement('span');
+				label.innerHTML = visual.label;
+				visual.content.appendChild(label);
+				visual.label = null;
+			}
+
+			progressDivs.push(progress);
+
+			let caclPw = function (el, e, d, o) {
+				let dim = el.getBoundingClientRect();
+				let x = e.pageX - dim.left;
+				let t = x / dim.width * 100;
+				player.currentTime(t * d / 100 + o);
+			};
+			let _on = {
+				touchstart: function (cp_d) {
+					return function (e) {
+						this.el.flagPlay = !player.paused();
+						player.pause();
+						caclPw(this.el, e, cp_d, offsetStart);
+					};
+				}(settings[k].end - settings[k].start),
+				touchmove: function (cp_d) {
+					return function (e) {
+						// alert(e);
+						caclPw(this.el, e, cp_d, offsetStart);
+					};
+				}(settings[k].end - settings[k].start),
+				touchleave: function (cp_d) {
+					return function (e) {
+						if (this.el.flagPlay) player.play();
+						caclPw(this.el, e, cp_d, offsetStart);
+					};
+				}(settings[k].end - settings[k].start),
+				touchend: function (cp_d) {
+					return function (e) {
+						if (this.el.flagPlay) player.play();
+						caclPw(this.el, e, cp_d, offsetStart);
+					};
+				}(settings[k].end - settings[k].start)
+			};
+
+			visual.on = deepmerge(visual.on, _on);
+
+			var visualCP = player.cuepoints.add(visual);
+			visualCP.id = k;
+			_instances.push(visualCP);
+
+			meta.on = {
+				start: function (t, current, onStart) {
+					return function () {
+						for (var i = 0, n = progressDivs.length; i < n; i += 1) {
+							if (i < current) progressDivs[i].style.width = 100 + "%";
+							if (i > current) progressDivs[i].style.width = 0;
+						}
+						if (isFunction(onStart)) {
+							onStart.bind(this)();
+						}
+					};
+				}(meta.title, k, settings[k].on['start']),
+				process: function (i, start, end) {
+					var pEl = progressDivs[i];
+					return function (t) {
+						if (t >= start && end >= t) {
+							var w = (t - start) / (end - start) * 100;
+							if (w >= 99) w = 100;
+							pEl.style.width = w + "%";
+						}
+					};
+				}(k, meta.start, meta.end),
+				end: settings[k].on['end']
+			};
+
+			var metaCP = player.cuepoints.add(meta);
+			_instances.push(metaCP);
+		}
+	}
+	destroy() {
+		for (var i = 0, n = _instances.length; i < n; i += 1) {
+			let instance = _instances[i];
+			if (instance.destroy) instance.destroy(true);
+		}
+	}
+}
+
 class App extends Kumullus {
 	constructor() {
 		super(settings.player, Timeline);
@@ -5148,6 +5361,7 @@ class App extends Kumullus {
 	init() {
 		this.once('loadedmetadata', () => {
 			this.emit('resize');
+			new Chapters(this, [{ start: 0, end: 20, label: 'Intro' }, { start: 20, end: 50, label: 'Something' }, { start: 50, end: this.duration(), label: 'Outro' }]);
 		});
 		let logo = this.widget(settings.logo);
 		logo.content(document.querySelector('#logo'));
