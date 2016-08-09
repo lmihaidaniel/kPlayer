@@ -3827,67 +3827,36 @@ class Fullscreen extends Events {
     }
 };
 
-function _cancelRequests (media) {
-	// Remove child sources
-	var sources = selectAll('source', media);
-	for (var i = 0; i < sources.length; i++) {
-		removeElement(sources[i]);
-	}
-
-	// Set blank video src attribute
-	// This is to prevent a MEDIA_ERR_SRC_NOT_SUPPORTED error
-	// Small mp4: https://github.com/mathiasbynens/small/blob/master/mp4.mp4
-	// Info: http://stackoverflow.com/questions/32231579/how-to-properly-dispose-of-an-html5-video-and-close-socket-or-connection
-	media.setAttribute('src', 'data:video/mp4;base64,AAAAHGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAAhmcmVlAAAAGm1kYXQAAAGzABAHAAABthBgUYI9t+8AAAMNbW9vdgAAAGxtdmhkAAAAAMXMvvrFzL76AAAD6AAAACoAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAABhpb2RzAAAAABCAgIAHAE/////+/wAAAiF0cmFrAAAAXHRraGQAAAAPxcy++sXMvvoAAAABAAAAAAAAACoAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAgAAAAIAAAAAAG9bWRpYQAAACBtZGhkAAAAAMXMvvrFzL76AAAAGAAAAAEVxwAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABaG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAShzdGJsAAAAxHN0c2QAAAAAAAAAAQAAALRtcDR2AAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAgACABIAAAASAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGP//AAAAXmVzZHMAAAAAA4CAgE0AAQAEgICAPyARAAAAAAMNQAAAAAAFgICALQAAAbABAAABtYkTAAABAAAAASAAxI2IAMUARAEUQwAAAbJMYXZjNTMuMzUuMAaAgIABAgAAABhzdHRzAAAAAAAAAAEAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAAAQAAAAEAAAAUc3RzegAAAAAAAAASAAAAAQAAABRzdGNvAAAAAAAAAAEAAAAsAAAAYHVkdGEAAABYbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAraWxzdAAAACOpdG9vAAAAG2RhdGEAAAABAAAAAExhdmY1My4yMS4x');
-
-	// Load the new empty source
-	// This will cancel existing requests
-	// See https://github.com/Selz/plyr/issues/174
-	media.load();
-
-	// Debugging
-	console.log("Cancelled network requests for old media");
-}
-
-function mimeVideo(media, type) {
-    switch (type) {
-        case 'video/webm':
-            return !!(media.canPlayType && media.canPlayType('video/webm; codecs="vp8, vorbis"').replace(/no/, ''));
-        case 'video/mp4':
-            return !!(media.canPlayType && media.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"').replace(/no/, ''));
-        case 'video/ogg':
-            return !!(media.canPlayType && media.canPlayType('video/ogg; codecs="theora"').replace(/no/, ''));
-    }
-}
-
 //https://www.w3.org/2010/05/video/mediaevents.html
 let _events = ['ended', 'progress', 'stalled', 'playing', 'waiting', 'canplay', 'canplaythrough', 'loadstart', 'loadeddata', 'loadedmetadata', 'timeupdate', 'volumechange', 'play', 'playing', 'pause', 'error', 'seeking', 'emptied', 'seeked', 'ratechange', 'suspend'];
 
 class Media extends Fullscreen {
-	constructor(el) {
+	constructor(el, type = 'video') {
 		super();
-		if (el == null) {
-			ErrorFormatException("You need to supply a HTMLVideoElement to instantiate the player");
-			return;
-		}
 		this.media = el;
+		if (el == null) {
+			if (type === 'video') {
+				ErrorFormatException("You need to supply a HTMLVideoElement to instantiate the player");
+				return;
+			} else {
+				this.media = document.createElement('audio');
+			}
+		}
 		_events.forEach(k => {
 			if (k == 'timeupdate') {
-				el.addEventListener(k, () => {
-					this.emit(k, this.currentTime());
+				this.media.addEventListener(k, () => {
+					this.emit(k, this.media.currentTime);
+				});
+			} else if (k == 'volumechange') {
+				this.media.addEventListener(k, () => {
+					this.emit(k, this.media.volume);
 				});
 			} else {
-				el.addEventListener(k, () => {
+				this.media.addEventListener(k, () => {
 					this.emit(k);
 				});
 			}
 		});
-
-		this.canPlay = {
-			mp4: mimeVideo(el, 'video/mp4'),
-			webm: mimeVideo(el, 'video/webm'),
-			ogg: mimeVideo(el, 'video/ogg')
-		};
 	}
 
 	/*** Global attributes */
@@ -3997,20 +3966,7 @@ class Media extends Fullscreen {
 	/* The src property sets or returns the current source of the audio/video, The source is the actual location (URL) of the audio/video file */
 	src(v) {
 		if (v !== undefined) {
-			_cancelRequests(this.media);
-			if (v instanceof Array) {
-				for (var i = 0, n = v.length; i += 1;) {
-					if (v[i]['type'] === "video/mp4" && this.canPlay.mp4) {
-						return this.media.src = v[i]['src'];
-					}
-					if (v[i]['type'] === "video/webm" && this.canPlay.webm) {
-						return this.media.src = v[i]['src'];
-					}
-					if (v[i]['type'] === "video/ogg" && this.canPlay.ogg) {
-						return this.media.src = v[i]['src'];
-					}
-				}
-			} else if (v.src && v.type) {
+			if (v.src && v.type) {
 				this.media.src = v.src;
 			} else {
 				this.media.src = v;
@@ -4095,6 +4051,84 @@ class Media extends Fullscreen {
 		this.media.volume = v;
 		return v;
 	}
+}
+
+function _cancelRequests (media) {
+	// Remove child sources
+	var sources = selectAll('source', media);
+	for (var i = 0; i < sources.length; i++) {
+		removeElement(sources[i]);
+	}
+
+	// Set blank video src attribute
+	// This is to prevent a MEDIA_ERR_SRC_NOT_SUPPORTED error
+	// Small mp4: https://github.com/mathiasbynens/small/blob/master/mp4.mp4
+	// Info: http://stackoverflow.com/questions/32231579/how-to-properly-dispose-of-an-html5-video-and-close-socket-or-connection
+	media.setAttribute('src', 'data:video/mp4;base64,AAAAHGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAAhmcmVlAAAAGm1kYXQAAAGzABAHAAABthBgUYI9t+8AAAMNbW9vdgAAAGxtdmhkAAAAAMXMvvrFzL76AAAD6AAAACoAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAABhpb2RzAAAAABCAgIAHAE/////+/wAAAiF0cmFrAAAAXHRraGQAAAAPxcy++sXMvvoAAAABAAAAAAAAACoAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAgAAAAIAAAAAAG9bWRpYQAAACBtZGhkAAAAAMXMvvrFzL76AAAAGAAAAAEVxwAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABaG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAShzdGJsAAAAxHN0c2QAAAAAAAAAAQAAALRtcDR2AAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAgACABIAAAASAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGP//AAAAXmVzZHMAAAAAA4CAgE0AAQAEgICAPyARAAAAAAMNQAAAAAAFgICALQAAAbABAAABtYkTAAABAAAAASAAxI2IAMUARAEUQwAAAbJMYXZjNTMuMzUuMAaAgIABAgAAABhzdHRzAAAAAAAAAAEAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAAAQAAAAEAAAAUc3RzegAAAAAAAAASAAAAAQAAABRzdGNvAAAAAAAAAAEAAAAsAAAAYHVkdGEAAABYbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAraWxzdAAAACOpdG9vAAAAG2RhdGEAAAABAAAAAExhdmY1My4yMS4x');
+
+	// Load the new empty source
+	// This will cancel existing requests
+	// See https://github.com/Selz/plyr/issues/174
+	media.load();
+
+	// Debugging
+	console.log("Cancelled network requests for old media");
+}
+
+function mimeVideo(media, type) {
+    switch (type) {
+        case 'video/webm':
+            return !!(media.canPlayType && media.canPlayType('video/webm; codecs="vp8, vorbis"').replace(/no/, ''));
+        case 'video/mp4':
+            return !!(media.canPlayType && media.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"').replace(/no/, ''));
+        case 'video/ogg':
+            return !!(media.canPlayType && media.canPlayType('video/ogg; codecs="theora"').replace(/no/, ''));
+    }
+}
+
+class Video extends Media {
+	constructor(el) {
+		super(el, 'video');
+		this.canPlay = {
+			mp4: mimeVideo(this.media, 'video/mp4'),
+			webm: mimeVideo(this.media, 'video/webm'),
+			ogg: mimeVideo(this.media, 'video/ogg')
+		};
+	}
+
+	/* Gives or returns the address of an image file that the user agent can show while no video data is available. The attribute, if present, must contain a valid non-empty URL potentially surrounded by spaces */
+	poster(v) {
+		if (v !== undefined) {
+			this.media.poster = v;
+		}
+		return this.media.poster;
+	}
+
+	/* The src property sets or returns the current source of the audio/video, The source is the actual location (URL) of the audio/video file */
+	src(v) {
+		if (v !== undefined) {
+			_cancelRequests(this.media);
+			if (v instanceof Array) {
+				for (var i = 0, n = v.length; i += 1;) {
+					if (v[i]['type'] === "video/mp4" && this.canPlay.mp4) {
+						return this.media.src = v[i]['src'];
+					}
+					if (v[i]['type'] === "video/webm" && this.canPlay.webm) {
+						return this.media.src = v[i]['src'];
+					}
+					if (v[i]['type'] === "video/ogg" && this.canPlay.ogg) {
+						return this.media.src = v[i]['src'];
+					}
+				}
+			} else if (v.src && v.type) {
+				this.media.src = v.src;
+			} else {
+				this.media.src = v;
+			}
+		}
+		return this.media.currentSrc;
+	}
+
 }
 
 let _doc = document || {};
@@ -4539,7 +4573,7 @@ const defaults$8 = {
 	fullWindow: false
 };
 
-class Player extends Media {
+class Player extends Video {
 	constructor(settings) {
 		let el = settings.video;
 		super(el);
@@ -5000,8 +5034,10 @@ class Containers {
 		let popups = createElement('div', { class: 'popups' });
 		let hotspots = createElement('div', { class: 'hotspots' });
 		let widgets = createElement('div', { class: 'widgets' });
+		let subtitles = createElement('div', { class: 'subtitles' });
 		let timelines = createElement('div', { class: 'timelines' });
 
+		this.wrapper.appendChild(subtitles);
 		this.wrapper.appendChild(hotspots);
 		this.wrapper.appendChild(widgets);
 		this.wrapper.appendChild(timelines);
@@ -5206,20 +5242,21 @@ class kmlPlayer extends Player {
 };
 
 class Kumullus {
-	constructor(settings, Timeline) {
+	constructor(settings, Timeline, timelineOptions = {}) {
 		this.player = new kmlPlayer(settings, this.init);
-		this.player.initTimeline(Timeline);
+		this.player.initTimeline(Timeline, timelineOptions);
 		//initApp
 		this.init.bind(this.player)();
 	}
 	init() {
-		console.log('init app');
+		console.log('init app not overwritten');
 	}
 }
 
 let _instances = [];
 class Chapters {
 	constructor(player, settings, equalVisuals = true, _d) {
+		this.els = [];
 		this.destroy();
 		let duration = _d || player.duration();
 		settings = settings || [{
@@ -5315,6 +5352,7 @@ class Chapters {
 
 			var visualCP = player.cuepoints.add(visual);
 			visualCP.id = k;
+			this.els.push(visualCP);
 			_instances.push(visualCP);
 
 			meta.on = {
@@ -5347,6 +5385,7 @@ class Chapters {
 		}
 	}
 	destroy() {
+		this.els = [];
 		for (var i = 0, n = _instances.length; i < n; i += 1) {
 			let instance = _instances[i];
 			if (instance.destroy) instance.destroy(true);
@@ -5361,7 +5400,7 @@ class App extends Kumullus {
 	init() {
 		this.once('loadedmetadata', () => {
 			this.emit('resize');
-			new Chapters(this, [{ start: 0, end: 20, label: 'Intro' }, { start: 20, end: 50, label: 'Something' }, { start: 50, end: this.duration(), label: 'Outro' }]);
+			this.chapters = new Chapters(this, [{ start: 0, end: 20, label: 'Intro' }, { start: 20, end: 50, label: 'Something' }, { start: 50, end: this.duration(), label: 'Outro' }]);
 		});
 		let logo = this.widget(settings.logo);
 		logo.content(document.querySelector('#logo'));

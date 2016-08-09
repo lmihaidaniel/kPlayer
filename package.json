@@ -1,7 +1,7 @@
 {
   "name": "kmlplayer.js",
   "description": "An HTML5 video player build for user interactivity.",
-  "version": "0.4.1",
+  "version": "0.9.9",
   "copyright": "Copyright Kumullus, Inc. <https://www.kumullus.com/>",
   "license": "GPL-3.0",
   "main": "index.js",

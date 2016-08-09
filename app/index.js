@@ -12,7 +12,7 @@ export default class App extends Kumullus {
 	init() {
 		this.once('loadedmetadata', () => {
 			this.emit('resize');
-			new Chapters(this,[
+			this.chapters = new Chapters(this,[
 				{start: 0, end: 20, label: 'Intro'}, 
 				{start: 20, end: 50, label: 'Something'},
 				{start: 50, end: this.duration(), label: 'Outro'}
