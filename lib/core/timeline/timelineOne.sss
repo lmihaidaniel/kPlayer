@@ -1,0 +1,71 @@
+.kmlTimeline.one{
+    color: white;
+}
+
+.kmlTimeline.one:before{
+    content: auto;
+    display: none;
+}
+
+.kmlTimeline.one button{
+	background: #E0E1E3;
+    transition: none;
+}
+
+.kmlTimeline.one .duration{
+	position: absolute;
+    right: 0;
+    height: 100%;
+    background: #E0E1E3;
+    transition: none;
+}
+
+.kmlTimeline.one .duration span{
+	color: white;
+    font-size: 50%;
+    display: inline-block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.kmlTimeline.one.closed .duration{
+	top: 100%;
+}
+
+.kmlTimeline.one .kmlCuepoint{
+    overflow: visible;
+}
+
+.kmlTimeline.one .kmlCuepoint span{
+    text-align: left;
+    padding-left: 2.5%;
+}
+.kmlTimeline.one .kmlCuepoint span span{
+        font-size: 100%;
+    transform: none;
+    top: 0;
+    position: relative;
+}
+
+.kmlTimeline.one .kmlCuepoint .icon{
+    position: absolute;
+    top: 0;
+    height: 47%;
+    width: 20%;
+    left: 50%;
+    color: white;
+    stroke-color: black;
+    transform: translate(-50%, -50%);
+    stroke: rgba(0,0,0,0.25);
+    stroke-width: 1;
+}
+.kmlTimeline.one .kmlCuepoint .icon.quiz{
+    left: 100%;
+    transform: translate(-75%, -50%);   
+}
+
+.kmlTimeline.one.closed .kmlCuepoint .icon{
+    top: 100%;
+}

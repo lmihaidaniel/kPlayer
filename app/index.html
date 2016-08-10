@@ -16,7 +16,7 @@
 </head>
 <body>
    <video>
-       <source type="video/mp4" src="http://client.kumullus.com/creafirst/videos/main.mp4"></source>
+       <source type="video/mp4" src="http://client.kumullus.com/biocodex/video.mp4"></source>
        <p>
            Pour voir cette vidéo, merci d'activer JavaScript et d'envisager la mise à niveau vers un navigateur Web qui <a href='' target='_blank'>supporte la vidéo HTML5</a>
        </p>
@@ -25,6 +25,38 @@
    <div style="display:none;">
         <!-- LOGO -->
         <img id="logo" src="img/logo.svg">
+        <!-- CONTROLS WIDGET -->
+        <div id="controls-widget">
+          <svg class="item fs">
+            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#fullscreen"></use>
+          </svg>
+          <svg class="item vol">
+            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#volume-on"></use>
+          </svg>
+          <div class="languages">
+            <svg rel="fr" class="slng fr active">
+              <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#fr"></use>
+            </svg>
+            <svg rel="en" class="slng en">
+              <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#en"></use>
+            </svg>
+            <svg rel="es" class="slng es">
+              <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#es"></use>
+            </svg>
+            <svg rel="ru" class="slng ru">
+              <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#ru"></use>
+            </svg>
+          </div>
+          <svg class="cirlce">
+            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#record"></use>
+          </svg>
+          <svg class="settings">
+            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#settings"></use>
+          </svg>
+          <svg class="close">
+            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#x"></use>
+          </svg>
+        </div>
    </div>   
 <script src="kmlPlayer.js"></script>
 </body>

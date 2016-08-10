@@ -1,0 +1,177 @@
+@import "../../_colors.sss";
+
+#controls-widget .settings, #controls-widget .close{
+    position: absolute;
+    color: white;
+    width: 10%;
+    height: 10%;
+    top: 45%;
+    left: 40%;
+    transition: all .2s ease;
+    border-radius: 50%;
+    background-color: $color-primary;
+}
+
+#controls-widget .close{
+    display: none;
+    border-radius: 0;
+    cursor: pointer;
+}
+
+#controls-widget .item{
+    position: absolute;
+    color: white;
+    cursor: pointer;
+    top: 43.75%;
+    left: 37.5%;
+    width: 12.5%;
+    height: 12.5%;
+
+    width: 10%;
+    height: 10%;
+    top: 45%;
+    left: 40%;
+
+    border-radius: 50%;
+    background-color: $color-primary;
+    transition: all .2s ease;
+}
+
+#controls-widget .item:hover{
+    transform: scale3d(1.2, 1.2, 1);
+}
+
+#controls-widget .languages{
+    position: absolute;
+    color: white;
+    cursor: pointer;
+    top: 55%;
+    left: 55%;
+    width: 10%;
+    height: 10%;
+    background-color: $color-primary;
+    border-radius: 50%;
+    transition: all .2s ease;
+    overflow: hidden;
+}
+
+#controls-widget .languages svg.slng{
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+    display: none;
+}
+
+#controls-widget .languages svg.slng.active{
+    display: block;
+}
+#controls-widget .languages.active svg.slng{
+    display: block;
+}
+
+#controls-widget .languages.active svg{
+    position: absolute;
+    width: 15%;
+    height: 20%;
+}
+#controls-widget .languages.active svg.fr{
+    top: 12.5%;
+    left: 25%;
+}
+
+#controls-widget .languages.active svg.en{
+    top: 30%;
+    left: 10%;
+}
+
+#controls-widget .languages.active svg.es{
+    top: 50%;
+    left: 10%;
+}
+
+#controls-widget .languages.active svg.ru{
+    top: 67.5%;
+    left: 25%;
+}
+
+#controls-widget .languages.active svg.active{
+    color: black;
+}
+
+#controls-widget .languages svg:hover{
+    transform: scale3d(1.2, 1.2, 1);
+}
+
+#controls-widget.active .languages, #controls-widget:hover .languages{
+    width: 12.5%;
+    height: 12.5%;
+    top: 22.8%;
+    left: 33.25%;
+}
+
+#controls-widget .languages.active{
+    top: 12.5%;
+    left: 12.5%;
+    width: 75%;
+    height: 75%;
+}
+
+
+#controls-widget:before{
+    display: block;
+    content: ' ';
+    width: 25%;
+    height: 25%;
+    border-radius: 50%;
+    position: absolute;
+    top: 37.5%;
+    right: 37.5%;
+    background-color: $color-primary;
+    transition: all .3s ease;
+}
+
+#controls-widget.active:before, #controls-widget:hover:before {
+    transform: scale3d(3, 3, 1);
+    transition-timing-function: cubic-bezier(.68, 1.55, .265, 1);
+}
+
+#controls-widget.active .settings, #controls-widget:hover .settings{
+    box-shadow: inset 0 0 3px hsla(0, 0%, 0%, .3);
+    left: 42.5%;
+    transform: rotate(90deg);
+}
+
+#controls-widget:hover .item{
+    width: 12.5%;
+    height: 12.5%;
+}
+
+#controls-widget.active .fs, #controls-widget:hover .fs{
+    top: 65%;
+    left: 33%;
+}
+
+#controls-widget.active .vol, #controls-widget:hover .vol{
+    top: 43.75%;
+    left: 20%;
+}
+
+#controls-widget:hover .settings, #controls-widget:hover .close{
+    background-color: #82001a;
+}
+
+#controls-widget svg.cirlce{
+    position: absolute;
+    width: 40%;
+    height: 40%;
+    top: 30%;
+    right: 30%;
+    color: #82001a;
+    transition: all .3s ease;
+    opacity: 0;
+    pointer-events:none;
+}
+#controls-widget.active svg.cirlce,#controls-widget:hover svg.cirlce,#controls-widget svg.cirlce.active{
+    opacity: 1;
+}
