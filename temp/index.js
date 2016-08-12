@@ -4501,8 +4501,8 @@ var containerBounds = (function () {
 
 var _doc$1 = document || {};
 // Set the name of the hidden property and the change event for visibility
-var hidden;
-var visibilityChange;
+let hidden = null;
+let visibilityChange = null;
 if (typeof _doc$1.hidden !== "undefined") {
 	// Opera 12.10 and Firefox 18 and later support 
 	hidden = "hidden";
