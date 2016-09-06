@@ -7,7 +7,17 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node rollup.js"
+    "build": "node rollup.js",
+    "scorm": "node scorm.js"
+  },
+  "scorm": {
+    "enabled": true,
+    "version": "2004 3rd Edition",
+    "organization": "Test Company",
+    "title": "Test Course",
+    "identifier": "00",
+    "masteryScore": "80",
+    "startingPage": "index.html"
   },
   "devDependencies": {
     "autoprefixer": "latest",
@@ -19,6 +29,7 @@
     "gulp-postcss": "latest",
     "gulp-sourcemaps": "latest",
     "gulp-live-server": "latest",
+    "archiver": "latest",
     "postcss-cssnext": "latest",
     "postcss-font-magician": "latest",
     "postcss-import": "latest",
@@ -31,7 +42,8 @@
     "rollup-plugin-node-resolve": "latest",
     "rollup-plugin-replace": "latest",
     "rollup-plugin-filesize": "latest",
-    "uglify-js": "latest"
+    "uglify-js": "latest",
+    "node-scorm-packager": "latest"
   },
   "dependencies": {
     "eventemitter3": "latest",
