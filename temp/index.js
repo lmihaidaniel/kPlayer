@@ -1,4 +1,4 @@
-let video_duration = 660.64;
+let video_duration = 60;
 var settings = {
 	player: {
 		video: document.querySelector('video'),
@@ -2471,11 +2471,11 @@ class Cuepoint extends Events {
                 addClass(this.el, this.__settings['className']);
                 if (this.__settings['start'] >= 0) {
                     addClass(this.el, this.__settings['classInactive']);
-                    this.el.style.left = Math.round(this.__settings['start'] / duration * 100) + '%';
+                    this.el.style.left = Math.ceil(this.__settings['start'] / duration * 100) + '%';
                 }
                 if (this.__settings['width']) {
                     if (this.__settings['end'] > -1) {
-                        this.el.style.right = Math.round(100 - this.__settings['end'] / duration * 100) + '%';
+                        this.el.style.right = Math.floor(100 - this.__settings['end'] / duration * 100) + '%';
                     } else {
                         this.el.style.right = 0;
                     }
@@ -4616,16 +4616,15 @@ const defaults$8 = {
 
 class Player extends Video {
 	constructor(settings) {
-		let el = settings.video;
-		super(el);
-		if (el == null) return;
+		super(settings.video);
+		if (settings.video == null) return;
 		//initSettings
 		this.__settings = {};
 		this._controls = true;
 		//setup Player
 		this.device = device;
 		this.iframe = inIframe();
-		addClass(el, "kml" + capitalizeFirstLetter(el.nodeName.toLowerCase()));
+		addClass(settings.video, "kml" + capitalizeFirstLetter(settings.video.nodeName.toLowerCase()));
 		this.wrapper = wrap(this.media, createElement('div', {
 			class: 'kmlPlayer'
 		}));
@@ -4635,7 +4634,7 @@ class Player extends Video {
 		}
 
 		//initPageVisibility
-		this.pageVisibility = new pageVisibility(el);
+		this.pageVisibility = new pageVisibility(settings.video);
 
 		//initexternalControls
 		this.externalControls = new externalControls(this);
@@ -5267,7 +5266,10 @@ class kmlPlayer extends Player {
 	//overwrite duration
 	duration() {
 		if (this.__settings.duration != null) {
-			if (this.media.duration != null) {
+			// if(this.media.duration != null){
+			//	return this.__settings.duration;
+			// }
+			if (this.media.duration > this.__settings.duration) {
 				return this.__settings.duration;
 			}
 		}
@@ -5338,7 +5340,7 @@ class Chapters {
 			progress.className = 'progress';
 			visual.content.appendChild(progress);
 			k = parseInt(k);
-			let offsetStart = 0;
+			let offsetStart = settings[k].start;
 			if (k > 0) offsetStart = settings[k - 1].end;
 			if (equalVisuals) {
 				visual.start = k * duration / _no;
@@ -5717,12 +5719,15 @@ class controlsWidget {
 	}
 }
 
+//import Scorm from '../lib/scorm/index';
+
 class App extends Kumullus {
 	constructor() {
 		super(settings.player, Timeline$1);
 	}
 	init() {
 		this.once('loadedmetadata', () => {
+			console.log(this.duration());
 			this.emit('resize');
 			this.chapters = new Chapters(this, [{ start: 0, end: 20, label: 'Intro' }, { start: 20, end: 50, label: 'Something' }, { start: 50, end: this.duration(), label: 'Outro' }]);
 			this.cwidget = new controlsWidget(this);
@@ -5733,25 +5738,26 @@ class App extends Kumullus {
 
 		this.popup = this.popupContainer({ className: null });
 
-		//popupVideo
-		let popupVideo = this.videoContainer({
-			visible: false,
-			headerBg: null,
-			headerBgAlpha: 0,
-			header: true
-		});
-		popupVideo.setFontSize(60);
-		popupVideo.header.backgroundColor('#000', 0);
-		popupVideo.body.backgroundColor('#000', 1);
+		// //popupVideo
+		// let popupVideo = this.videoContainer({
+		// 	visible: false,
+		// 	headerBg: null,
+		// 	headerBgAlpha: 0,
+		// 	header: true
+		// });
+		// popupVideo.setFontSize(60);
+		// popupVideo.header.backgroundColor('#000', 0);
+		// popupVideo.body.backgroundColor('#000', 1);
 
-		this.popupVideo = popupVideo;
-		this.popupVideo.show();
-		this.popupVideo.player.load('http://client.kumullus.com/biocodex/video.mp4');
+		// this.popupVideo = popupVideo;
+		// //this.popupVideo.show();
+		// this.popupVideo.player.load('client.kumullus.com/biocodex/video.mp4');
 
 		this.emit('resize');
 
 		//testing onlgy
 		window.app = this;
+		//window.scorm = new Scorm();
 	}
 }
 

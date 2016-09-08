@@ -1,4 +1,4 @@
-var pkg = require('./package.json'),
+var settings = require('./scorm.json'),
   fs = require('fs'),
   gulp = require('gulp')
 scopackage = require('node-scorm-packager');
@@ -27,10 +27,8 @@ gulp.task('moveExtended', ['moveBase'], function() {
 });
 
 gulp.task('zip', function(done) {
-  console.log('Waiting for manifest to be build ...');
-  setTimeout(function() {
     var path = require('path');
-    var dist = 'Scorm' + pkg.scorm.version;;
+    var dist = 'Scorm' + settings.version;;
     var archiveName = path.resolve(__dirname, 'scorm/' + dist + '.zip');
     var archiveDir = path.resolve(__dirname, 'scorm/' + dist);
 
@@ -64,17 +62,16 @@ gulp.task('zip', function(done) {
     archiver.finalize();
 
     console.log('\nZip created at ' + archiveName);
-  }, 2000);
 });
 
 gulp.task('scorm', function(done) {
   scopackage({
-    version: pkg.scorm.version || "1.2", // '1.2', '2004 3rd Edition', '2004 4th Edition'
-    organization: pkg.scorm.organization || "Test Company", //{String} Company name
-    title: pkg.scorm.title || "Test Course", // {String}
-    identifier: pkg.scorm.identifier || 0, // {String} Uses 0 and course title if left empty
-    masteryScore: pkg.scorm.masteryScore || 80, //{Number} Uses 80 if left empty
-    startingPage: pkg.scorm.startingPage || 'index.html', //Uses index.html if left empty
+    version: settings.version || "1.2", // '1.2', '2004 3rd Edition', '2004 4th Edition'
+    organization: settings.organization || "Test Company", //{String} Company name
+    title: settings.title || "Test Course", // {String}
+    identifier: settings.identifier || 0, // {String} Uses 0 and course title if left empty
+    masteryScore: settings.masteryScore || 80, //{Number} Uses 80 if left empty
+    startingPage: settings.startingPage || 'index.html', //Uses index.html if left empty
     source: 'ScormFolder',
     destination: 'scorm'
   }, function() {
@@ -87,8 +84,8 @@ gulp.task('default', ['moveBase', 'moveExtended'], function(done) {
   done();
 });
 
-if (pkg.scorm) {
-  if (pkg.scorm.enabled) {
+if (settings) {
+  if (settings.enabled) {
     gulp.start('default', function() {
       gulp.start('scorm', function() {
         gulp.start('zip', function() {

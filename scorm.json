@@ -1,0 +1,9 @@
+{
+    "enabled": true,
+    "version": "2004 3rd Edition",
+    "organization": "Test Company",
+    "title": "Test Course",
+    "identifier": "00",
+    "masteryScore": "80",
+    "startingPage": "index.html"
+  }

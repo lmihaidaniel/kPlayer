@@ -49,6 +49,7 @@
     "eventemitter3": "latest",
     "interact.js": "latest",
     "mixwith": "latest",
-    "tinycolor2": "latest"
+    "tinycolor2": "latest",
+    "pipwerks-scorm-api-wrapper": "latest"
   }
 }

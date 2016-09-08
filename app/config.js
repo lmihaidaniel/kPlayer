@@ -1,4 +1,4 @@
-export let video_duration = 660.64;
+export let video_duration = 60;
 export default {
 	player: {
 		video: document.querySelector('video'),
