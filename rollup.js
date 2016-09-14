@@ -224,4 +224,21 @@ gulp.task('default', function() {
   gulp.start('serve');
 });
 
-gulp.start('default');
+//check if app/index.js exits if not copy the starting files from boilerplate/
+gulp.task('restore', function() {
+  return gulp.src('boilerplate/**')
+    .pipe(gulp.dest('app/'))
+    .on('end', function() {
+      console.log('app required files restored');
+      gulp.start('default');
+    });
+});
+
+
+fs.stat('app/index.js', function(err, stat) {
+    if(err == null) {
+        gulp.start('default');
+    }else{
+        gulp.start('restore');
+    }
+});

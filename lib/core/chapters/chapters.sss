@@ -1,11 +1,16 @@
-.kmlTimeline .kmlProgress{
+.kmlTimeline.chapters .kmlProgress{
     display: none;
 }
 
 .kmlCuepoints{
+    display: none;
     background: transparent;
     transition: none;
     pointer-events: all !important;
+}
+
+.kmlTimeline.chapters .kmlCuepoints{
+    display: block;
 }
 
 .kmlTimeline.closed .kmlCuepoints{
