@@ -12,10 +12,10 @@
   },
   "devDependencies": {
     "autoprefixer": "latest",
+    "babel-preset-es2015-rollup": "latest",
     "babel-plugin-transform-es2015-classes": "latest",
     "babel-plugin-transform-class-properties": "latest",
     "babel-plugin-transform-object-rest-spread": "latest",
-    "babel-preset-es2015-rollup": "latest",
     "csswring": "latest",
     "pug": "latest",
     "gulp": "latest",

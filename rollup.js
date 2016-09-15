@@ -96,7 +96,13 @@ var config = {
       babel({
         exclude: 'node_modules/**',
         compact: true,
-        presets: ['es2015-rollup'],
+        presets: [
+          [
+            "es2015", {
+              "modules": false
+            }
+          ]
+        ],
         plugins: [
             ['transform-es2015-classes', {
               loose: true
@@ -207,7 +213,7 @@ gulp.task('serve', function() {
   //1. serve multi folders 
   var server = gls.static(['assets', 'build']);
   server.start();
-  
+
   //2. use gulp.watch to trigger server actions(notify, start or stop) 
   gulp.watch(['assets/**/*.*', 'build/**/*.*'], function(file) {
     server.notify.apply(server, [file]);
