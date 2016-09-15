@@ -1,9 +1,10 @@
-/node_modules
 *.mp4
 *.log
-assets/
+/node_modules
+/assets
 /scorm
-app/
-build/
-dist/
-temp/
+/app
+/build
+/dist
+/temp
+/es

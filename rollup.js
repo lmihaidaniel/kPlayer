@@ -8,8 +8,8 @@ var babel = require('rollup-plugin-babel');
 var uglify = require('uglify-js');
 var nodeResolve = require('rollup-plugin-node-resolve');
 var commonjs = require('rollup-plugin-commonjs');
-var replace = require( 'rollup-plugin-replace' );
-var filesize = require( 'rollup-plugin-filesize' );
+var replace = require('rollup-plugin-replace');
+var filesize = require('rollup-plugin-filesize');
 //css related
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
@@ -20,6 +20,8 @@ var atImport = require('postcss-import');
 var postcssFont = require('postcss-font-magician');
 var cssnext = require('postcss-cssnext');
 var precss = require('precss');
+//html processing
+var pug = require('gulp-pug');
 //sytem related
 var fs = require('fs');
 var path = require('path');
@@ -70,7 +72,7 @@ var config = {
     entry: 'index.js', // Entry file
     plugins: [
       replace({
-        VERSION: JSON.stringify( pkg.version )
+        VERSION: JSON.stringify(pkg.version)
       }),
       nodeResolve({
         jsnext: true,
@@ -78,14 +80,18 @@ var config = {
       }),
       commonjs(),
       babel({
-        exclude: 'node_modules/**'
+        exclude: 'node_modules/**',
+        plugins: [
+          'transform-class-properties',
+          'transform-object-rest-spread'
+        ]
       }),
       filesize()
     ]
   },
   build: {
     moduleName: 'kmlPlayer',
-    entry: './temp/index.js', // Entry file
+    entry: './es/index.js', // Entry file
     plugins: [
       babel({
         exclude: 'node_modules/**',
@@ -155,7 +161,7 @@ gulp.task('compile', function() {
       bundle.write({
         format: 'es',
         moduleName: config.build.moduleName,
-        dest: 'temp/index.js', // Exit file
+        dest: 'es/index.js', // Exit file
       });
     }).then(function() {
       console.log(config.build.moduleName + ' js compiled');
@@ -185,12 +191,12 @@ gulp.task('build', function() {
         dest: 'build/' + config.build.moduleName + '.js', // Exit file
       });
       fs.createReadStream('app/index.html').pipe(fs.createWriteStream('build/index.html'));
-      copyFileSync('app/index.html','build/index.html');
+      copyFileSync('app/index.html', 'build/index.html');
       fs.writeFileSync('dist/kmlPlayer.js', config.banner + '\n' + js_minify(result.code));
     }).then(function() {
       copyFileSync('lib/core/svgSprite/kmlPlayer.svg', 'dist/');
       copyFileSync('lib/core/svgSprite/kmlPlayer.svg', 'build/');
-      copyFileSync('app/index.html','dist/index.html');
+      copyFileSync('app/index.html', 'dist/index.html');
       console.log(config.build.moduleName + ' builded');
     }).catch(function(error) {
       console.log(error);
@@ -201,9 +207,9 @@ gulp.task('serve', function() {
   //1. serve multi folders 
   var server = gls.static(['assets', 'build']);
   server.start();
- 
+  
   //2. use gulp.watch to trigger server actions(notify, start or stop) 
-  gulp.watch(['assets/**/*.*', 'build/**/*.*'], function (file) {
+  gulp.watch(['assets/**/*.*', 'build/**/*.*'], function(file) {
     server.notify.apply(server, [file]);
   });
 });
@@ -234,11 +240,10 @@ gulp.task('restore', function() {
     });
 });
 
-
 fs.stat('app/index.js', function(err, stat) {
-    if(err == null) {
-        gulp.start('default');
-    }else{
-        gulp.start('restore');
-    }
+  if (err == null) {
+    gulp.start('default');
+  } else {
+    gulp.start('restore');
+  }
 });

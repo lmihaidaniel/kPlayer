@@ -19,11 +19,11 @@ var deleteFolderRecursive = function(path) {
 
 gulp.task('moveBase', function() {
   return gulp.src('dist/**')
-    .pipe(gulp.dest('ScormFolder/'));
+    .pipe(gulp.dest('temp/'));
 });
 gulp.task('moveExtended', ['moveBase'], function() {
   return gulp.src('assets/**')
-    .pipe(gulp.dest('ScormFolder/'));
+    .pipe(gulp.dest('temp/'));
 });
 
 gulp.task('zip', function(done) {
@@ -89,7 +89,7 @@ if (settings) {
     gulp.start('default', function() {
       gulp.start('scorm', function() {
         gulp.start('zip', function() {
-          return deleteFolderRecursive('ScormFolder/');
+          return deleteFolderRecursive('temp/');
         });
       });
     });
