@@ -224,7 +224,7 @@ gulp.task('watch', function() {
   gulp.watch('lib/**/*.sss', ['css']);
   gulp.watch('app/**/*.sss', ['css']);
 
-  //gulp.watch('lib/**/*.js', ['compile']);
+  gulp.watch('lib/**/*.js', ['compile']);
   gulp.watch('app/**/*.js', ['compile']);
 
 });
