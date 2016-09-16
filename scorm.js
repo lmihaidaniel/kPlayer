@@ -3,6 +3,11 @@ var settings = require('./scorm.json'),
   gulp = require('gulp')
 scopackage = require('node-scorm-packager');
 
+if (!fs.existsSync('scorm/')){
+    fs.mkdirSync('scorm/');
+}
+
+
 var deleteFolderRecursive = function(path) {
   if (fs.existsSync(path)) {
     fs.readdirSync(path).forEach(function(file, index) {
@@ -72,7 +77,7 @@ gulp.task('scorm', function(done) {
     identifier: settings.identifier || 0, // {String} Uses 0 and course title if left empty
     masteryScore: settings.masteryScore || 80, //{Number} Uses 80 if left empty
     startingPage: settings.startingPage || 'index.html', //Uses index.html if left empty
-    source: 'ScormFolder',
+    source: 'temp',
     destination: 'scorm'
   }, function() {
     done();
