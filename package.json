@@ -45,6 +45,7 @@
     "interact.js": "latest",
     "mixwith": "latest",
     "tinycolor2": "latest",
-    "pipwerks-scorm-api-wrapper": "latest"
+    "pipwerks-scorm-api-wrapper": "latest",
+    "draggabilly": "1.2.4"
   }
 }
