@@ -11,6 +11,7 @@
     "rollup": "rollup -c",
     "rollup:prod": "NODE_ENV=production rollup -c",
     "build": "node build",
+    "build:prod": "node build prod",
     "pack": "NODE_ENV=production node build",
     "scorm": "NODE_ENV=production node build scorm"
   },
@@ -34,7 +35,9 @@
     "postcss-clean": "latest",
     "postcss-center": "latest",
     "postcss-deduplicate": "latest",
+    "postcss-discard-duplicates": "latest",
     "postcss-minify-selectors": "latest",
+    "perfectionist": "latest",
     "precss":"latest",
     "eventemitter3": "latest",
     "tinycolor2": "latest",

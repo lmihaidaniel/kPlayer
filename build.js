@@ -11,6 +11,8 @@ var pkg = require('./package.json'),
 var sco_settings = require('./scorm.config.json'),
   scopackage = require('node-scorm-packager');
 
+let args = process.argv.slice(2);
+
 //helper+utilities functions
 var deleteFolderRecursive = function(path) {
   if (fs.existsSync(path)) {
@@ -140,7 +142,14 @@ var params_server = {
 };
 
 gulp.task('build', function(cb) {
-  var ls = spawn("npm", ['run', 'rollup']);
+  var ls;
+  if(args[0] === 'prod'){
+    var env = Object.create( process.env );
+    env.NODE_ENV = 'production';
+    ls = spawn("npm", ['run', 'rollup'], {env: env});
+  }else{
+    ls = spawn("npm", ['run', 'rollup']);
+  }
   ls.stdout.on('data', (data) => {
     console.log(`${data}`);
   });
@@ -176,7 +185,6 @@ gulp.task('boilerplate', function() {
 });
 
 //SCORM BUILD RELATED
-let args = process.argv.slice(2);
 if (sco_settings) {
   if (sco_settings.enabled && args[0] === 'scorm') {
         scopackage({

@@ -14,17 +14,20 @@ import postcssSass from 'precss';
 import postcssNext from 'postcss-cssnext';
 import postcssRemoveDuplicates from 'postcss-deduplicate';
 import postcssMinifySelectors from 'postcss-minify-selectors';
+import postcssDiscardDuplicates from 'postcss-discard-duplicates';
+import perfectionist from 'perfectionist';
 import postcssClean from 'postcss-clean';
 
 let postCss_plugins = [
 	postcssImport,
 	postcssCenter,
 	postcssSass,
-	postcssNext({
-		browsers: ['> 5%', 'last 2 versions', 'ie > 8', 'Firefox ESR', 'Opera 12.1']
-	}),
+	postcssMinifySelectors,
 	postcssRemoveDuplicates,
-	postcssMinifySelectors
+	postcssDiscardDuplicates,
+	postcssNext({
+		browsers: ['> 5%', 'ie >= 9']
+	})
 ];
 
 let general = {
@@ -33,7 +36,9 @@ let general = {
 
 if (process.env.NODE_ENV === 'production') {
 	general.sourceMap = false;
-	postCss_plugins.push(postcssClean);
+	postCss_plugins.push(postcssClean({aggressiveMerging: true}));
+}else{
+	postCss_plugins.push(perfectionist);
 }
 
 export default {
