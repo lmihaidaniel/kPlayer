@@ -45,6 +45,8 @@ export default {
 	entry: 'app/index.js',
 	plugins: [
 		rollupJson(),
+		// TD: rollup-plugin-postcss-export update to support cache so that rollup can use cache
+		// After this rollup should be used as JS API, no external config like this one
 		postcss({
 			plugins: postCss_plugins,
 			extensions: ['.sss', '.css'],
@@ -81,5 +83,5 @@ export default {
 	format: "iife",
 	dest: 'build/bundle.js',
 	sourceMap: general.sourceMap,
-	sourceMapFile: 'build/bundle.map'
+	sourceMapFile: 'build/bundle.js.map'
 }

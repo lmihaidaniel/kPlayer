@@ -1,9 +1,13 @@
 {
-	"enabled": true,
-	"version": "1.2",
+    "version": "1.2",
+    "author": "The Good Factory",
 	"organization": "Kumullus",
 	"title": "KUMULLUS_PROTO",
 	"identifier": "tgf01",
 	"masteryScore": "100",
-	"startingPage": "index.html"
+	"startingPage": "index.html",
+	"package": {
+        "version": "1.0.0",
+        "zip": true
+    }
 }

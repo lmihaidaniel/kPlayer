@@ -1,37 +1,18 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-   <meta name="description" content="Kumullus Video Experience"/>
-   <meta name="keywords" content=""/>
-   <meta name="author" content="Kumullus"/>
-   <link rel="icon" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-32x32.png" sizes="32x32">
-   <link rel="icon" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-192x192.png" sizes="192x192">
-   <link rel="apple-touch-icon-precomposed" href="https://kumullus.com/wp-content/uploads/2015/09/cropped-512_icon-180x180.png">
-   <title>kmlPlayer</title>
-   <link rel="stylesheet" type="text/css" href="kmlPlayer.css">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="description" content="Kumullus Video Experience" />
+    <meta name="keywords" content="" />
+    <meta name="author" content="Kumullus" />
+    <title>kmlPlayer</title>
+    <link rel="stylesheet" type="text/css" href="assets/font/font.css">
+    <link rel="stylesheet" type="text/css" href="assets/bundle.css">
 </head>
 <body>
-
-   <video crossorigin>
-       <source type="video/mp4" src="https://cdn.selz.com/plyr/1.5/View_From_A_Blue_Moon_Trailer-HD.mp4"></source>
-       <p>
-           Pour voir cette vidéo, merci d'activer JavaScript et d'envisager la mise à niveau vers un navigateur Web qui <a href='' target='_blank'>supporte la vidéo HTML5</a>
-       </p>
-   </video>
-
-   <script src="kmlPlayer.js"></script>
-   <script>
-    var player = new kmlPlayer(document.querySelector('video'),{
-      autoplay: true,
-      loop: true,
-      controls: false,
-      contextMenu: false,
-      subtitle: "https://cdn.selz.com/plyr/1.5/View_From_A_Blue_Moon_Trailer-HD.en.vtt"
-    });
-    player.autoplay(true);
-   </script>
+    <video></video>
+    <script src="assets/bundle.js"></script>
 </body>
 </html>

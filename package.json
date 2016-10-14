@@ -10,15 +10,20 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "rollup": "rollup -c",
     "rollup:prod": "NODE_ENV=production rollup -c",
-    "build": "node build",
-    "build:prod": "node build prod",
-    "pack": "NODE_ENV=production node build",
-    "scorm": "NODE_ENV=production node build scorm"
+    "build": "node core build",
+    "build:prod": "NODE_ENV=production node core build",
+    "serve": "node core serve",
+    "serve:prod": "NODE_ENV=production node core serve",
+    "bundle": "node core bundle",
+    "bundle:prod": "NODE_ENV=production node core bundle",
+    "scorm": "node core scorm",
+    "scorm:prod": "NODE_ENV=production node core scorm"
   },
   "author": "Lacatusu Mihai Daniel",
   "license": "ISC",
   "devDependencies": {
-    "gulp": "latest",
+    "fs-extra": "latest",
+    "watch": "latest",
     "live-server": "latest",
     "rollup-plugin-commonjs": "latest",
     "rollup-plugin-node-resolve": "latest",
@@ -41,7 +46,7 @@
     "precss":"latest",
     "eventemitter3": "latest",
     "tinycolor2": "latest",
-    "node-scorm-packager": "latest",
+    "simple-scorm-packager": "latest",
     "pipwerks-scorm-api-wrapper": "latest"
   },
   "dependencies": {
