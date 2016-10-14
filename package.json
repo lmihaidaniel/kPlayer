@@ -17,7 +17,8 @@
     "bundle": "node core bundle",
     "bundle:prod": "NODE_ENV=production node core bundle",
     "scorm": "node core scorm",
-    "scorm:prod": "NODE_ENV=production node core scorm"
+    "scorm:prod": "NODE_ENV=production node core scorm",
+    "start": "node core serve"
   },
   "author": "Lacatusu Mihai Daniel",
   "license": "ISC",
@@ -31,7 +32,7 @@
     "rollup-plugin-strip": "latest",
     "rollup-plugin-buble": "latest",
     "rollup-plugin-uglify": "latest",
-    "rollup-plugin-json": "latest",
+    "rollup-plugin-riot": "latest",
     "rollup-plugin-filesize": "latest",
     "rollup-plugin-replace": "latest",
     "rollup-plugin-postcss-export": "latest",
@@ -44,12 +45,12 @@
     "postcss-minify-selectors": "latest",
     "perfectionist": "latest",
     "precss":"latest",
-    "eventemitter3": "latest",
-    "tinycolor2": "latest",
     "simple-scorm-packager": "latest",
     "pipwerks-scorm-api-wrapper": "latest"
   },
   "dependencies": {
-    
+    "eventemitter3": "latest",
+    "tinycolor2": "latest",
+    "riot": "latest"
   }
 }

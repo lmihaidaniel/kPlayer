@@ -102,6 +102,7 @@ processBeforeClose(function() {
 
 //rollup
 function rollup(done, error) {
+  let er = false;
   var ls = spawn("npm", ['run', 'rollup'], {
     env: __env__
   });
@@ -111,11 +112,16 @@ function rollup(done, error) {
     if(!d.startsWith("\n>")) console.log(d);
   });
   ls.stderr.on('data', function(data) {
+    er = true;
     let d = data.toString();
-    if(d.startsWith("Error:")) _logError(d, '!!!');
+    if(d.startsWith("Error")) _logError(d, '!!!');
+    if(d.startsWith("SyntaxError")) _logError(d, '!!!');
+  });
+  ls.on('error', (code) => {
+    if (error) error(code);
   });
   ls.on('close', (code) => {
-    if (done) done(code);
+    if (done && !er) done(code);
   });
 }
 

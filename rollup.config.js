@@ -1,3 +1,4 @@
+import riot from 'rollup-plugin-riot';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
@@ -63,7 +64,11 @@ export default {
 			main: true,
 			browser: true
 		}),
-		commonjs(),
+		riot(),
+		commonjs({
+	      exclude: 'node_modules/process-es6/**',
+	      include: []
+	    }),
 		buble({
 			transforms: {
 				arrow: true,
@@ -82,6 +87,6 @@ export default {
 	moduleName: "kmlPlayer",
 	format: "iife",
 	dest: 'build/bundle.js',
-	sourceMap: general.sourceMap,
+	sourceMap: false, //general.sourceMap,
 	sourceMapFile: 'build/bundle.js.map'
 }
