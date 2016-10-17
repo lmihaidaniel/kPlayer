@@ -1,3 +1,4 @@
+@import '../_colors.sss';
 .kmlTimeline{
   position: absolute;
   top: auto !important;
@@ -7,15 +8,15 @@
   height: 100%;
   pointer-events: all;
   opacity: 1;
-  color: #23DB90;
+  color: $color-primary;
   transition: opacity .25s ease;
   transition: opacity 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .kmlTimeline:before{
-	content: "";
-	bottom: 0;
-	height: 100%;
+    content: "";
+    bottom: 0;
+    height: 100%;
     width: 100%;
     left: 0;
     position: absolute;
@@ -28,80 +29,152 @@
 }
 
 .kmlTimeline.hidden{
-	opacity: 0!important;
+    opacity: 0!important;
 }
 
 .kmlTimeline button{
-	position: absolute;
-	top: 0;
-	height: 100%;
-	width: 5%;
-	outline: none;
-	cursor: pointer;
-	background: none;
-	color: inherit;
-	padding: 0;
-	border: none;
-	background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7);
-	transition: top .15s ease;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 5%;
+    outline: none;
+    cursor: pointer;
+    background: none;
+    color: inherit;
+    padding: 0;
+    border: none;
+    background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7);
+    transition: top .15s ease;
     transition: top 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .kmlTimeline button svg{
-	width: 60%;
+    width: 60%;
     height: 60%;
     top: 20%;
     left: 20%;
 }
 
 .kmlProgress{
-	position: absolute;
-	top: 0;
-	height: 100%;
-	cursor: pointer;
-	background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7);
-	transition: all .25s ease;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    cursor: pointer;
+    background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7);
+    transition: all .25s ease;
     transition: all 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 .kmlProgress:before{
-	content: "";
-	position: absolute;
-	width: 100%;
-	top: 46.5%;
+    content: "";
+    position: absolute;
+    width: 100%;
+    top: 46.5%;
     left: 0;
     height: 7%;
-	background-color: #2B303B;
-	opacity: .5;
+    background-color: $color-primary;
+    opacity: .5;
 }
 .kmlProgress .progressline{
-	position: absolute;
-	width: 0;
-	top: 46.5%;
+    position: absolute;
+    width: 0;
+    top: 46.5%;
     left: 0;
     height: 7%;
-	background-color: #23DB90;
-	background-color: white;
-	pointer-events: none;
+    background-color: $color-primary;
+    background-color: white;
+    pointer-events: none;
 }
 
 .kmlCuepoints{
-	position: absolute;
-	top: 0;
-	height: 100%;
-	pointer-events: none;
-	transition: all .25s ease;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    pointer-events: none;
+    transition: all .25s ease;
     transition: all 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .kmlTimeline.closed button{
-	top: 100%;
+    top: 100%;
 }
 .kmlTimeline.closed .kmlProgress, .kmlTimeline.closed .kmlCuepoints{
-	left: 0!important;
-	right: 0!important;
-	width: 100%!important;
+    left: 0!important;
+    right: 0!important;
+    width: 100%!important;
 }
 .kmlTimeline.closed .kmlProgress:before,.kmlTimeline.closed .kmlProgress .progressline{
-	top: 90%;
-	height: 10%;
+    top: 90%;
+    height: 10%;
+}
+
+.kmlTimeline.one{
+    color: white;
+}
+
+.kmlTimeline.one:before{
+    content: auto;
+    display: none;
+}
+
+.kmlTimeline.one button{
+	background: $color-primary;
+    transition: none;
+}
+
+.kmlTimeline.one .duration{
+	position: absolute;
+    right: 0;
+    height: 100%;
+    background: $color-primary;
+    transition: none;
+}
+
+.kmlTimeline.one .duration span{
+	color: white;
+    font-size: 66%;
+    display: inline-block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.kmlTimeline.one.closed .duration{
+	top: 100%;
+}
+
+.kmlTimeline.one .kmlCuepoint{
+    overflow: visible;
+}
+
+.kmlTimeline.one .kmlCuepoint span{
+    text-align: left;
+    padding-left: 2.5%;
+}
+.kmlTimeline.one .kmlCuepoint span span{
+        font-size: 100%;
+    transform: none;
+    top: 0;
+    position: relative;
+}
+
+.kmlTimeline.one .kmlCuepoint .icon{
+    position: absolute;
+    top: 0;
+    height: 47%;
+    width: 20%;
+    left: 50%;
+    color: white;
+    stroke-color: black;
+    transform: translate(-50%, -50%);
+    stroke: rgba(0,0,0,0.25);
+    stroke-width: 1;
+}
+.kmlTimeline.one .kmlCuepoint .icon.quiz{
+    left: 100%;
+    transform: translate(-75%, -50%);   
+}
+
+.kmlTimeline.one.closed .kmlCuepoint .icon{
+    top: 100%;
 }

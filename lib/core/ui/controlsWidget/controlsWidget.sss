@@ -175,3 +175,44 @@
 #controls-widget.active svg.cirlce,#controls-widget:hover svg.cirlce,#controls-widget svg.cirlce.active{
     opacity: 1;
 }
+
+#controls-widget.active .subtitle, #controls-widget:hover .subtitle{
+    top: 22%;
+    left: 33%;
+}
+
+
+button.item{
+    padding: 0;
+    outline: none;
+    border: 0px;
+}
+
+button.item svg{
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+button.item.default svg.default{
+    display: block;
+}
+
+button.item.active svg.active{
+    display: block;
+}
+button.item.middle svg.middle{
+    display: block;
+}
+button.item.mute svg.mute{
+    display: block;
+}
+button.item.off svg.off{
+    display: block;
+}
+button.item.subtitle{
+    opacity: 0.2;
+}
+button.item.subtitle.active{
+    opacity: 1;
+}

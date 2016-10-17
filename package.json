@@ -26,13 +26,13 @@
     "fs-extra": "latest",
     "watch": "latest",
     "live-server": "latest",
+    "rollup-plugin-eslint": "latest",
     "rollup-plugin-commonjs": "latest",
     "rollup-plugin-node-resolve": "latest",
     "rollup-plugin-json": "latest",
     "rollup-plugin-strip": "latest",
     "rollup-plugin-buble": "latest",
     "rollup-plugin-uglify": "latest",
-    "rollup-plugin-riot": "latest",
     "rollup-plugin-filesize": "latest",
     "rollup-plugin-replace": "latest",
     "rollup-plugin-postcss-export": "latest",
@@ -50,7 +50,6 @@
   },
   "dependencies": {
     "eventemitter3": "latest",
-    "tinycolor2": "latest",
-    "riot": "latest"
+    "tinycolor2": "latest"
   }
 }

@@ -1,4 +1,3 @@
-import riot from 'rollup-plugin-riot';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
@@ -7,6 +6,7 @@ import buble from 'rollup-plugin-buble';
 import uglify from 'rollup-plugin-uglify';
 import rollupJson from 'rollup-plugin-json';
 import filesize from 'rollup-plugin-filesize';
+import eslint from 'rollup-plugin-eslint';
 
 import postcss from 'rollup-plugin-postcss-export';
 import postcssImport from 'postcss-import';
@@ -37,8 +37,10 @@ let general = {
 
 if (process.env.NODE_ENV === 'production') {
 	general.sourceMap = false;
-	postCss_plugins.push(postcssClean({aggressiveMerging: true}));
-}else{
+	postCss_plugins.push(postcssClean({
+		aggressiveMerging: true
+	}));
+} else {
 	postCss_plugins.push(perfectionist);
 }
 
@@ -46,14 +48,14 @@ export default {
 	entry: 'app/index.js',
 	plugins: [
 		rollupJson(),
-		// TD: rollup-plugin-postcss-export update to support cache so that rollup can use cache
-		// After this rollup should be used as JS API, no external config like this one
+		// TD: rollup-plugin-postcss-export update to support cache so that rollup can use the rollup's cache system
+		// After this rollup should be used directly from/with JS API
 		postcss({
 			plugins: postCss_plugins,
 			extensions: ['.sss', '.css'],
 			output: 'build/bundle.css'
 		}),
-		// eslint(),
+		eslint(),
 		(process.env.NODE_ENV === 'production' && strip({
 			debugger: true,
 			functions: ['console.log', 'assert.*', 'debug', 'alert'],
@@ -64,11 +66,10 @@ export default {
 			main: true,
 			browser: true
 		}),
-		riot(),
 		commonjs({
-	      exclude: 'node_modules/process-es6/**',
-	      include: []
-	    }),
+			exclude: 'node_modules/process-es6/**',
+			include: []
+		}),
 		buble({
 			transforms: {
 				arrow: true,
@@ -78,8 +79,8 @@ export default {
 			}
 		}),
 		replace({
-			ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-			__VERSION__: "1.0"
+			__VERSION__: "1.0",
+			'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
 		}),
 		(process.env.NODE_ENV === 'production' && uglify()),
 		filesize()
@@ -87,6 +88,6 @@ export default {
 	moduleName: "kmlPlayer",
 	format: "iife",
 	dest: 'build/bundle.js',
-	sourceMap: false, //general.sourceMap,
+	sourceMap: true, //general.sourceMap,
 	sourceMapFile: 'build/bundle.js.map'
 }
