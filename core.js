@@ -16,6 +16,7 @@ let args = process.argv.slice(2);
 let __action__ = args[0] || "build";
 let __env__ = Object.create(process.env);
 __env__.NODE_ENV = process.env.NODE_ENV || 'development';
+let __build_language__ = args[1] || 'es6';
 
 let _logSuccess = function(msg, title) {
   var date = new Date;
@@ -103,9 +104,16 @@ processBeforeClose(function() {
 //rollup
 function rollup(done, error) {
   let er = false;
-  var ls = spawn("npm", ['run', 'rollup'], {
-    env: __env__
-  });
+  var ls = null;
+  if(__build_language__ === "es6"){
+    ls = spawn("npm", ['run', 'rollup'], {
+      env: __env__
+    });
+  }else{
+      ls = spawn("npm", ['run', 'rollup:ts'], {
+      env: __env__
+    });
+  }
   _logSuccess("start", 'ROLLUP');
   ls.stdout.on('data', (data) => {
     let d = data.toString();
@@ -224,11 +232,16 @@ function scorm(done) {
 function init() {
   fs.ensureDirSync("./build");
   fs.stat('./app/index.js', function(err) {
+    _logSuccess(__build_language__, 'LANGUAGE');
     _logSuccess(__env__.NODE_ENV, 'ENVIRONMENT');
     if (err) {
       _logSuccess('boilerplating', 'INIT');
       fs.copySync('./lib/index.html', './app/index.html');
-      fs.ensureFileSync('./app/index.js');
+      if(__build_language__ == "es6"){
+        fs.ensureFileSync('./app/index.js');
+      }else{
+        fs.ensureFileSync('./app/index.ts');
+      }
     }
     switch (__action__) {
       case "serve":
