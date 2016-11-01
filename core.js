@@ -42,7 +42,7 @@ var params_server = {
   mount: [
     ['/assets', './assets'],
     ['/assets', './build'],
-    ['/kmlPlayer.svg', './lib/core/svgSprite/kmlPlayer.svg']
+    ['/assets/kmlPlayer.svg', './lib/core/svgSprite/kmlPlayer.svg']
   ], // Mount a directory to a route. 
   logLevel: 1 // 0 = errors only, 1 = some, 2 = lots 
 };
@@ -129,7 +129,8 @@ function rollup(done, error) {
     if (error) error(code);
   });
   ls.on('close', (code) => {
-    if (done && !er) done(code);
+    //if (done && !er) done(code);
+    if (done) done(code);
   });
 }
 

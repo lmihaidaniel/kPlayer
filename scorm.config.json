@@ -1,13 +1,35 @@
 {
-    "version": "1.2",
-    "author": "The Good Factory",
+	"version": "1.2",
 	"organization": "Kumullus",
-	"title": "KUMULLUS_PROTO",
-	"identifier": "tgf01",
-	"masteryScore": "100",
+	"title": "KUMULLUS PROTO",
+	"identifier": "TGF01",
+	"masteryScore": "80",
+	"language": "fr-FR",
 	"startingPage": "index.html",
+	"source": "./bundle",
 	"package": {
-        "version": "1.0.0",
-        "zip": true
-    }
+		"zip": true,
+		"version": "1.0.0",
+		"outputFolder": "./scorm",
+		"author": "The Good Factory",
+		"keywords": ["test", "interactive", "video", "scorm 1.2"],
+		"educational": "Ce module est un prototype d'homologation intégrant la solution Kumullus. Ce module a pour objectif de former un réseau de vente maquillage pour mieux conseiller la cliente sur les produits et les applications",
+		"description": "Ce module est un prototype d'homologation intégrant la solution Kumullus. Ce module a pour objectif de former un réseau de vente maquillage pour mieux conseiller la cliente sur les produits et les applications",
+		"duration": "PT4M00S",
+		"size": "11209277.44",
+		"typicalDuration": "PT4M00S",
+		"rights": "Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments de cette contenu, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable de : The Good Factory.",
+		"requirements": [{
+			"type": "Browser",
+			"name": "Microsoft Internet Explorer",
+			"version": 9.0
+		}],
+		"status": "final",
+		"vcard": {
+			"tel": "+33(0)645545347",
+			"mail": "contact@kumullus.com",
+			"url": "http://www.kumullus.com/",
+			"address": "43 RUE CAMILLE DESMOULINS;F-92130;ISSY-LES-MOULINEAUX"
+		}
+	}
 }

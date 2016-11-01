@@ -57,7 +57,7 @@
     "perfectionist": "latest",
     "precss":"latest",
     "simple-scorm-packager": "latest",
-    "pipwerks-scorm-api-wrapper": "latest"
+    "simple-scorm-wrapper": "latest"
   },
   "dependencies": {
     "eventemitter3": "latest",
