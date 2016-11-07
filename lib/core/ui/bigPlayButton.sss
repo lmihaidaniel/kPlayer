@@ -1,3 +1,4 @@
+@import '../_colors.sss';
 .kmlBigPlay{
   position: absolute;
   top: 0;
@@ -43,7 +44,7 @@
 
 
 .kmlBigPlayButton:hover {
-    color: #23db90;
+    color: $color-primary;
 }
 
 .kmlBigPlayButton .triangle {
@@ -56,7 +57,7 @@
 .kmlBigPlayButton:hover .triangle {
   stroke-dashoffset: 0;
   opacity: 1;
-  stroke: #23db90;
+  stroke: $color-primary;
   animation: nudge 0.7s ease-in-out;
 }
 @keyframes nudge {
@@ -77,7 +78,7 @@
   }
 }
 .kmlBigPlayButton .circle {
-    stroke: #23db90;
+    stroke: $color-primary;
     stroke-dasharray: 650;
     stroke-dashoffset: 650;
     transition: all 0.5s ease-in-out;

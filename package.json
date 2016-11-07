@@ -60,7 +60,6 @@
     "simple-scorm-wrapper": "latest"
   },
   "dependencies": {
-    "eventemitter3": "latest",
-    "tinycolor2": "latest"
+    "eventemitter3": "latest"
   }
 }
