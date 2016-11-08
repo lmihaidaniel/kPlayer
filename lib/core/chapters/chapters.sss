@@ -59,13 +59,15 @@
 .kmlCuepoint-markers{
     position: absolute;
     top: 0;
+    z-index: 1;
 }
 
 .kmlCuepoint-marker-point {
-  background: url('img/cuepoint.svg') no-repeat;
+  background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7) repeat;
+  background-image: url('img/cuepoint.svg');
   background-size: 100%;
-  width: .5em;
-  height: .5em;
+  width: 1em;
+  height: 1em;
   position: absolute;
   transform: translate(-50%, -50%);
   cursor: pointer;
