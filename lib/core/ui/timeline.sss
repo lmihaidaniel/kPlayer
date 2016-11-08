@@ -11,7 +11,6 @@
   transition: opacity .25s ease;
   transition: opacity 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
-
 .kmlTimeline:before{
 	content: "";
 	bottom: 0;
@@ -26,11 +25,9 @@
     pointer-events: none;
     padding: .5% 0;
 }
-
 .kmlTimeline.hidden{
 	opacity: 0!important;
 }
-
 .kmlTimeline button{
 	position: absolute;
 	top: 0;
@@ -46,14 +43,12 @@
 	transition: top .15s ease;
     transition: top 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
-
 .kmlTimeline button svg{
 	width: 60%;
     height: 60%;
     top: 20%;
     left: 20%;
 }
-
 .kmlProgress{
 	position: absolute;
 	top: 0;
@@ -83,7 +78,6 @@
 	background-color: white;
 	pointer-events: none;
 }
-
 .kmlCuepoints{
 	position: absolute;
 	top: 0;
@@ -92,16 +86,15 @@
 	transition: all .25s ease;
     transition: all 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
-
 .kmlTimeline.closed button{
 	top: 100%;
 }
-.kmlTimeline.closed .kmlProgress, .kmlTimeline.closed .kmlCuepoints{
+.kmlTimeline.closed .kmlProgress{
 	left: 0!important;
 	right: 0!important;
 	width: 100%!important;
 }
-.kmlTimeline.closed .kmlProgress:before,.kmlTimeline.closed .kmlProgress .progressline{
+.kmlTimeline.closed .kmlProgress:before{
 	top: 90%;
 	height: 10%;
 }
