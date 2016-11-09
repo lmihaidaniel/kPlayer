@@ -20,13 +20,13 @@ __env__.NODE_ENV = process.env.NODE_ENV || 'development';
 let _logSuccess = function(msg, title) {
   var date = new Date;
   var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
-  console.log('[' + time + ']', title||'build', "'" + '\x1b[32m' + msg + '\x1b[0m' + "'");
+  console.log('[' + time + ']', title || 'build', "'" + '\x1b[32m' + msg + '\x1b[0m' + "'");
 };
 
 let _logError = function(err, title) {
   var date = new Date;
   var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
-  console.log('[' + time + ']', title||'build', '\x1b[31m', err, '\x1b[0m');
+  console.log('[' + time + ']', title || 'build', '\x1b[31m', err, '\x1b[0m');
 };
 
 //live-server
@@ -90,11 +90,11 @@ var processBeforeClose = function processBeforeClose(callback) {
 };
 
 processBeforeClose(function() {
-  for(var k in watchMonitors){
+  for (var k in watchMonitors) {
     let watchMonitor = watchMonitors[k];
-    if(watchMonitor['stop']){
-        watchMonitor.stop();
-        watchMonitor = null;
+    if (watchMonitor['stop']) {
+      watchMonitor.stop();
+      watchMonitor = null;
     }
   }
   server_close();
@@ -103,25 +103,28 @@ processBeforeClose(function() {
 //rollup
 function rollup(done, error) {
   let er = false;
-  var ls = null;
-      ls = spawn("npm", ['run', 'rollup:ts'], {
-      env: __env__
-    });
-  _logSuccess("start", 'ROLLUP');
-  ls.stdout.on('data', (data) => {
-    let d = data.toString();
-    if(!d.startsWith("\n>")) console.log(d);
+  var workerProcess = null;
+  workerProcess = spawn("npm", ['run', 'rollup'], {
+    env: __env__
   });
-  ls.stderr.on('data', function(data) {
+  _logSuccess("start", 'ROLLUP');
+  workerProcess.stdout.on('data', (data) => {
+    let d = data.toString();
+    if (!d.startsWith("\n>")) console.log(d);
+  });
+  workerProcess.stderr.on('data', (data) => {
     er = true;
     let d = data.toString();
-    if(d.startsWith("Error")) _logError(d, '!!!');
-    if(d.startsWith("SyntaxError")) _logError(d, '!!!');
+    if (d.startsWith("Error")) _logError(d, '!!!');
+    if (d.startsWith("SyntaxError")) _logError(d, '!!!');
   });
-  ls.on('error', (code) => {
-    if (error) error(code);
+  workerProcess.on('error', (err) => {
+    _logError(err, '!!!');
   });
-  ls.on('close', (code) => {
+  workerProcess.on('uncaughtException', function(err) {
+    _logError(err, '!!!');
+  });
+  workerProcess.on('close', (code) => {
     //if (done && !er) done(code);
     if (done) done(code);
   });
@@ -136,9 +139,9 @@ function build(done, error) {
 function serve(done, error) {
   // fs.ensureDirSync('./assets');
   build(function() {
-    watch(function(){
+    watch(function() {
       liveserver.start(params_server);
-    });  
+    });
   });
 }
 
@@ -147,13 +150,13 @@ function watch(done) {
   let t = 0;
   watchDeamon.createMonitor('./app', function(monitor) {
     watchMonitors.push(monitor);
-    monitor.files['./app/**/*.html','./app/**/*.js', './app/**/*.sss'];
+    monitor.files['./app/**/*.html', './app/**/*.js', './app/**/*.sss'];
     monitor.on("changed", function(f, curr, prev) {
       _logSuccess(f, 'file changed');
       rollup();
     });
-    t+=1;
-    if(t==2 && done){
+    t += 1;
+    if (t == 2 && done) {
       done();
     }
   })
@@ -164,8 +167,8 @@ function watch(done) {
       _logSuccess(f, 'file changed');
       rollup();
     });
-    t+=1;
-    if(t==2 && done){
+    t += 1;
+    if (t == 2 && done) {
       done();
     }
   });
@@ -180,10 +183,10 @@ function package_init(done, error) {
           fs.copySync('./app/index.html', './bundle/index.html');
           fs.copySync('./build/bundle.css', './bundle/assets/bundle.css');
           fs.copySync('./build/bundle.js', './bundle/assets/bundle.js');
-          if(__env__.NODE_ENV != "production") {
+          if (__env__.NODE_ENV != "production") {
             fs.copySync('./build/bundle.js.map', './bundle/assets/bundle.js.map');
           }
-          fs.copy('./assets/', './bundle/assets/', function(err){
+          fs.copy('./assets/', './bundle/assets/', function(err) {
             __next__(err, function() {
               _logSuccess("created", 'BUNDLE');
               if (done) done();
@@ -198,7 +201,7 @@ function package_init(done, error) {
 }
 
 function package_create(done, error) {
-  rollup(function(){
+  rollup(function() {
     _logSuccess("init", 'BUNDLE');
     package_init(done, error);
   });
@@ -208,17 +211,17 @@ function package_create(done, error) {
 function scorm(done) {
   if (sco_settings) {
     package_create(function() {
-          scopackage({
-            author: sco_settings.author,
-            version: sco_settings.version, // '1.2', '2004 3rd Edition', '2004 4th Edition'
-            organization: sco_settings.organization, //{String} Company name
-            title: sco_settings.title, // {String}
-            identifier: sco_settings.identifier, // {String} Uses 0 and course title if left empty
-            masteryScore: sco_settings.masteryScore, //{Number} Uses 80 if left empty
-            startingPage: sco_settings.startingPage, //Uses index.html if left empty
-            package: sco_settings.package,
-            source: 'bundle'
-          }, done);
+      scopackage({
+        author: sco_settings.author,
+        version: sco_settings.version, // '1.2', '2004 3rd Edition', '2004 4th Edition'
+        organization: sco_settings.organization, //{String} Company name
+        title: sco_settings.title, // {String}
+        identifier: sco_settings.identifier, // {String} Uses 0 and course title if left empty
+        masteryScore: sco_settings.masteryScore, //{Number} Uses 80 if left empty
+        startingPage: sco_settings.startingPage, //Uses index.html if left empty
+        package: sco_settings.package,
+        source: 'bundle'
+      }, done);
     });
   }
 }
