@@ -1,10 +1,10 @@
 //sytem related
 var fs = require('fs-extra'),
   path = require('path'),
-  url = require('url'),
-  spawn = require('child_process').spawn;
+  url = require('url');
 //build related
 var pkg = require('./package.json'),
+  rollitup = require('./core.rollup.js'),
   watchDeamon = require('watch'),
   liveserver = require('live-server'),
   watchMonitors = [];
@@ -100,34 +100,16 @@ processBeforeClose(function() {
   server_close();
 });
 
+
 //rollup
-function rollup(done, error) {
-  let er = false;
-  var workerProcess = null;
-  workerProcess = spawn("npm", ['run', 'rollup'], {
-    env: __env__
-  });
+function rollup(done) {
   _logSuccess("start", 'ROLLUP');
-  workerProcess.stdout.on('data', (data) => {
-    let d = data.toString();
-    if (!d.startsWith("\n>")) console.log(d);
-  });
-  workerProcess.stderr.on('data', (data) => {
-    er = true;
-    let d = data.toString();
-    if (d.startsWith("Error")) _logError(d, '!!!');
-    if (d.startsWith("SyntaxError")) _logError(d, '!!!');
-  });
-  workerProcess.on('error', (err) => {
-    _logError(err, '!!!');
-  });
-  workerProcess.on('uncaughtException', function(err) {
-    _logError(err, '!!!');
-  });
-  workerProcess.on('close', (code) => {
-    //if (done && !er) done(code);
-    if (done) done(code);
-  });
+  rollitup({
+    name: pkg.name,
+    version: pkg.version,
+    entry: path.normalize(pkg['jsnext:main']),
+    dest: path.normalize(pkg.main)
+  }, done);
 }
 
 //build
@@ -238,6 +220,9 @@ function init() {
       fs.copySync('./lib/boilerplate/_colors.sss', './app/_colors.sss');
     }
     switch (__action__) {
+      case "rollup":
+        rollup();
+        return;
       case "serve":
         serve();
         return;
