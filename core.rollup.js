@@ -61,12 +61,9 @@ let rollitup = function(pkg, done) {
 		cache: cache,
 		plugins: [
 			rollupJson(),
-			// TD: rollup-plugin-postcss-export update to support cache so that rollup can use the rollup's cache system
-			// After this rollup should be used directly from/with JS API
 			postcss({
 				plugins: postCss_plugins,
-				extensions: ['.sss', '.css'],
-				output: 'build/bundle.css'
+				output: pkg.dest.replace('.js', '.css')
 			}),
 			eslint(),
 			(process.env.NODE_ENV === 'production' && strip({
@@ -108,9 +105,11 @@ let rollitup = function(pkg, done) {
 			format: "iife",
 			dest: pkg.dest,
 			sourceMap: true,
-			sourceMapFile: pkg.dest+'.map'
+			sourceMapFile: pkg.dest + '.map'
 		});
-		if (typeof(done) == 'function') { done(); }
+		if (typeof(done) == 'function') {
+			done();
+		}
 	});
 }
 module.exports = rollitup;
