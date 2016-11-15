@@ -1,4 +1,4 @@
-<img src="http://player.kumullus.com/assets/logo.svg" width="15%">
+![Project Logo][project-image]
 
 ## HTML VIDEO PLAYER
 
@@ -23,7 +23,7 @@ Created and Maintained by [Mihai Lacatusu](https://github.com/lmihaidaniel)
 
 
 http://player.kumullus.com/
-
+[project-image]:http://player.kumullus.com/assets/logo.svg
 [version-image]:https://img.shields.io/badge/version-1.0.0-green.svg?style=flat-square
 [docs-image]:https://img.shields.io/badge/docs-45%25-orange.svg?style=flat-square
 [license-image]:https://img.shields.io/badge/license-GPL-blue.svg?style=flat-square

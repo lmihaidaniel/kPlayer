@@ -43,7 +43,7 @@ var params_server = {
     ['/assets', './build'],
     ['/assets/kmlPlayer.svg', './lib/core/svgSprite/kmlPlayer.svg']
   ], // Mount a directory to a route. 
-  logLevel: 1 // 0 = errors only, 1 = some, 2 = lots 
+  logLevel: 0 // 0 = errors only, 1 = some, 2 = lots 
 };
 
 //helper+utilities functions
@@ -102,14 +102,14 @@ processBeforeClose(function() {
 
 
 //rollup
-function rollup(done) {
+function rollup(done, donePostCss) {
   _logSuccess("init", 'ROLLUP');
   rollitup({
     name: pkg.name,
     version: pkg.version,
     entry: path.normalize(pkg['jsnext:main']),
     dest: path.normalize(pkg.main)
-  }, done);
+  }, done, donePostCss);
 }
 
 //build
@@ -183,7 +183,7 @@ function package_init(done, error) {
 }
 
 function package_create(done, error) {
-  rollup(function() {
+  rollup(null, function() {
     _logSuccess("init", 'BUNDLE');
     package_init(done, error);
   });

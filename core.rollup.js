@@ -49,7 +49,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // used to track the cache for subsequent bundles
 let cache = null;
-let rollitup = function(pkg, done) {
+let rollitup = function(pkg, done, donePostCss) {
 	rollup.rollup({
 		// The bundle's starting point. This file will be
 		// included, along with the minimum necessary code
@@ -64,7 +64,7 @@ let rollitup = function(pkg, done) {
 				plugins: postCss_plugins,
 				parse: true,
 				output: pkg.dest.replace('.js', '.css')
-			}),
+			}, donePostCss),
 			rollupJson(),
 			(process.env.NODE_ENV !== 'production' && eslint()),
 			(process.env.NODE_ENV === 'production' && strip({
