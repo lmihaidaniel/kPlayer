@@ -103,7 +103,7 @@ processBeforeClose(function() {
 
 //rollup
 function rollup(done) {
-  _logSuccess("start", 'ROLLUP');
+  _logSuccess("init", 'ROLLUP');
   rollitup({
     name: pkg.name,
     version: pkg.version,
