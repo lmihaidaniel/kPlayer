@@ -60,17 +60,26 @@ let rollitup = function(pkg, done) {
 		// This is entirely optional!
 		cache: cache,
 		plugins: [
-			rollupJson(),
 			postcss({
 				plugins: postCss_plugins,
+				parse: true,
 				output: pkg.dest.replace('.js', '.css')
 			}),
-			eslint(),
+			rollupJson(),
+			(process.env.NODE_ENV !== 'production' && eslint()),
 			(process.env.NODE_ENV === 'production' && strip({
 				debugger: true,
 				functions: ['console.log', 'assert.*', 'debug', 'alert'],
 				sourceMap: false
 			})),
+			buble({
+				transforms: {
+					arrow: true,
+					modules: true,
+					classes: true,
+					dangerousForOf: true
+				}
+			}),
 			nodeResolve({
 				jsnext: true,
 				main: true,
@@ -80,20 +89,18 @@ let rollitup = function(pkg, done) {
 				exclude: 'node_modules/process-es6/**',
 				include: []
 			}),
-			buble({
-				transforms: {
-					arrow: true,
-					modules: true,
-					classes: true,
-					dangerousForOf: true
-				}
-			}),
 			replace({
 				__VERSION__: "1.0",
 				'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
 			}),
 			(process.env.NODE_ENV === 'production' && uglify()),
-			filesize()
+			filesize({
+				render: function(o, s, g) {
+					var date = new Date;
+					var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+					return '[' + time + '] '+'BUNDLE SIZE '+ "'" + '\x1b[32m' + s + '\x1b[0m' + "'";
+				}
+			})
 		]
 	}).then(function(bundle) {
 		// Cache our bundle for later use (optional)
@@ -101,10 +108,10 @@ let rollitup = function(pkg, done) {
 		// rollup generate bundle
 		bundle.write({
 			banner: '/*! ' + pkg.name + ' - v' + pkg.version + ' */',
-			moduleName: "kmlPlayer",
+			moduleName: pkg.name,
 			format: "iife",
 			dest: pkg.dest,
-			sourceMap: true,
+			sourceMap: general.sourceMap,
 			sourceMapFile: pkg.dest + '.map'
 		});
 		if (typeof(done) == 'function') {
