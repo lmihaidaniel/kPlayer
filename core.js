@@ -14,6 +14,7 @@ var sco_settings = require('./scorm.config.json'),
 
 let args = process.argv.slice(2);
 let __action__ = args[0] || "build";
+let __format__ = args[1] || "iife";
 let __env__ = Object.create(process.env);
 __env__.NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -38,6 +39,7 @@ var params_server = {
   ignore: 'sass,videos', // comma-separated string for paths to ignore 
   //file: "index.html", // When set, serve this file for every 404 (useful for single-page applications) 
   //wait: 0, // Waits for all changes, before reloading. Defaults to 0 sec. 
+  wait: 1,
   mount: [
     ['/assets', './assets'],
     ['/assets', './build'],
@@ -102,26 +104,22 @@ processBeforeClose(function() {
 
 
 //rollup
-function rollup(done, donePostCss) {
+function rollup(doneAfterJS, doneAfterJSandCSS) {
   _logSuccess("init", 'ROLLUP');
   rollitup({
     name: pkg.name,
     version: pkg.version,
     entry: path.normalize(pkg['jsnext:main']),
-    dest: path.normalize(pkg.main)
-  }, done, donePostCss);
-}
-
-//build
-function build(done, error) {
-  rollup(done, error);
+    dest: path.normalize(pkg.main),
+    format: __format__
+  }, doneAfterJS, doneAfterJSandCSS);
 }
 
 //serve
-function serve(done, error) {
+function serve() {
   // fs.ensureDirSync('./assets');
-  build(function() {
-    watch(function() {
+  rollup(null, function() {
+   watch(function() {
       liveserver.start(params_server);
     });
   });
@@ -132,7 +130,7 @@ function watch(done) {
   let t = 0;
   watchDeamon.createMonitor('./app', function(monitor) {
     watchMonitors.push(monitor);
-    monitor.files['./app/**/*.html', './app/**/*.js', './app/**/*.sss'];
+    monitor.files['./app/**/*.js', './app/**/*.sss'];
     monitor.on("changed", function(f, curr, prev) {
       _logSuccess(f, 'file changed');
       rollup();
@@ -220,9 +218,6 @@ function init() {
       fs.copySync('./lib/boilerplate/_colors.sss', './app/_colors.sss');
     }
     switch (__action__) {
-      case "rollup":
-        rollup();
-        return;
       case "serve":
         serve();
         return;
@@ -233,7 +228,7 @@ function init() {
         scorm();
         return;
       default:
-        build();
+        rollup();
         return;
     }
   });

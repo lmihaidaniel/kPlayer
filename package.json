@@ -6,6 +6,7 @@
   "license": "GPL-3.0",
   "jsnext:main": "./app/index.js",
   "main": "./build/bundle.js",
+  "strict-mode": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "rollup": " node core rollup",
@@ -26,9 +27,11 @@
     "fs-extra": "latest",
     "watch": "latest",
     "live-server": "latest",
+    "rollup": "latest",
     "rollup-plugin-eslint": "latest",
     "rollup-plugin-commonjs": "latest",
     "rollup-plugin-node-resolve": "latest",
+    "rollup-plugin-node-globals": "latest",
     "rollup-plugin-json": "latest",
     "rollup-plugin-strip": "latest",
     "rollup-plugin-buble": "latest",
@@ -46,7 +49,9 @@
     "perfectionist": "latest",
     "precss":"latest",
     "simple-scorm-packager": "latest",
-    "simple-scorm-wrapper": "latest"
+    "simple-scorm-wrapper": "latest",
+    "vue": "latest",
+    "rollup-plugin-vue2": "latest"
   },
   "dependencies": {
     "eventemitter3": "latest"
