@@ -80,3 +80,86 @@
 .kmlTimeline.closed .kmlCuepoint-marker-point{
   display: none;
 }
+
+.kmlCuepoint-marker-point .menu{
+    background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7) repeat;
+    opacity: 0;
+    position: absolute;
+    width: 400%;
+    height: 200%;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: opacity .25s ease;
+}
+
+.kmlCuepoint-marker-point:hover .menu{
+    opacity: 1;
+}
+
+.kmlCuepoint-marker-point .menu .item{
+    background: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7) repeat;
+    background-image: url('img/circle_full.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    position: absolute;
+    width: .2em;
+    height: .2em;
+    top: 150%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: none;
+    opacity: 0;
+    transition: all .25s ease;
+    transition: all 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.kmlCuepoint-marker-point:hover .menu .item{
+  opacity: 1;
+  top: 50%;
+  width: .8em;
+  height: .8em;
+}
+
+.kmlCuepoint-marker-point .menu:hover .item span{
+  opacity: 0;
+  position: absolute;
+  font-size: 50%;
+  left: 50%;
+  bottom: -100%; 
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  transition: all .25s ease;
+  transition: all 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.kmlCuepoint-marker-point:hover .menu .item:hover span{
+  opacity: 1;
+  bottom: 100%;
+}
+.kmlCuepoint-marker-point:hover .menu .item:hover {
+  width: 1em;
+  height: 1em;
+}
+
+.kmlCuepoint-marker-point:hover .menu .item:first-child{
+  left: 12.5%;
+}
+.kmlCuepoint-marker-point:hover .menu .item:last-child{
+  left: 87.5%;
+}
+
+.kmlCuepoint-marker-point .menu .item span{
+  display: none;
+  white-space: nowrap;
+}
+
+.kmlCuepoint-marker-point .menu:hover .item span{
+  display: block;
+}
+
+.kmlCuepoint.center span, .kmlTimeline.one .kmlCuepoint.center span{
+  text-align: center;
+  padding: 0;
+}

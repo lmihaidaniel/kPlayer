@@ -176,43 +176,66 @@
     opacity: 1;
 }
 
-#controls-widget.active .subtitle, #controls-widget:hover .subtitle{
+#controls-widget.active .subtitle, #controls-widget:hover .subtitle, #controls-widget.active .url, #controls-widget:hover .url{
     top: 22%;
     left: 33%;
 }
 
+#controls-widget button, #controls-widget .button{
+    font-size: 100%;
+}
+#controls-widget button a, #controls-widget .button a{
+    width: 100%;
+    height: 100%;
+    color: white;
+    font-size: 100%;
+}
 
-button.item{
+#controls-widget button span, #controls-widget .button span{
+    display: inline-block;
+    position: absolute;
+    left: 400%;
+    white-space: nowrap;
+    top: 50%;
+    transform: translate(-100%, -50%);
+    transition: all .25s ease;
+    font-size: 60%;
+    opacity: 0;
+}
+
+#controls-widget button:hover span, #controls-widget .button:hover span{
+    left: 0;
+    opacity: 1;
+}
+
+
+button.item, .button.item{
     padding: 0;
     outline: none;
     border: 0px;
 }
 
-button.item svg{
+button.item svg, .button.item svg{
+    width: 100%;
+    height: 100%;
+}
+
+button.item div, .button.item div{
     width: 100%;
     height: 100%;
     display: none;
 }
 
-button.item.default svg.default{
+button.item.default .default, button.item.active .active, button.item.middle .middle, button.item.mute .mute, button.item.off .off{
+    display: block;
+}
+.button.item.default .default, .button.item.active .active, .button.item.middle .middle, .button.item.mute .mute, .button.item.off .off{
     display: block;
 }
 
-button.item.active svg.active{
-    display: block;
-}
-button.item.middle svg.middle{
-    display: block;
-}
-button.item.mute svg.mute{
-    display: block;
-}
-button.item.off svg.off{
-    display: block;
-}
-button.item.subtitle{
+button.item.subtitle, .button.item.subtitle{
     opacity: 0.2;
 }
-button.item.subtitle.active{
+button.item.subtitle.active, .button.item.subtitle.active{
     opacity: 1;
 }
