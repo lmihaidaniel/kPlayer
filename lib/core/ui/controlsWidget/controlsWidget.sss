@@ -2,7 +2,7 @@
 
 #controls-widget .settings, #controls-widget .close{
     position: absolute;
-    color: white;
+    color: $color-green;
     width: 10%;
     height: 10%;
     top: 45%;
@@ -20,7 +20,7 @@
 
 #controls-widget .item{
     position: absolute;
-    color: white;
+    color: $color-green;
     cursor: pointer;
     top: 43.75%;
     left: 37.5%;
@@ -33,7 +33,7 @@
     left: 40%;
 
     border-radius: 50%;
-    background-color: $color-primary;
+    background-color: transparent;
     transition: all .2s ease;
 }
 
@@ -43,7 +43,7 @@
 
 #controls-widget .languages{
     position: absolute;
-    color: white;
+    color: $color-green;
     cursor: pointer;
     top: 55%;
     left: 55%;
@@ -133,6 +133,7 @@
 
 #controls-widget.active:before, #controls-widget:hover:before {
     transform: scale3d(3, 3, 1);
+    background-color: $color-primary-transparent;
     transition-timing-function: cubic-bezier(.68, 1.55, .265, 1);
 }
 
@@ -187,13 +188,14 @@
 #controls-widget button a, #controls-widget .button a{
     width: 100%;
     height: 100%;
-    color: white;
+    color: $color-green;
     font-size: 100%;
 }
 
 #controls-widget button span, #controls-widget .button span{
     display: inline-block;
     position: absolute;
+    color: white;
     left: 400%;
     white-space: nowrap;
     top: 50%;

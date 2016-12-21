@@ -1,0 +1,38 @@
+@import "../../_colors.sss";
+
+@-webkit-keyframes rotate {
+  50% {
+    -webkit-transform: rotate(360deg) scale(1.25) translate(-50%,-50%);
+  }
+}
+
+@keyframes rotate {
+  50% {
+    -webkit-transform: rotate(360deg) scale(1.25) translate(-50%,-50%);
+    transform: rotate(360deg) scale(1.25) translate(-50%,-50%);
+  }
+}
+
+.spinner {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  border-radius: 2px;
+  box-shadow: -8px 0 0 3px $color-green, 0 -8px 0 3px $color-green, 8px 0 0 3px $color-green, 0 8px 0 3px $color-green;
+  -webkit-animation: rotate 3s ease-in-out infinite;
+  animation: rotate 3s ease-in-out infinite;
+  .spinner {
+    top: 0;
+    left: 0;
+    opacity: 0.25;
+  }
+  &.show{
+    display: block;
+    .spinner {
+      display: block;
+    }
+  }
+}
