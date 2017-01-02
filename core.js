@@ -109,6 +109,8 @@ function rollup(doneAfterJS, doneAfterJSandCSS) {
   rollitup({
     name: pkg.name,
     version: pkg.version,
+    license: pkg.license,
+    author: pkg.author,
     entry: path.normalize(pkg['jsnext:main']),
     dest: path.normalize(pkg.main),
     format: __format__
