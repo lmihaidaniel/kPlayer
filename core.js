@@ -7,7 +7,7 @@ var pkg = require('./package.json'),
   rollitup = require('./core.rollup.js'),
   watchDeamon = require('watch'),
   liveserver = require('live-server'),
-  watchMonitors = [];
+  watchMonitor = {};
 //package & scorm related
 var sco_settings = require('./scorm.config.json'),
   scopackage = require('simple-scorm-packager');
@@ -92,12 +92,9 @@ var processBeforeClose = function processBeforeClose(callback) {
 };
 
 processBeforeClose(function() {
-  for (var k in watchMonitors) {
-    let watchMonitor = watchMonitors[k];
-    if (watchMonitor['stop']) {
-      watchMonitor.stop();
-      watchMonitor = null;
-    }
+  if (watchMonitor['stop']) {
+    watchMonitor.stop();
+    watchMonitor = {};
   }
   server_close();
 });
@@ -128,32 +125,31 @@ function serve() {
 }
 
 //watch
+//watch
 function watch(done) {
-  let t = 0;
-  watchDeamon.createMonitor('./app', function(monitor) {
-    watchMonitors.push(monitor);
-    monitor.files['./app/**/*.js', './app/**/*.sss'];
-    monitor.on("changed", function(f, curr, prev) {
-      _logSuccess(f, 'file changed');
-      rollup();
+  let on_change = (f, type) => {
+    _logSuccess(f, 'file ' + type);
+    rollup();
+  }
+  watchDeamon.createMonitor('./', {
+    ignoreDotFiles: true,
+    filter: function (t) {
+      if (t.indexOf("lib") === 0 || t.indexOf("app") === 0) {
+        return true;
+      }
+    }
+  }, function (monitor) {
+    watchMonitor = monitor;
+    monitor.files['**/*.js', '**/*.sss', '**/*.scss', '**/*.less', '**/*.css', '**/*.html'];
+    ["created", "changed", "removed"].map((t) => {
+      monitor.on(t, (f, curr, prev) => {
+        on_change(f, t)
+      })
     });
-    t += 1;
-    if (t == 2 && done) {
+    if (done) {
       done();
     }
   })
-  watchDeamon.createMonitor('./lib', function(monitor) {
-    watchMonitors.push(monitor);
-    monitor.files['./lib/**/*.js', './lib/**/*.sss'];
-    monitor.on("changed", function(f, curr, prev) {
-      _logSuccess(f, 'file changed');
-      rollup();
-    });
-    t += 1;
-    if (t == 2 && done) {
-      done();
-    }
-  });
 }
 
 //packaging
