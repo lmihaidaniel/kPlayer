@@ -7,6 +7,7 @@
   "jsnext:main": "./app/index.js",
   "main": "./build/bundle.js",
   "strict-mode": true,
+  "language": "fr",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "rollup": " node core rollup",

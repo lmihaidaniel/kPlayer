@@ -96,6 +96,7 @@ let rollitup = function(pkg, done, donePostCss) {
 			}),
 			globals(),
 			replace({
+				__LANGUAGE__: pkg.language,
 				__VERSION__: JSON.stringify(pkg.version),
 				'process.env.VUE_ENV': JSON.stringify('browser'),
 				'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')

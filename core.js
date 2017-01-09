@@ -108,6 +108,7 @@ function rollup(doneAfterJS, doneAfterJSandCSS) {
     version: pkg.version,
     license: pkg.license,
     author: pkg.author,
+    language: pkg.language || "fr",
     entry: path.normalize(pkg['jsnext:main']),
     dest: path.normalize(pkg.main),
     format: __format__
